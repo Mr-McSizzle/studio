@@ -11,7 +11,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        headline: ['Inter', 'sans-serif'], // Consider a more stylized font if available for headlines
         code: ['monospace'],
       },
       colors: {
@@ -88,11 +88,26 @@ export default {
             height: '0',
           },
         },
+        'subtle-pulse': {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.85', transform: 'scale(1.02)' },
+        },
+        'glow': {
+          '0%, 100%': { boxShadow: '0 0 5px hsl(var(--accent))' },
+          '50%': { boxShadow: '0 0 15px hsl(var(--accent))' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'subtle-pulse': 'subtle-pulse 2s ease-in-out infinite',
+        'glow': 'glow 2.5s ease-in-out infinite alternate',
       },
+      boxShadow: {
+        'gold-glow-sm': '0 0 8px 0px hsl(var(--accent) / 0.5)',
+        'gold-glow-md': '0 0 15px 2px hsl(var(--accent) / 0.6)',
+        'card-deep': '0 10px 25px -5px hsl(var(--background) / 0.5), 0 8px 10px -6px hsl(var(--background) / 0.7)',
+      }
     },
   },
   plugins: [require('tailwindcss-animate')],
