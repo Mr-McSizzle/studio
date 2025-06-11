@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { FormEvent } from "react";
-import { mentorConversation, type MentorConversationInput } from "@/ai/flows/mentor-conversation";
+import { mentorConversation, type MentorConversationInput, type MentorConversationOutput } from "@/ai/flows/mentor-conversation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,6 +12,7 @@ import type { ChatMessage as ChatMessageType } from "@/types";
 import { SendHorizonal, Loader2, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAiMentorStore } from "@/store/aiMentorStore"; // Import the new store
 
 
 export function ChatInterface() {
@@ -20,6 +21,7 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { setGuidance } = useAiMentorStore(); // Get the action from the store
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -28,15 +30,17 @@ export function ChatInterface() {
   }, [messages]);
   
   useEffect(() => {
+    const initialGreeting = "Greetings! I am your AI Hive Mind Assistant for ForgeSim. I'll help synthesize insights and provide personalized guidance for your startup simulation. How can I assist you today, or would you like a suggestion on what to do next?";
     setMessages([
       {
         id: "initial-hivemind-greeting",
         role: "assistant",
-        content: "Greetings! I am your AI Hive Mind Assistant for ForgeSim. I'll help synthesize insights and provide personalized guidance for your startup simulation. How can I assist you today?",
+        content: initialGreeting,
         timestamp: new Date(),
       }
     ]);
-  }, []);
+    setGuidance(initialGreeting); // Set initial guidance in the global store
+  }, [setGuidance]);
 
 
   const handleSubmit = async (e: FormEvent) => {
@@ -55,7 +59,7 @@ export function ChatInterface() {
 
     try {
       const conversationHistoryForAI = messages
-        .filter(msg => msg.role === 'user' || msg.role === 'assistant') // Only send user and assistant messages
+        .filter(msg => msg.role === 'user' || msg.role === 'assistant')
         .map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content }));
       
       const mentorInput: MentorConversationInput = {
@@ -63,7 +67,7 @@ export function ChatInterface() {
         conversationHistory: [...conversationHistoryForAI, {role: 'user', content: newUserMessage.content}],
       };
       
-      const result = await mentorConversation(mentorInput);
+      const result: MentorConversationOutput = await mentorConversation(mentorInput);
 
       const newMentorMessage: ChatMessageType = {
         id: `mentor-${Date.now()}`,
@@ -72,6 +76,8 @@ export function ChatInterface() {
         timestamp: new Date(),
       };
       setMessages((prevMessages) => [...prevMessages, newMentorMessage]);
+      setGuidance(result.response, result.suggestedNextAction); // Update global guidance bar
+
     } catch (error) {
       console.error("Error getting Hive Mind response:", error);
       toast({
@@ -86,13 +92,14 @@ export function ChatInterface() {
         timestamp: new Date(),
       };
       setMessages((prevMessages) => [...prevMessages, errorResponseMessage]);
+      setGuidance("Sorry, I encountered an error. Please try again."); // Update guidance bar with error
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)] max-h-[700px] bg-card shadow-lg rounded-lg">
+    <div className="flex flex-col h-[calc(100vh-16rem)] max-h-[600px] bg-card shadow-lg rounded-lg">
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-2">
           {messages.map((msg) => (
@@ -124,7 +131,7 @@ export function ChatInterface() {
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ask your AI Hive Mind..."
+          placeholder="Ask your AI Hive Mind, or type 'what next?'"
           className="flex-grow"
           disabled={isLoading}
           aria-label="User input for AI Hive Mind"

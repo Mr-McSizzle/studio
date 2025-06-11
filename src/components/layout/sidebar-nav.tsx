@@ -10,7 +10,7 @@ import {
   Box,
   Trophy,
   PanelLeft,
-  Rocket, // Added Rocket icon
+  Rocket,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -26,11 +26,11 @@ import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/setup", label: "Setup Simulation", icon: Rocket }, // New item
-  { href: "/app/mentor", label: "AI Mentor", icon: MessageSquare },
-  { href: "/app/strategy", label: "Strategy", icon: Lightbulb },
-  { href: "/app/simulation", label: "Simulation", icon: Box },
-  { href: "/app/gamification", label: "Gamification", icon: Trophy },
+  { href: "/app/setup", label: "Setup Simulation", icon: Rocket },
+  { href: "/app/mentor", label: "Hive Mind Assistant", icon: MessageSquare }, // Changed label
+  { href: "/app/strategy", label: "Strategy & Analytics", icon: Lightbulb }, // Changed label
+  { href: "/app/simulation", label: "Decision Controls", icon: Box }, // Changed label
+  { href: "/app/gamification", label: "Milestones", icon: Trophy }, // Changed label
 ];
 
 export function SidebarNav() {
@@ -47,7 +47,7 @@ export function SidebarNav() {
           <SidebarMenuItem key={item.label}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <SidebarMenuButton
+                 <SidebarMenuButton
                   asChild
                   variant="default"
                   size="default"
@@ -63,7 +63,7 @@ export function SidebarNav() {
                   </Link>
                 </SidebarMenuButton>
               </TooltipTrigger>
-              {(state === "collapsed" || isMobile) && ( // Ensure tooltip shows on mobile if collapsed, though typically sidebar is expanded or off-canvas on mobile
+              {(state === "collapsed" || isMobile) && (
                 <TooltipContent side="right" className="bg-popover text-popover-foreground">
                   {item.label}
                 </TooltipContent>
@@ -87,7 +87,7 @@ export function MobileSidebarNav({ onLinkClick }: { onLinkClick?: () => void }) 
             <Link
               key={item.href}
               href={item.href}
-              onClick={onLinkClick}
+              onClick={onLinkClick} // Call this to close the sheet
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
                 isActive ? "bg-muted text-primary" : "text-muted-foreground"
