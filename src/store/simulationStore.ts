@@ -5,11 +5,14 @@ import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, U
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow'; // Import the AI flow
 
-const MOCK_PRICE_PER_USER_PER_MONTH_DEFAULT = 10; // Will be overridden by AI or stored state
+const MOCK_PRICE_PER_USER_PER_MONTH_DEFAULT = 10; 
 const MOCK_SALARY_PER_FOUNDER = 0;
-const MOCK_SALARY_PER_EMPLOYEE = 4000; // Generic, AI can define specific salaries
-const MOCK_OTHER_OPERATIONAL_COSTS = 1500; // AI will consider this as a base
+const MOCK_SALARY_PER_EMPLOYEE = 4000; 
+const MOCK_OTHER_OPERATIONAL_COSTS = 1500; // Fallback if AI doesn't provide comprehensive burn rate
 const DEFAULT_ENGINEER_SALARY = 5000;
+const DEFAULT_MARKETING_SPEND = 500;
+const DEFAULT_RND_SPEND = 500;
+
 
 const getCurrencySymbol = (code?: string): string => {
   if (!code) return "$";
@@ -22,9 +25,9 @@ const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'histor
   companyName: "Your New Venture",
   financials: {
     revenue: 0,
-    expenses: MOCK_OTHER_OPERATIONAL_COSTS,
-    profit: -MOCK_OTHER_OPERATIONAL_COSTS,
-    burnRate: MOCK_OTHER_OPERATIONAL_COSTS,
+    expenses: MOCK_OTHER_OPERATIONAL_COSTS + DEFAULT_MARKETING_SPEND + DEFAULT_RND_SPEND, // Initial estimate before AI
+    profit: -(MOCK_OTHER_OPERATIONAL_COSTS + DEFAULT_MARKETING_SPEND + DEFAULT_RND_SPEND),
+    burnRate: MOCK_OTHER_OPERATIONAL_COSTS + DEFAULT_MARKETING_SPEND + DEFAULT_RND_SPEND,
     cashOnHand: 0,
     fundingRaised: 0,
     currencyCode: "USD",
@@ -33,8 +36,8 @@ const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'histor
   userMetrics: {
     activeUsers: 0,
     newUserAcquisitionRate: 0,
-    customerAcquisitionCost: 20, // AI can influence this based on market
-    churnRate: 0.05, // AI can influence this
+    customerAcquisitionCost: 20, 
+    churnRate: 0.05, 
     monthlyRecurringRevenue: 0,
   },
   product: {
@@ -46,8 +49,8 @@ const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'histor
   },
   resources: {
     initialBudget: 0,
-    marketingSpend: 500,
-    rndSpend: 500,
+    marketingSpend: DEFAULT_MARKETING_SPEND,
+    rndSpend: DEFAULT_RND_SPEND,
     team: [{ role: 'Founder', count: 1, salary: MOCK_SALARY_PER_FOUNDER }],
   },
   market: {
@@ -72,7 +75,7 @@ const getInitialState = (): DigitalTwinState => ({
 
 interface SimulationActions {
   initializeSimulation: (aiOutput: PromptStartupOutput, userStartupName: string, userTargetMarket: string, userBudget: string, userCurrencyCode: string) => void;
-  advanceMonth: () => Promise<void>; // Now async
+  advanceMonth: () => Promise<void>; 
   resetSimulation: () => void;
   setMarketingSpend: (amount: number) => void;
   setRndSpend: (amount: number) => void;
@@ -111,9 +114,9 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         const finalCurrencyCode = (parsedConditions.financials?.currencyCode || userCurrencyCode || "USD").toUpperCase();
         const finalCurrencySymbol = getCurrencySymbol(finalCurrencyCode);
 
-        const initialBudgetNum = parseMonetaryValue(parsedConditions.resources?.initialFunding || userBudget);
+        const initialBudgetNum = parseMonetaryValue(parsedConditions.resources?.initialFunding || parsedConditions.financials?.startingCash || userBudget);
+        
         const initialTeamFromAI: TeamMember[] = [];
-
         if (parsedConditions.resources?.coreTeam) {
           if (Array.isArray(parsedConditions.resources.coreTeam)) {
             initialTeamFromAI.push(...parsedConditions.resources.coreTeam.map((member: any) => ({
@@ -121,11 +124,10 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
                 count: member.count || 1,
                 salary: parseMonetaryValue(member.salary) || ( (member.role || '').toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : MOCK_SALARY_PER_EMPLOYEE)
             })));
-          } else if (typeof parsedConditions.resources.coreTeam === 'string') {
+          } else if (typeof parsedConditions.resources.coreTeam === 'string' && parsedConditions.resources.coreTeam.toLowerCase().includes('founder')) {
              initialTeamFromAI.push({ role: 'Founder', count: 1, salary: MOCK_SALARY_PER_FOUNDER });
           }
         }
-
 
         let finalInitialTeam: TeamMember[] = [];
         const founderInAI = initialTeamFromAI.find(tm => tm.role.toLowerCase() === 'founder');
@@ -135,12 +137,23 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             finalInitialTeam = [{ role: 'Founder', count: 1, salary: MOCK_SALARY_PER_FOUNDER }, ...initialTeamFromAI];
         }
         
-        const initialMarketingSpend = parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend;
-        const initialRndSpend = parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend;
+        const initialMarketingSpend = parseMonetaryValue(parsedConditions.resources?.marketingSpend) || DEFAULT_MARKETING_SPEND;
+        const initialRndSpend = parseMonetaryValue(parsedConditions.resources?.rndSpend) || DEFAULT_RND_SPEND;
         const initialSalaries = finalInitialTeam.reduce((acc, tm) => acc + (tm.count * tm.salary), 0);
-        const initialExpenses = initialSalaries + initialMarketingSpend + initialRndSpend + MOCK_OTHER_OPERATIONAL_COSTS;
         const initialPricePerUser = parseMonetaryValue(parsedConditions.productService?.pricePerUser) || MOCK_PRICE_PER_USER_PER_MONTH_DEFAULT;
 
+        let finalInitialExpenses: number;
+        let finalInitialBurnRate: number;
+
+        const aiEstimatedBurnRate = parseMonetaryValue(parsedConditions.financials?.estimatedInitialMonthlyBurnRate);
+
+        if (aiEstimatedBurnRate > 0) { // Prioritize AI's comprehensive burn rate
+          finalInitialBurnRate = aiEstimatedBurnRate;
+          finalInitialExpenses = aiEstimatedBurnRate; // Assuming revenue is 0 at month 0 for burn rate calculation
+        } else { // Fallback: calculate from components
+          finalInitialExpenses = initialSalaries + initialMarketingSpend + initialRndSpend + MOCK_OTHER_OPERATIONAL_COSTS;
+          finalInitialBurnRate = finalInitialExpenses > 0 ? finalInitialExpenses : 0; // Assuming revenue is 0
+        }
 
         const rawGoals = parsedConditions.initialGoals;
         let processedInitialGoals: string[] = [];
@@ -170,7 +183,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         }
         
         const aiProductStageRaw = parsedConditions.productService?.initialDevelopmentStage?.toLowerCase();
-        let finalProductStage: DigitalTwinState['product']['stage'] = 'idea'; // Default to 'idea'
+        let finalProductStage: DigitalTwinState['product']['stage'] = 'idea'; 
 
         if (aiProductStageRaw) {
           const validStages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
@@ -190,10 +203,10 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           companyName: parsedConditions.companyName || userStartupName || "AI Suggested Venture",
           market: {
             ...initialBaseState.market,
-            targetMarketDescription: userTargetMarket,
+            targetMarketDescription: userTargetMarket || parsedConditions.market?.targetMarketDescription || "Not specified",
             marketSize: parseMonetaryValue(parsedConditions.market?.estimatedSize) || initialBaseState.market.marketSize,
-            marketGrowthRate: parseMonetaryValue(parsedConditions.market?.growthRate),
-            keySegments: typeof parsedConditions.market?.keySegments === 'string' ? [parsedConditions.market.keySegments] : (Array.isArray(parsedConditions.market?.keySegments) ? parsedConditions.market.keySegments.filter(s => typeof s === 'string') : undefined),
+            // marketGrowthRate: parseMonetaryValue(parsedConditions.market?.growthRate), // Not currently used
+            // keySegments: typeof parsedConditions.market?.keySegments === 'string' ? [parsedConditions.market.keySegments] : (Array.isArray(parsedConditions.market?.keySegments) ? parsedConditions.market.keySegments.filter(s => typeof s === 'string') : undefined), // Not currently used
           },
           resources: {
             ...initialBaseState.resources,
@@ -207,21 +220,21 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             name: parsedConditions.productService?.name || `${userStartupName} Product`,
             stage: finalProductStage,
             pricePerUser: initialPricePerUser,
-            developmentProgress: (parsedConditions.productService?.initialDevelopmentStage?.toLowerCase() === finalProductStage || (parsedConditions.productService?.initialDevelopmentStage?.toLowerCase() === 'concept' && finalProductStage === 'idea') ) ? 0 : initialBaseState.product.developmentProgress,
+            developmentProgress: 0, 
           },
           financials: {
             ...initialBaseState.financials,
             cashOnHand: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudgetNum,
             fundingRaised: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudgetNum,
-            expenses: initialExpenses,
-            profit: 0 - initialExpenses,
-            burnRate: initialExpenses > 0 ? initialExpenses : 0,
+            expenses: finalInitialExpenses,
+            profit: 0 - finalInitialExpenses, // Revenue is 0 at month 0
+            burnRate: finalInitialBurnRate,
             currencyCode: finalCurrencyCode,
             currencySymbol: finalCurrencySymbol,
           },
           initialGoals: processedInitialGoals,
           suggestedChallenges: processedSuggestedChallenges,
-          keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket}. Product Stage: ${finalProductStage}. AI Challenges: ${processedSuggestedChallenges.join(', ') || 'None'}`],
+          keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month.`],
           rewards: [],
           historicalRevenue: [],
           historicalUserGrowth: [],
@@ -311,7 +324,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           const aiOutput: SimulateMonthOutput = await simulateMonthFlow(simulateMonthInput);
 
           set(state => {
-            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); // Deep clone to avoid direct state mutation issues
+            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); 
 
             newState.simulationMonth = aiOutput.simulatedMonthNumber; 
             
@@ -325,8 +338,9 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             newState.userMetrics.newUserAcquisitionRate = aiOutput.newUserAcquisition;
             newState.userMetrics.monthlyRecurringRevenue = aiOutput.updatedActiveUsers * newState.product.pricePerUser; 
 
-            newState.product.developmentProgress += aiOutput.productDevelopmentDelta;
-            if (aiOutput.newProductStage) {
+            newState.product.developmentProgress = state.product.developmentProgress + aiOutput.productDevelopmentDelta; // Add delta to original progress
+            
+            if (aiOutput.newProductStage && aiOutput.newProductStage !== newState.product.stage) {
               newState.product.stage = aiOutput.newProductStage;
               newState.product.developmentProgress = 0; 
               newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage!`);
@@ -335,10 +349,11 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
                 const currentStageIndex = stages.indexOf(newState.product.stage);
                 if (currentStageIndex < stages.length - 1) {
                   newState.product.stage = stages[currentStageIndex + 1];
-                  newState.product.developmentProgress = 0;
+                  newState.product.developmentProgress = newState.product.developmentProgress % 100; // Carry over excess progress
                   newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage! (Progress Milestone)`);
                 } else {
-                    newState.product.stage = 'mature'; // Should already be mature if index is last
+                    newState.product.stage = 'mature';
+                    newState.product.developmentProgress = 100; // Cap at 100 for mature
                     newState.keyEvents.push(`Product reached maturity! (Progress Milestone)`);
                 }
             }

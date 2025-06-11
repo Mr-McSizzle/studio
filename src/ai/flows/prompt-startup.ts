@@ -48,21 +48,29 @@ Based on this comprehensive description, generate:
 1. Initial Conditions: A detailed JSON string for the startup's digital twin. This should include realistic starting values for:
     - Market: Estimated size, growth rate, key segments.
     - Resources: 
-        - initialFunding: Set this to the numerical value of the user's provided 'Initial Budget'.
+        - initialFunding: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
         - coreTeam: (e.g., number of founders, initial hires if any, salaries).
         - any initial IP or assets.
-    - Product/Service: Initial development stage (e.g., concept, prototype, MVP).
+        - marketingSpend: Suggest a realistic initial monthly marketing spend.
+        - rndSpend: Suggest a realistic initial monthly R&D spend.
+    - Product/Service: 
+        - name: A suitable name for the product/service.
+        - initialDevelopmentStage: (e.g., idea, prototype, mvp).
+        - pricePerUser: Suggest an initial monthly price per user/customer.
     - Financials: 
-        - startingCash: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget' from their input prompt. Ensure this is a clean number.
-        - estimatedInitialMonthlyBurnRate. 
-        - Include a 'currencyCode' field set to {{{currencyCode}}}.
+        - startingCash: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
+        - estimatedInitialMonthlyBurnRate: CRITICALLY IMPORTANT - Provide a realistic estimate of the *total* initial monthly burn rate for the startup. This figure should be based on its business plan, suggested initial team (and their AI-suggested salaries if not provided by user), suggested marketing/R&D spend, and other likely operational costs (rent, software, utilities, etc.) appropriate for the specified {{{currencyCode}}} and startup scale. This burn rate should be a comprehensive single number.
+        - currencyCode: Set this to {{{currencyCode}}}.
     - Initial Goals: One or two key short-term objectives (e.g., achieve X users, secure Y pre-orders).
+    - companyName: A suitable name for the startup itself.
 2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges or critical decisions the startup might face early in the simulation. These should be specific and actionable.
 
 CRITICAL INSTRUCTIONS:
-- All monetary values you generate (initialFunding, startingCash, burn rate, market size if applicable, salaries if defined) MUST be expressed as plain numbers in the specified {{{currencyCode}}}. Do NOT include currency symbols or non-standard formatting within the JSON numbers.
-- You MUST also adjust the *scale* of other related numbers (like market parameters, operational costs contributing to burn rate) to be realistic for a business operating with that currency and the provided budget magnitude. For example, a 'small tech startup' budget of 50,000 JPY is vastly different from 50,000 USD, and market sizes or typical salaries would also differ. Make the simulation parameters feel appropriate for the chosen currency context, while ensuring 'startingCash' and 'initialFunding' directly reflect the user's budget input.
-- Ensure the 'initialConditions' field is a single, valid, parsable JSON string, and it includes a 'financials.currencyCode': '{{{currencyCode}}}' entry. The 'financials.startingCash' and 'resources.initialFunding' must be clean numerical values directly based on the user's budget input.
+- All monetary values you generate (initialFunding, startingCash, burn rate, market size if applicable, salaries, spends, pricePerUser) MUST be expressed as plain numbers in the specified {{{currencyCode}}}. Do NOT include currency symbols or non-standard formatting within the JSON numbers.
+- You MUST also adjust the *scale* of other related numbers to be realistic for a business operating with that currency and the provided budget magnitude. For example, a 'small tech startup' budget of 50,000 JPY is vastly different from 50,000 USD. Make the simulation parameters feel appropriate for the chosen currency context, while ensuring 'startingCash' and 'initialFunding' directly reflect the user's budget input.
+- Ensure the 'initialConditions' field is a single, valid, parsable JSON string.
+- Ensure it includes: 'financials.currencyCode': '{{{currencyCode}}}'.
+- Ensure 'financials.startingCash', 'resources.initialFunding', and 'financials.estimatedInitialMonthlyBurnRate' are clean numerical values.
 - Ensure the 'suggestedChallenges' field is a valid JSON array of strings.
 Do not include any prose or explanations outside of the structured JSON output. The entire response should be only the JSON object defined by the output schema.
 
@@ -86,7 +94,7 @@ const promptStartupFlow = ai.defineFlow(
     try {
         const conditions = JSON.parse(output.initialConditions);
         if (!conditions.financials || !conditions.financials.currencyCode) {
-            console.warn("AI did not explicitly include financials.currencyCode in initialConditions. This is expected if not prompted or if the model omits it.");
+            console.warn("AI did not explicitly include financials.currencyCode in initialConditions.");
         } else if (conditions.financials.currencyCode.toUpperCase() !== input.currencyCode?.toUpperCase()) {
             console.warn(`AI returned currencyCode ${conditions.financials.currencyCode} which differs from input ${input.currencyCode}.`);
         }
@@ -96,8 +104,11 @@ const promptStartupFlow = ai.defineFlow(
          if (conditions.resources && typeof conditions.resources.initialFunding !== 'number') {
             console.warn(`AI returned resources.initialFunding that is not a number: `, conditions.resources.initialFunding);
         }
+        if (conditions.financials && typeof conditions.financials.estimatedInitialMonthlyBurnRate !== 'number') {
+            console.warn(`AI returned financials.estimatedInitialMonthlyBurnRate that is not a number: `, conditions.financials.estimatedInitialMonthlyBurnRate);
+        }
     } catch (e) {
-        console.error("Could not parse initialConditions to check for currencyCode or startingCash/initialFunding types.", e);
+        console.error("Could not parse initialConditions to check critical numeric fields.", e);
     }
     return output;
   }
