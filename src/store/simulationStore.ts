@@ -53,7 +53,7 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
 const getInitialState = (): DigitalTwinState => ({
   ...initialBaseState,
   keyEvents: ["Simulation not yet initialized."],
-  missions: [],
+  missions: exampleMissions.map(m => ({...m, isCompleted: false})), // Initialize with functions
   rewards: [],
   suggestedChallenges: [],
   historicalRevenue: [],
@@ -100,14 +100,32 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
     }
 
     const initialBudget = parseMonetaryValue(parsedConditions.resources?.initialFunding || userBudget);
-    const initialTeam: TeamMember[] = [{ role: 'Founder', count: 1, salary: MOCK_SALARY_PER_FOUNDER }];
+    const initialTeamFromAI: TeamMember[] = [];
     if (parsedConditions.resources?.coreTeam && Array.isArray(parsedConditions.resources.coreTeam)) {
-        initialTeam.push(...parsedConditions.resources.coreTeam.map(member => ({...member, count: member.count || 1, salary: member.salary || (member.role.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : MOCK_SALARY_PER_EMPLOYEE) })));
+        initialTeamFromAI.push(...parsedConditions.resources.coreTeam.map(member => ({
+            role: member.role,
+            count: member.count || 1, // Default count to 1 if not specified
+            salary: member.salary || (member.role.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : MOCK_SALARY_PER_EMPLOYEE)
+        })));
     }
+
+    // Ensure there's always at least one founder if AI doesn't specify
+    let finalInitialTeam: TeamMember[] = [];
+    const founderInAI = initialTeamFromAI.find(tm => tm.role.toLowerCase() === 'founder');
+    if (founderInAI) {
+        finalInitialTeam = initialTeamFromAI;
+    } else {
+        finalInitialTeam = [{ role: 'Founder', count: 1, salary: MOCK_SALARY_PER_FOUNDER }, ...initialTeamFromAI];
+    }
+    
+    const initialMarketingSpend = parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend;
+    const initialRndSpend = parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend;
+    const initialSalaries = finalInitialTeam.reduce((acc, tm) => acc + (tm.count * tm.salary), 0);
+    const initialExpenses = initialSalaries + initialMarketingSpend + initialRndSpend + MOCK_OTHER_OPERATIONAL_COSTS;
 
 
     set(state => ({
-      ...initialBaseState,
+      ...initialBaseState, // Start fresh from base
       companyName: parsedConditions.companyName || userStartupName || "AI Suggested Venture",
       market: {
         ...initialBaseState.market,
@@ -119,11 +137,10 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
       resources: {
         ...initialBaseState.resources,
         initialBudget: initialBudget,
-        team: initialTeam,
+        team: finalInitialTeam,
         initialIpOrAssets: parsedConditions.resources?.initialIpOrAssets,
-        // Ensure marketing and R&D spend from parsedConditions are used if available, otherwise defaults
-        marketingSpend: parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend,
-        rndSpend: parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend,
+        marketingSpend: initialMarketingSpend,
+        rndSpend: initialRndSpend,
       },
       product: {
         ...initialBaseState.product,
@@ -134,31 +151,20 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
         ...initialBaseState.financials,
         cashOnHand: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudget,
         fundingRaised: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudget,
-        // Calculate initial expenses based on team, marketing, R&D, and other costs
-        // This calculation will be refined in advanceMonth, but good to have a starting point
-        expenses: (initialTeam.reduce((acc, tm) => acc + (tm.count * tm.salary), 0)) + 
-                  (parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend) +
-                  (parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend) + MOCK_OTHER_OPERATIONAL_COSTS,
-        // Profit is initially negative if expenses > 0 and revenue = 0
-        profit: 0 - ((initialTeam.reduce((acc, tm) => acc + (tm.count * tm.salary), 0)) + 
-                      (parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend) +
-                      (parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend) + MOCK_OTHER_OPERATIONAL_COSTS),
-        // Burn rate is effectively initial expenses if revenue is zero
-        burnRate: (initialTeam.reduce((acc, tm) => acc + (tm.count * tm.salary), 0)) + 
-                  (parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend) +
-                  (parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend) + MOCK_OTHER_OPERATIONAL_COSTS,
-
+        expenses: initialExpenses,
+        profit: 0 - initialExpenses,
+        burnRate: initialExpenses > 0 ? initialExpenses : 0, // If revenue is 0
       },
       initialGoals: parsedConditions.initialGoals || [],
       suggestedChallenges: aiOutput.suggestedChallenges ? JSON.parse(aiOutput.suggestedChallenges) : [],
-      keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget $${initialBudget}. Target: ${userTargetMarket}. AI Challenges: ${aiOutput.suggestedChallenges ? JSON.parse(aiOutput.suggestedChallenges).join(', ') : 'None'}`],
-      missions: exampleMissions.map(m => ({...m, isCompleted: false})), // Reset missions with fresh ones
+      keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget $${initialBudget.toLocaleString()}. Target: ${userTargetMarket}. AI Challenges: ${aiOutput.suggestedChallenges ? JSON.parse(aiOutput.suggestedChallenges).join(', ') : 'None'}`],
+      missions: exampleMissions.map(m => ({...m, isCompleted: false})),
       rewards: [],
       historicalRevenue: [],
       historicalUserGrowth: [],
       isInitialized: true,
       simulationMonth: 0,
-      startupScore: 10, // Reset score
+      startupScore: 10,
     }));
   },
 
@@ -174,7 +180,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
 
   adjustTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => set(state => {
     if (!state.isInitialized) return state;
-    const team = [...state.resources.team];
+    const team = state.resources.team.map(member => ({ ...member })); // Create a new array of new objects
     const roleIndex = team.findIndex(member => member.role === roleToAdjust);
 
     if (roleIndex > -1) {
@@ -196,7 +202,28 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
   advanceMonth: () => set(state => {
     if (!state.isInitialized || state.financials.cashOnHand <= 0) return state; 
 
-    const newState = JSON.parse(JSON.stringify(state)) as DigitalTwinState; 
+    // Create a mutable copy of the state for this month's calculations
+    // Carefully clone nested objects to avoid mutating the original state directly in unexpected ways
+    const newState: DigitalTwinState = {
+      ...state,
+      financials: { ...state.financials },
+      userMetrics: { ...state.userMetrics },
+      product: { ...state.product, features: [...state.product.features] },
+      resources: { 
+        ...state.resources,
+        team: state.resources.team.map(member => ({ ...member })),
+      },
+      market: { ...state.market },
+      keyEvents: [...state.keyEvents], // Start with existing events
+      // historicalData and rewards will be appended to, creating new arrays
+      historicalRevenue: [...state.historicalRevenue],
+      historicalUserGrowth: [...state.historicalUserGrowth],
+      rewards: state.rewards.map(reward => ({...reward})),
+      // missions will be processed based on state.missions but result in a new array for newState.missions
+      missions: state.missions.map(m => ({...m})), // Initial shallow copy, functions are preserved.
+      initialGoals: state.initialGoals ? [...state.initialGoals] : [],
+      suggestedChallenges: state.suggestedChallenges ? [...state.suggestedChallenges] : [],
+    };
 
     newState.simulationMonth += 1;
 
@@ -234,10 +261,12 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
       }
     }
     
-    if (newState.financials.profit > 0 && newState.financials.profit > (state.financials.profit || 0)) newState.startupScore += 2;
+    const previousProfit = state.financials.profit; // Profit from the original state (previous month)
+    if (newState.financials.profit > 0 && newState.financials.profit > (previousProfit || 0)) newState.startupScore += 2;
     else if (newState.financials.profit < 0 && newState.financials.cashOnHand > 0) newState.startupScore -=1;
 
-    if (newUsersFromMarketing > (state.userMetrics.newUserAcquisitionRate || 0) && newUsersFromMarketing > 0) newState.startupScore += 1;
+    const previousNewUserRate = state.userMetrics.newUserAcquisitionRate;
+    if (newUsersFromMarketing > (previousNewUserRate || 0) && newUsersFromMarketing > 0) newState.startupScore += 1;
     
     if (newState.financials.cashOnHand <= 0 && state.financials.cashOnHand > 0) { 
       newState.startupScore = Math.max(0, newState.startupScore - 20); 
@@ -249,27 +278,38 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
     newState.keyEvents.push(`Month ${newState.simulationMonth}: Revenue $${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash $${newState.financials.cashOnHand.toLocaleString()}`);
     
     const newRevenueData: RevenueDataPoint = { month: `M${newState.simulationMonth}`, revenue: newState.financials.revenue, desktop: newState.financials.revenue };
-    newState.historicalRevenue = [...state.historicalRevenue, newRevenueData].slice(-12);
+    newState.historicalRevenue.push(newRevenueData);
+    if (newState.historicalRevenue.length > 12) newState.historicalRevenue.shift();
+
 
     const newUserGrowthData: UserDataPoint = { month: `M${newState.simulationMonth}`, users: newState.userMetrics.activeUsers, desktop: newState.userMetrics.activeUsers };
-    newState.historicalUserGrowth = [...state.historicalUserGrowth, newUserGrowthData].slice(-12);
+    newState.historicalUserGrowth.push(newUserGrowthData);
+    if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
+    
 
-    const updatedMissions = newState.missions.map(mission => {
-      if (!mission.isCompleted && mission.criteria(newState)) {
-        // Apply onComplete mutations directly to newState
-        const preCompletionState = JSON.parse(JSON.stringify(newState)); // For safety if onComplete is complex
-        const potentiallyModifiedState = mission.onComplete ? mission.onComplete(preCompletionState) : preCompletionState;
-        
-        // Merge changes from onComplete back to newState carefully
-        newState.startupScore = potentiallyModifiedState.startupScore;
-        newState.financials.cashOnHand = potentiallyModifiedState.financials.cashOnHand;
-        newState.rewards = potentiallyModifiedState.rewards;
-        // Add other fields if onComplete modifies them
-
-        newState.keyEvents.push(`Mission Completed: ${mission.title}! Reward: ${mission.rewardText}`);
-        return { ...mission, isCompleted: true };
+    // Process missions based on the original state's missions, applying to `newState`
+    const originalMissions = state.missions; // These have the correct functions
+    const updatedMissions = originalMissions.map(mission => {
+      let missionCopy = { ...mission }; // Shallow copy the mission, functions are copied by reference
+      if (!missionCopy.isCompleted && missionCopy.criteria(newState)) { // Pass the fully formed newState
+        if (missionCopy.onComplete) {
+          // onComplete is expected to return a DigitalTwinState.
+          // It receives the `newState` (which is mutable for this month)
+          // and should perform its modifications on a copy of that or directly on it,
+          // then return the modified state object for `advanceMonth` to use.
+          const stateAfterMissionCompletion = missionCopy.onComplete(newState);
+          
+          // Selectively update `newState` from what `onComplete` returned.
+          // This prevents `onComplete` from accidentally overwriting other parts of `newState`.
+          newState.startupScore = stateAfterMissionCompletion.startupScore;
+          newState.financials.cashOnHand = stateAfterMissionCompletion.financials.cashOnHand;
+          newState.rewards = stateAfterMissionCompletion.rewards.map(r => ({...r})); // new array of new objects
+          // Potentially copy other fields if onComplete is supposed to change them
+        }
+        newState.keyEvents.push(`Mission Completed: ${missionCopy.title}! Reward: ${missionCopy.rewardText}`);
+        missionCopy.isCompleted = true;
       }
-      return mission;
+      return missionCopy;
     });
     newState.missions = updatedMissions;
 
@@ -279,9 +319,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
   resetSimulation: () => {
     set(state => ({
         ...getInitialState(),
-        // Make sure to carry over any non-resettable parts if needed in future
-        // For now, full reset is fine.
-        // Ensure missions are truly reset
         missions: exampleMissions.map(m => ({...m, isCompleted: false})),
         keyEvents: ["Simulation reset. Please initialize a new venture."],
     }));
@@ -297,11 +334,21 @@ const exampleMissions: Mission[] = [
     isCompleted: false,
     criteria: (currentState) => currentState.userMetrics.activeUsers >= 100,
     onComplete: (currentState) => {
-      const newState = JSON.parse(JSON.stringify(currentState));
-      newState.startupScore = Math.min(100, newState.startupScore + 5);
-      newState.financials.cashOnHand += 1000; 
-      newState.rewards.push({ id: 'reward-100-users', name: '100 User Milestone', description: 'Achieved 100 active users.', dateEarned: new Date().toISOString() });
-      return newState;
+      // currentState is the mutable newState from advanceMonth.
+      // Return a new state object with modifications.
+      const returnState: DigitalTwinState = { 
+        ...currentState, // Base it on the input state
+        startupScore: Math.min(100, currentState.startupScore + 5),
+        financials: {
+          ...currentState.financials,
+          cashOnHand: currentState.financials.cashOnHand + 1000,
+        },
+        rewards: [
+          ...currentState.rewards,
+          { id: 'reward-100-users', name: '100 User Milestone', description: 'Achieved 100 active users.', dateEarned: new Date().toISOString() }
+        ],
+      };
+      return returnState;
     }
   },
   {
@@ -312,10 +359,15 @@ const exampleMissions: Mission[] = [
     isCompleted: false,
     criteria: (currentState) => currentState.financials.profit > 0,
     onComplete: (currentState) => {
-      const newState = JSON.parse(JSON.stringify(currentState));
-      newState.startupScore = Math.min(100, newState.startupScore + 10);
-      newState.rewards.push({ id: 'reward-first-profit', name: 'First Profit!', description: 'Recorded a profitable month.', dateEarned: new Date().toISOString() });
-      return newState;
+      const returnState: DigitalTwinState = {
+        ...currentState,
+        startupScore: Math.min(100, currentState.startupScore + 10),
+        rewards: [
+          ...currentState.rewards,
+          { id: 'reward-first-profit', name: 'First Profit!', description: 'Recorded a profitable month.', dateEarned: new Date().toISOString() }
+        ],
+      };
+      return returnState;
     }
   },
   {
@@ -326,10 +378,16 @@ const exampleMissions: Mission[] = [
     isCompleted: false,
     criteria: (currentState) => currentState.product.stage === 'mvp',
     onComplete: (currentState) => {
-      const newState = JSON.parse(JSON.stringify(currentState));
-      newState.startupScore = Math.min(100, newState.startupScore + 10);
-      newState.rewards.push({ id: 'reward-mvp-launch', name: 'MVP Launched!', description: 'Successfully reached MVP stage.', dateEarned: new Date().toISOString() });
-      return newState;
+      const returnState: DigitalTwinState = {
+        ...currentState,
+        startupScore: Math.min(100, currentState.startupScore + 10),
+        rewards: [
+          ...currentState.rewards,
+          { id: 'reward-mvp-launch', name: 'MVP Launched!', description: 'Successfully reached MVP stage.', dateEarned: new Date().toISOString() }
+        ],
+      };
+      // Conceptual: could modify R&D efficiency factor here if model supported it
+      return returnState;
     }
   }
 ];
