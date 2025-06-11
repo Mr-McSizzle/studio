@@ -46,7 +46,7 @@ const SuggestedNextActionSchema = z.object({
 
 const MentorConversationOutputSchema = z.object({
   response: z.string().describe('The AI Hive Mind assistant\'s response to the user input, potentially synthesizing information from its specialized AI agents or tools.'),
-  suggestedNextAction: SuggestedNextActionSchema.optional().describe("A suggested next action or page for the user to navigate to, based on the conversation or implied needs."),
+  suggestedNextAction: SuggestedNextActionSchema.optional().nullable().describe("A suggested next action or page for the user to navigate to, based on the conversation or implied needs. If no suggestion, this can be omitted or null."),
 });
 
 export type MentorConversationOutput = z.infer<typeof MentorConversationOutputSchema>;
@@ -106,12 +106,12 @@ Based on the user's query and the simulation context:
    - If they ask for strategic analysis or risk assessment: { "page": "/app/strategy", "label": "Get Strategic Analysis" }
    - If they are discussing progress or achievements: { "page": "/app/gamification", "label": "Check Milestones & Score" }
    - If they express uncertainty about what to do next: { "page": "/app/dashboard", "label": "Review Current Status" } or { "page": "/app/mentor", "label": "Continue Chatting" }
-   Only provide a 'suggestedNextAction' if it's a clear, relevant, and helpful next step. Do not force it. The label should be concise and action-oriented.
+   Only provide a 'suggestedNextAction' if it's a clear, relevant, and helpful next step. Do not force it. If no suggestion is applicable, the 'suggestedNextAction' field can be omitted or set to null. The label should be concise and action-oriented.
 
 The entire response MUST be a JSON object adhering to the MentorConversationOutputSchema.
-Specifically, include 'response' and optionally 'suggestedNextAction'.
+Specifically, include 'response' and optionally 'suggestedNextAction'. If 'suggestedNextAction' is not relevant, it can be omitted or be null.
 Ensure the 'response' field contains your complete textual answer to the user.
-Ensure the 'suggestedNextAction' (if provided) has 'page' and 'label'.
+Ensure the 'suggestedNextAction' (if provided and not null) has 'page' and 'label'.
 `,
   prompt: `{{{userInput}}}
   
@@ -144,7 +144,7 @@ const mentorConversationFlow = ai.defineFlow(
       isUser: msg.role === 'user',
       isAssistant: msg.role === 'assistant',
       isToolResponse: msg.role === 'tool_response',
-    })).reverse(); // Ensure most recent is first for the prompt display
+    })).reverse();
 
     const flowInputForPrompt = {
       userInput: input.userInput,
@@ -167,12 +167,12 @@ const mentorConversationFlow = ai.defineFlow(
 
     if (!output || !output.response) {
       console.error("Hive Mind AI did not return a valid response structure.", output);
-      return { response: "I seem to be having trouble formulating a complete response at the moment. Could you try rephrasing or asking again shortly?" };
+      return { response: "I seem to be having trouble formulating a complete response at the moment. Could you try rephrasing or asking again shortly?", suggestedNextAction: null };
     }
 
     return {
       response: output.response,
-      suggestedNextAction: output.suggestedNextAction
+      suggestedNextAction: output.suggestedNextAction // This can now be null if the AI returns it as null
     };
   }
 );
