@@ -1,4 +1,8 @@
 
+// This file is no longer used and can be deleted.
+// Keeping it for now to avoid breaking imports if any were missed,
+// but it should be removed in a future cleanup.
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,7 +13,7 @@ export interface Mission {
   title: string;
   description: string;
   isCompleted: boolean;
-  reward: string;
+  reward: string; // This was 'rewardText' in the store, ensure consistency or map
 }
 
 interface MissionsCardProps {
@@ -28,7 +32,7 @@ export function MissionsCard({ missions }: MissionsCardProps) {
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[250px]">
-          {missions.length > 0 ? (
+          {missions && missions.length > 0 ? (
             <ul className="space-y-4">
               {missions.map((mission) => (
                 <li key={mission.id} className="flex items-start gap-3 p-3 border border-border rounded-md hover:bg-muted/50 transition-colors">

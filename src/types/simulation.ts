@@ -81,7 +81,6 @@ export interface DigitalTwinState {
   market: MarketConditions;
   startupScore: number;
   keyEvents: string[];
-  missions: Mission[];
   rewards: Reward[];
   initialGoals: string[];
   suggestedChallenges: string[];
@@ -91,22 +90,15 @@ export interface DigitalTwinState {
   historicalUserGrowth: UserDataPoint[];
 }
 
-export interface Mission {
+export const RewardSchema = z.object({
+  name: z.string().describe("The name or title of the reward."),
+  description: z.string().describe("A brief description of what the reward signifies or provides."),
+});
+export type Reward = z.infer<typeof RewardSchema> & {
   id: string;
-  title: string;
-  description: string;
-  isCompleted: boolean;
-  rewardText: string;
-  criteria: (state: DigitalTwinState) => boolean;
-  onComplete?: (state: DigitalTwinState) => DigitalTwinState;
-}
-
-export interface Reward {
-  id: string;
-  name: string;
-  description: string;
   dateEarned: string; // ISO date string
-}
+};
+
 
 export interface AIInitialConditions {
   market?: {
@@ -207,7 +199,8 @@ export const SimulateMonthOutputSchema = z.object({
   newUserAcquisition: z.number().describe("Number of new users acquired during this month."),
   productDevelopmentDelta: z.number().describe("The percentage points by which product development progressed this month (e.g., 10 for 10% progress). This will be added to existing progress."),
   newProductStage: z.enum(['idea', 'prototype', 'mvp', 'growth', 'mature']).optional().describe("If the product advanced to a new stage this month, specify the new stage. Otherwise, omit this field."),
-  keyEventsGenerated: z.array(z.string()).length(2).describe("An array of exactly two significant, plausible events (positive, negative, or neutral) that occurred during the month. Each event is a short descriptive string. E.g., ['Unexpected server outage caused downtime.', 'Positive review in a major tech blog.']"),
-  startupScoreAdjustment: z.number().int().describe("An integer representing the change to the startup score based on this month's performance (e.g., +2, -1, 0)."),
+  keyEventsGenerated: z.array(z.string()).length(2).describe("An array of exactly two significant, plausible events (positive, negative, or neutral) that occurred during the month. These events can include notable achievements or milestones. Each event is a short descriptive string. E.g., ['Unexpected server outage caused downtime.', 'Positive review in a major tech blog.']"),
+  rewardsGranted: z.array(RewardSchema).optional().describe("List of rewards granted this month if a significant milestone was achieved. These rewards should be thematic to the achievement."),
+  startupScoreAdjustment: z.number().int().describe("An integer representing the change to the startup score based on this month's performance, achievements, and rewards."),
 });
 export type SimulateMonthOutput = z.infer<typeof SimulateMonthOutputSchema>;

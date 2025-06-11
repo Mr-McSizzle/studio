@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DigitalTwinState, Mission, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, TeamMember, SimulateMonthInput, SimulateMonthOutput } from '@/types/simulation';
+import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, TeamMember, SimulateMonthInput, SimulateMonthOutput } from '@/types/simulation';
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow'; // Import the AI flow
 
@@ -17,7 +17,7 @@ const getCurrencySymbol = (code?: string): string => {
   return map[code.toUpperCase()] || code;
 };
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges'> = {
+const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -60,71 +60,10 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
   initialGoals: [],
 };
 
-const exampleMissions: Omit<Mission, 'isCompleted'>[] = [
-  {
-    id: "reach-100-users",
-    title: "Acquire First 100 Users",
-    description: "Reach 100 active users for your product.",
-    rewardText: "+5 Startup Score, 1,000 (in simulation currency) Cash Bonus",
-    criteria: (currentState) => currentState.userMetrics.activeUsers >= 100,
-    onComplete: (currentState) => {
-      const returnState: DigitalTwinState = {
-        ...currentState,
-        startupScore: Math.min(100, currentState.startupScore + 5),
-        financials: {
-          ...currentState.financials,
-          cashOnHand: currentState.financials.cashOnHand + 1000,
-        },
-        rewards: [
-          ...currentState.rewards,
-          { id: 'reward-100-users', name: '100 User Milestone', description: 'Achieved 100 active users.', dateEarned: new Date().toISOString() }
-        ],
-      };
-      return returnState;
-    }
-  },
-  {
-    id: "first-profit",
-    title: "Achieve First Profitable Month",
-    description: "Have a month where revenue exceeds expenses.",
-    rewardText: "+10 Startup Score",
-    criteria: (currentState) => currentState.financials.profit > 0,
-    onComplete: (currentState) => {
-      const returnState: DigitalTwinState = {
-        ...currentState,
-        startupScore: Math.min(100, currentState.startupScore + 10),
-        rewards: [
-          ...currentState.rewards,
-          { id: 'reward-first-profit', name: 'First Profit!', description: 'Recorded a profitable month.', dateEarned: new Date().toISOString() }
-        ],
-      };
-      return returnState;
-    }
-  },
-  {
-    id: "mvp-launch",
-    title: "Launch MVP",
-    description: "Reach the MVP product stage.",
-    rewardText: "+10 Startup Score, R&D Efficiency Boost (conceptual)",
-    criteria: (currentState) => currentState.product.stage === 'mvp',
-    onComplete: (currentState) => {
-      const returnState: DigitalTwinState = {
-        ...currentState,
-        startupScore: Math.min(100, currentState.startupScore + 10),
-        rewards: [
-          ...currentState.rewards,
-          { id: 'reward-mvp-launch', name: 'MVP Launched!', description: 'Successfully reached MVP stage.', dateEarned: new Date().toISOString() }
-        ],
-      };
-      return returnState;
-    }
-  }
-];
 
 const getInitialState = (): DigitalTwinState => ({
   ...initialBaseState,
   keyEvents: ["Simulation not yet initialized."],
-  missions: exampleMissions.map(m => ({...m, isCompleted: false})),
   rewards: [],
   suggestedChallenges: [],
   historicalRevenue: [],
@@ -234,10 +173,14 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         let finalProductStage: DigitalTwinState['product']['stage'] = 'idea'; // Default to 'idea'
 
         if (aiProductStageRaw) {
-          if (['idea', 'prototype', 'mvp', 'growth', 'mature'].includes(aiProductStageRaw)) {
+          const validStages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
+          if (validStages.includes(aiProductStageRaw as DigitalTwinState['product']['stage'])) {
             finalProductStage = aiProductStageRaw as DigitalTwinState['product']['stage'];
           } else if (aiProductStageRaw === 'concept') {
             finalProductStage = 'idea'; 
+          } else {
+            console.warn(`Unrecognized product stage from AI: "${aiProductStageRaw}". Defaulting to "idea".`);
+            finalProductStage = 'idea';
           }
         }
 
@@ -264,7 +207,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             name: parsedConditions.productService?.name || `${userStartupName} Product`,
             stage: finalProductStage,
             pricePerUser: initialPricePerUser,
-            developmentProgress: parsedConditions.productService?.initialDevelopmentStage === finalProductStage ? 0 : (parsedConditions.productService?.initialDevelopmentStage === 'concept' ? 0 : initialBaseState.product.developmentProgress), // Reset progress if stage changes or is concept
+            developmentProgress: (parsedConditions.productService?.initialDevelopmentStage?.toLowerCase() === finalProductStage || (parsedConditions.productService?.initialDevelopmentStage?.toLowerCase() === 'concept' && finalProductStage === 'idea') ) ? 0 : initialBaseState.product.developmentProgress,
           },
           financials: {
             ...initialBaseState.financials,
@@ -279,7 +222,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           initialGoals: processedInitialGoals,
           suggestedChallenges: processedSuggestedChallenges,
           keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket}. Product Stage: ${finalProductStage}. AI Challenges: ${processedSuggestedChallenges.join(', ') || 'None'}`],
-          missions: exampleMissions.map(m => ({...m, isCompleted: false})), 
           rewards: [],
           historicalRevenue: [],
           historicalUserGrowth: [],
@@ -329,7 +271,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             if (String(currentProductStageForAI).toLowerCase() === 'concept') {
                 currentProductStageForAI = 'idea';
             } else {
-                console.warn(`Invalid product stage "${currentProductStageForAI}" detected before AI call. Defaulting to "idea".`);
+                console.warn(`Invalid product stage "${currentProductStageForAI}" detected before AI call in advanceMonth. Defaulting to "idea".`);
                 currentProductStageForAI = 'idea';
             }
         }
@@ -349,7 +291,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             churnRate: currentState.userMetrics.churnRate,
           },
           product: {
-            stage: currentProductStageForAI, // Use the sanitized stage
+            stage: currentProductStageForAI, 
             developmentProgress: currentState.product.developmentProgress,
             pricePerUser: currentState.product.pricePerUser,
           },
@@ -369,16 +311,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           const aiOutput: SimulateMonthOutput = await simulateMonthFlow(simulateMonthInput);
 
           set(state => {
-            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); 
-            
-            newState.missions = exampleMissions.map(exampleMission => {
-                const persistedMission = state.missions.find(pm => pm.id === exampleMission.id);
-                return {
-                    ...exampleMission,
-                    isCompleted: persistedMission ? persistedMission.isCompleted : false,
-                };
-            });
-
+            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); // Deep clone to avoid direct state mutation issues
 
             newState.simulationMonth = aiOutput.simulatedMonthNumber; 
             
@@ -405,7 +338,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
                   newState.product.developmentProgress = 0;
                   newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage! (Progress Milestone)`);
                 } else {
-                    newState.product.stage = 'mature';
+                    newState.product.stage = 'mature'; // Should already be mature if index is last
                     newState.keyEvents.push(`Product reached maturity! (Progress Milestone)`);
                 }
             }
@@ -429,23 +362,16 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             newState.historicalUserGrowth.push(newUserGrowthData);
             if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
             
-            const originalMissionsFromState = newState.missions; 
-            const updatedMissions = originalMissionsFromState.map(mission => {
-              let missionCopy = {...mission};
-              if (!missionCopy.isCompleted && missionCopy.criteria && typeof missionCopy.criteria === 'function' && missionCopy.criteria(newState)) {
-                if (missionCopy.onComplete && typeof missionCopy.onComplete === 'function') {
-                  const stateAfterMissionCompletion = missionCopy.onComplete(newState); 
-                  newState.startupScore = stateAfterMissionCompletion.startupScore;
-                  newState.financials.cashOnHand = stateAfterMissionCompletion.financials.cashOnHand;
-                  newState.rewards = stateAfterMissionCompletion.rewards.map(r => ({...r})); 
-                }
-                newState.keyEvents.push(`Mission Completed: ${missionCopy.title}! Reward: ${missionCopy.rewardText}`);
-                missionCopy.isCompleted = true;
-              }
-              return missionCopy;
-            });
-            newState.missions = updatedMissions;
-
+            if (aiOutput.rewardsGranted && aiOutput.rewardsGranted.length > 0) {
+              const newRewards: Reward[] = aiOutput.rewardsGranted.map(rewardBase => ({
+                ...rewardBase,
+                id: `reward-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                dateEarned: new Date().toISOString(),
+              }));
+              newState.rewards.push(...newRewards);
+              newRewards.forEach(nr => newState.keyEvents.push(`Reward Earned: ${nr.name} - ${nr.description}`));
+            }
+            
             return newState;
           });
 
@@ -461,7 +387,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
       resetSimulation: () => {
         set(state => ({
             ...getInitialState(), 
-            missions: exampleMissions.map(m => ({...m, isCompleted: false})),
             keyEvents: ["Simulation reset. Please initialize a new venture."],
         }));
       }
@@ -472,18 +397,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
       merge: (persistedStateUnknown, currentState) => {
         let mergedState = { ...currentState, ...(persistedStateUnknown as object) as Partial<DigitalTwinState> };
         const persistedState = persistedStateUnknown as Partial<DigitalTwinState>;
-
-        if (persistedState && Array.isArray(persistedState.missions)) {
-          mergedState.missions = exampleMissions.map(em => {
-            const pMission = persistedState.missions?.find(pm => pm.id === em.id);
-            return {
-              ...em, 
-              isCompleted: pMission ? pMission.isCompleted : false, 
-            };
-          });
-        } else {
-          mergedState.missions = exampleMissions.map(em => ({ ...em, isCompleted: false }));
-        }
         
         mergedState.initialGoals = Array.isArray(mergedState.initialGoals) ? mergedState.initialGoals : [];
         mergedState.suggestedChallenges = Array.isArray(mergedState.suggestedChallenges) ? mergedState.suggestedChallenges : [];
@@ -513,15 +426,17 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
 
         if (mergedState.product) {
             const validStages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
-            if (!validStages.includes(mergedState.product.stage)) {
-                if (String(mergedState.product.stage).toLowerCase() === 'concept') {
-                    mergedState.product.stage = 'idea';
+            let currentStage = mergedState.product.stage;
+            if (!validStages.includes(currentStage)) {
+                if (String(currentStage).toLowerCase() === 'concept') {
+                    currentStage = 'idea';
                 } else {
-                    console.warn(`Invalid product stage "${mergedState.product.stage}" during merge. Defaulting to "idea".`);
-                    mergedState.product.stage = 'idea';
+                    console.warn(`Invalid product stage "${currentStage}" during merge. Defaulting to "idea".`);
+                    currentStage = 'idea';
                 }
             }
-        } else { // If mergedState.product is somehow undefined
+            mergedState.product.stage = currentStage;
+        } else { 
              mergedState.product = { ...initialBaseState.product };
         }
 
@@ -530,3 +445,4 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
     }
   )
 );
+

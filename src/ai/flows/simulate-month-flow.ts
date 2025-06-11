@@ -22,7 +22,7 @@ const prompt = ai.definePrompt({
   input: { schema: SimulateMonthInputSchema },
   output: { schema: SimulateMonthOutputSchema },
   config: {
-    temperature: 0.6, // Allow for some creativity but keep it somewhat grounded
+    temperature: 0.7, // Allow for more creativity but keep it somewhat grounded
      safetySettings: [ // More permissive for creative/business scenarios
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH'},
       { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
@@ -92,16 +92,21 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
         *   Set 'newProductStage' in output if advancement occurs. Otherwise, omit it.
 
 4.  **Key Events Generated (Exactly 2):**
-    *   Generate two distinct, plausible short string events. They can be positive, negative, or neutral.
+    *   Generate two distinct, plausible short string events. These can be positive, negative, or neutral. One of these events SHOULD highlight a key achievement or milestone if one occurred (e.g., "Reached 1000 active users!", "Product successfully advanced to MVP stage.").
     *   Examples: "Unexpected viral mention on social media boosts brand awareness.", "Key supplier increased prices by 10%.", "Competitor X launched a similar product.", "Team morale is exceptionally high after a successful sprint."
     *   These should be concise and impactful.
 
-5.  **Startup Score Adjustment:**
-    *   Base on overall performance. Consider:
+5.  **Rewards Granted (Optional):**
+    *   If a major milestone was achieved (e.g., significant user growth, product stage advancement, first profitability), you can grant 1-2 thematic rewards.
+    *   Provide a 'name' (e.g., "MVP Launch Bonus") and 'description' (e.g., "Successfully launched the Minimum Viable Product.") for each reward.
+    *   These rewards should be reflected in the Startup Score Adjustment. If no significant rewardable milestone, omit the 'rewardsGranted' field or set it to an empty array.
+
+6.  **Startup Score Adjustment:**
+    *   Base on overall performance and any achievements/rewards. Consider:
         *   Profitability: Positive profit = +1 to +3. Significant loss = -1 to -3.
         *   Cash Flow: If cash on hand becomes critically low (e.g., < 1 month burn rate if burn rate is positive) = -2 to -5. Significant cash increase = +1 to +2.
         *   User Growth: Strong positive user growth = +1 to +3. Stagnation or loss = -1.
-        *   Product Milestones: Advancing product stage = +3 to +5.
+        *   Product Milestones: Advancing product stage or other major achievements = +3 to +5.
         *   Max score is 100, min is 0. The adjustment should be an integer.
 
 Output MUST be a single, valid JSON object matching the SimulateMonthOutputSchema.
@@ -124,8 +129,23 @@ const simulateMonthGenkitFlow = ai.defineFlow(
     // Increment the month for the AI's context, it will confirm this in its output.
     const targetSimulatedMonth = input.currentSimulationMonth + 1;
     
+    let currentProductStageForAI = input.product.stage;
+    const validStages: SimulateMonthInput['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
+    if (!validStages.includes(currentProductStageForAI)) {
+        if (String(currentProductStageForAI).toLowerCase() === 'concept') {
+            currentProductStageForAI = 'idea';
+        } else {
+            console.warn(`Invalid product stage "${currentProductStageForAI}" detected before AI call. Defaulting to "idea".`);
+            currentProductStageForAI = 'idea';
+        }
+    }
+
     const flowInputForPrompt = {
       ...input,
+      product: {
+        ...input.product,
+        stage: currentProductStageForAI,
+      }
       // The AI is prompted with currentSimulationMonth, and expected to output for targetSimulatedMonth
     };
 
@@ -145,3 +165,4 @@ const simulateMonthGenkitFlow = ai.defineFlow(
     return output;
   }
 );
+
