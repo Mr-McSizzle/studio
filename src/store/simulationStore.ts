@@ -50,6 +50,71 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
   isInitialized: false,
 };
 
+// Define exampleMissions before getInitialState
+const exampleMissions: Mission[] = [
+  {
+    id: "reach-100-users",
+    title: "Acquire First 100 Users",
+    description: "Reach 100 active users for your product.",
+    rewardText: "+5 Startup Score, $1,000 Cash Bonus",
+    isCompleted: false,
+    criteria: (currentState) => currentState.userMetrics.activeUsers >= 100,
+    onComplete: (currentState) => {
+      const returnState: DigitalTwinState = {
+        ...currentState,
+        startupScore: Math.min(100, currentState.startupScore + 5),
+        financials: {
+          ...currentState.financials,
+          cashOnHand: currentState.financials.cashOnHand + 1000,
+        },
+        rewards: [
+          ...currentState.rewards,
+          { id: 'reward-100-users', name: '100 User Milestone', description: 'Achieved 100 active users.', dateEarned: new Date().toISOString() }
+        ],
+      };
+      return returnState;
+    }
+  },
+  {
+    id: "first-profit",
+    title: "Achieve First Profitable Month",
+    description: "Have a month where revenue exceeds expenses.",
+    rewardText: "+10 Startup Score",
+    isCompleted: false,
+    criteria: (currentState) => currentState.financials.profit > 0,
+    onComplete: (currentState) => {
+      const returnState: DigitalTwinState = {
+        ...currentState,
+        startupScore: Math.min(100, currentState.startupScore + 10),
+        rewards: [
+          ...currentState.rewards,
+          { id: 'reward-first-profit', name: 'First Profit!', description: 'Recorded a profitable month.', dateEarned: new Date().toISOString() }
+        ],
+      };
+      return returnState;
+    }
+  },
+  {
+    id: "mvp-launch",
+    title: "Launch MVP",
+    description: "Reach the MVP product stage.",
+    rewardText: "+10 Startup Score, R&D Efficiency Boost (conceptual)",
+    isCompleted: false,
+    criteria: (currentState) => currentState.product.stage === 'mvp',
+    onComplete: (currentState) => {
+      const returnState: DigitalTwinState = {
+        ...currentState,
+        startupScore: Math.min(100, currentState.startupScore + 10),
+        rewards: [
+          ...currentState.rewards,
+          { id: 'reward-mvp-launch', name: 'MVP Launched!', description: 'Successfully reached MVP stage.', dateEarned: new Date().toISOString() }
+        ],
+      };
+      return returnState;
+    }
+  }
+];
+
 const getInitialState = (): DigitalTwinState => ({
   ...initialBaseState,
   keyEvents: ["Simulation not yet initialized."],
@@ -104,12 +169,11 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
     if (parsedConditions.resources?.coreTeam && Array.isArray(parsedConditions.resources.coreTeam)) {
         initialTeamFromAI.push(...parsedConditions.resources.coreTeam.map(member => ({
             role: member.role,
-            count: member.count || 1, // Default count to 1 if not specified
+            count: member.count || 1,
             salary: member.salary || (member.role.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : MOCK_SALARY_PER_EMPLOYEE)
         })));
     }
 
-    // Ensure there's always at least one founder if AI doesn't specify
     let finalInitialTeam: TeamMember[] = [];
     const founderInAI = initialTeamFromAI.find(tm => tm.role.toLowerCase() === 'founder');
     if (founderInAI) {
@@ -125,7 +189,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
 
 
     set(state => ({
-      ...initialBaseState, // Start fresh from base
+      ...initialBaseState, 
       companyName: parsedConditions.companyName || userStartupName || "AI Suggested Venture",
       market: {
         ...initialBaseState.market,
@@ -138,7 +202,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
         ...initialBaseState.resources,
         initialBudget: initialBudget,
         team: finalInitialTeam,
-        initialIpOrAssets: parsedConditions.resources?.initialIpOrAssets,
         marketingSpend: initialMarketingSpend,
         rndSpend: initialRndSpend,
       },
@@ -153,7 +216,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
         fundingRaised: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudget,
         expenses: initialExpenses,
         profit: 0 - initialExpenses,
-        burnRate: initialExpenses > 0 ? initialExpenses : 0, // If revenue is 0
+        burnRate: initialExpenses > 0 ? initialExpenses : 0, 
       },
       initialGoals: parsedConditions.initialGoals || [],
       suggestedChallenges: aiOutput.suggestedChallenges ? JSON.parse(aiOutput.suggestedChallenges) : [],
@@ -180,7 +243,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
 
   adjustTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => set(state => {
     if (!state.isInitialized) return state;
-    const team = state.resources.team.map(member => ({ ...member })); // Create a new array of new objects
+    const team = state.resources.team.map(member => ({ ...member })); 
     const roleIndex = team.findIndex(member => member.role === roleToAdjust);
 
     if (roleIndex > -1) {
@@ -202,10 +265,9 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
   advanceMonth: () => set(state => {
     if (!state.isInitialized || state.financials.cashOnHand <= 0) return state; 
 
-    // Create a mutable copy of the state for this month's calculations
-    // Carefully clone nested objects to avoid mutating the original state directly in unexpected ways
     const newState: DigitalTwinState = {
       ...state,
+      simulationMonth: state.simulationMonth + 1,
       financials: { ...state.financials },
       userMetrics: { ...state.userMetrics },
       product: { ...state.product, features: [...state.product.features] },
@@ -214,18 +276,14 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
         team: state.resources.team.map(member => ({ ...member })),
       },
       market: { ...state.market },
-      keyEvents: [...state.keyEvents], // Start with existing events
-      // historicalData and rewards will be appended to, creating new arrays
+      keyEvents: [...state.keyEvents], 
       historicalRevenue: [...state.historicalRevenue],
       historicalUserGrowth: [...state.historicalUserGrowth],
       rewards: state.rewards.map(reward => ({...reward})),
-      // missions will be processed based on state.missions but result in a new array for newState.missions
-      missions: state.missions.map(m => ({...m})), // Initial shallow copy, functions are preserved.
+      missions: state.missions.map(m => ({...m})),
       initialGoals: state.initialGoals ? [...state.initialGoals] : [],
       suggestedChallenges: state.suggestedChallenges ? [...state.suggestedChallenges] : [],
     };
-
-    newState.simulationMonth += 1;
 
     const newUsersFromMarketing = Math.floor(newState.resources.marketingSpend * MOCK_NEW_USERS_PER_MARKETING_DOLLAR);
     const churnedUsers = Math.floor(newState.userMetrics.activeUsers * newState.userMetrics.churnRate);
@@ -261,7 +319,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
       }
     }
     
-    const previousProfit = state.financials.profit; // Profit from the original state (previous month)
+    const previousProfit = state.financials.profit; 
     if (newState.financials.profit > 0 && newState.financials.profit > (previousProfit || 0)) newState.startupScore += 2;
     else if (newState.financials.profit < 0 && newState.financials.cashOnHand > 0) newState.startupScore -=1;
 
@@ -287,24 +345,16 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
     if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
     
 
-    // Process missions based on the original state's missions, applying to `newState`
-    const originalMissions = state.missions; // These have the correct functions
+    const originalMissions = state.missions; 
     const updatedMissions = originalMissions.map(mission => {
-      let missionCopy = { ...mission }; // Shallow copy the mission, functions are copied by reference
-      if (!missionCopy.isCompleted && missionCopy.criteria(newState)) { // Pass the fully formed newState
+      let missionCopy = { ...mission }; 
+      if (!missionCopy.isCompleted && mission.criteria(newState)) { 
         if (missionCopy.onComplete) {
-          // onComplete is expected to return a DigitalTwinState.
-          // It receives the `newState` (which is mutable for this month)
-          // and should perform its modifications on a copy of that or directly on it,
-          // then return the modified state object for `advanceMonth` to use.
           const stateAfterMissionCompletion = missionCopy.onComplete(newState);
           
-          // Selectively update `newState` from what `onComplete` returned.
-          // This prevents `onComplete` from accidentally overwriting other parts of `newState`.
           newState.startupScore = stateAfterMissionCompletion.startupScore;
           newState.financials.cashOnHand = stateAfterMissionCompletion.financials.cashOnHand;
-          newState.rewards = stateAfterMissionCompletion.rewards.map(r => ({...r})); // new array of new objects
-          // Potentially copy other fields if onComplete is supposed to change them
+          newState.rewards = stateAfterMissionCompletion.rewards.map(r => ({...r})); 
         }
         newState.keyEvents.push(`Mission Completed: ${missionCopy.title}! Reward: ${missionCopy.rewardText}`);
         missionCopy.isCompleted = true;
@@ -325,73 +375,3 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
   }
 }));
 
-const exampleMissions: Mission[] = [
-  {
-    id: "reach-100-users",
-    title: "Acquire First 100 Users",
-    description: "Reach 100 active users for your product.",
-    rewardText: "+5 Startup Score, $1,000 Cash Bonus",
-    isCompleted: false,
-    criteria: (currentState) => currentState.userMetrics.activeUsers >= 100,
-    onComplete: (currentState) => {
-      // currentState is the mutable newState from advanceMonth.
-      // Return a new state object with modifications.
-      const returnState: DigitalTwinState = { 
-        ...currentState, // Base it on the input state
-        startupScore: Math.min(100, currentState.startupScore + 5),
-        financials: {
-          ...currentState.financials,
-          cashOnHand: currentState.financials.cashOnHand + 1000,
-        },
-        rewards: [
-          ...currentState.rewards,
-          { id: 'reward-100-users', name: '100 User Milestone', description: 'Achieved 100 active users.', dateEarned: new Date().toISOString() }
-        ],
-      };
-      return returnState;
-    }
-  },
-  {
-    id: "first-profit",
-    title: "Achieve First Profitable Month",
-    description: "Have a month where revenue exceeds expenses.",
-    rewardText: "+10 Startup Score",
-    isCompleted: false,
-    criteria: (currentState) => currentState.financials.profit > 0,
-    onComplete: (currentState) => {
-      const returnState: DigitalTwinState = {
-        ...currentState,
-        startupScore: Math.min(100, currentState.startupScore + 10),
-        rewards: [
-          ...currentState.rewards,
-          { id: 'reward-first-profit', name: 'First Profit!', description: 'Recorded a profitable month.', dateEarned: new Date().toISOString() }
-        ],
-      };
-      return returnState;
-    }
-  },
-  {
-    id: "mvp-launch",
-    title: "Launch MVP",
-    description: "Reach the MVP product stage.",
-    rewardText: "+10 Startup Score, R&D Efficiency Boost (conceptual)",
-    isCompleted: false,
-    criteria: (currentState) => currentState.product.stage === 'mvp',
-    onComplete: (currentState) => {
-      const returnState: DigitalTwinState = {
-        ...currentState,
-        startupScore: Math.min(100, currentState.startupScore + 10),
-        rewards: [
-          ...currentState.rewards,
-          { id: 'reward-mvp-launch', name: 'MVP Launched!', description: 'Successfully reached MVP stage.', dateEarned: new Date().toISOString() }
-        ],
-      };
-      // Conceptual: could modify R&D efficiency factor here if model supported it
-      return returnState;
-    }
-  }
-];
-// I've also slightly adjusted the initializeSimulation action to ensure default `count` and `salary` for team members if not provided by AI,
-// and made sure initial expenses, profit, and burn rate reflect these initial settings for better consistency.
-// The resetSimulation function now also explicitly resets missions and provides a key event.
-// Marketing and R&D spend from AI conditions are also now respected.
