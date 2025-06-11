@@ -13,7 +13,6 @@ import { ForgeSimLogo } from '@/components/icons/logo';
 import { User, Mail, Lock, Sparkles, Home } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
-// NEXUS inspired animated background elements
 const NexusBackground = () => (
   <div className="fixed inset-0 z-0 pointer-events-none">
     <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/10 to-background opacity-90" />
@@ -25,20 +24,36 @@ const NexusBackground = () => (
 export default function SignUpPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); 
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const signUp = useAuthStore((state) => state.signUp);
   const { toast } = useToast();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-     if (!name.trim() || !email.trim() || !password.trim()) {
+    setIsLoading(true);
+
+    if (!name.trim() || !email.trim() || !password.trim()) {
       toast({ title: "All fields required", description: "Please provide your name, email, and choose a password.", variant: "destructive" });
+      setIsLoading(false);
       return;
     }
-    signUp(name, email); 
-    toast({ title: "Account Creation Initiated!", description: "Welcome to the ForgeSim initiative, Founder! Please proceed to login.", duration: 4000 });
-    router.push('/login'); 
+    if (password.length < 8) {
+      toast({ title: "Password Too Short", description: "Password must be at least 8 characters long.", variant: "destructive" });
+      setIsLoading(false);
+      return;
+    }
+
+    const signUpSuccess = signUp(name, email, password);
+
+    if (signUpSuccess) {
+      toast({ title: "Account Creation Initiated!", description: "Welcome to ForgeSim, Founder! Please proceed to login with your new credentials.", duration: 4000 });
+      router.push('/login'); 
+    } else {
+      toast({ title: "Sign-Up Failed", description: "This email may already be registered. Please try a different email or log in.", variant: "destructive" });
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -68,6 +83,7 @@ export default function SignUpPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g., Ada Lovelace"
                   required
+                  disabled={isLoading}
                   className="bg-input/70 border-border focus:bg-input focus:border-primary placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
@@ -82,12 +98,13 @@ export default function SignUpPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ada.lovelace@forgesim.ai"
                   required
+                  disabled={isLoading}
                   className="bg-input/70 border-border focus:bg-input focus:border-primary placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="flex items-center text-muted-foreground font-semibold">
-                  <Lock className="h-5 w-5 mr-2 text-primary" /> Secure Password
+                  <Lock className="h-5 w-5 mr-2 text-primary" /> Secure Password (min. 8 characters)
                 </Label>
                 <Input
                   id="password"
@@ -96,15 +113,16 @@ export default function SignUpPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Choose a strong password"
                   required
+                  disabled={isLoading}
                   className="bg-input/70 border-border focus:bg-input focus:border-primary placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
               <Button 
                 type="submit" 
+                disabled={isLoading}
                 className="w-full bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-accent-foreground text-lg py-6 shadow-md hover:shadow-primary-glow-sm transition-all duration-300 transform hover:scale-105"
               >
-                <Sparkles className="mr-2 h-5 w-5" />
-                Create Account & Begin
+                 {isLoading ? "Creating Account..." : <><Sparkles className="mr-2 h-5 w-5" />Create Account & Begin</>}
               </Button>
             </form>
           </CardContent>

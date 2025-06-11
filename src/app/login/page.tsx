@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, ensureDefaultUser } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,6 @@ import { ForgeSimLogo } from '@/components/icons/logo';
 import { Mail, Lock, LogInIcon, Home } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
-// NEXUS inspired animated background elements
 const NexusBackground = () => (
   <div className="fixed inset-0 z-0 pointer-events-none">
     <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/10 to-background opacity-90" />
@@ -24,25 +23,35 @@ const NexusBackground = () => (
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); 
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
-  const { toast } = useToast(); 
+  const { toast } = useToast();
 
-  const handleSubmit = (e: FormEvent) => {
+  useEffect(() => {
+    ensureDefaultUser(); // Ensure the default mock user exists for easier testing
+  }, []);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) {
-      toast({ title: "Email required", description: "Please enter your email address.", variant: "destructive" });
+    setIsLoading(true);
+
+    if (!email.trim() || !password.trim()) {
+      toast({ title: "Credentials Required", description: "Please enter both email and password.", variant: "destructive" });
+      setIsLoading(false);
       return;
     }
-    // Mock password check for demo
-    if (!password.trim()) {
-      toast({ title: "Password required", description: "Please enter your password.", variant: "destructive" });
-      return;
+
+    const loginSuccess = login(email, password);
+
+    if (loginSuccess) {
+      toast({ title: "Login Successful", description: `Access granted! Charting course for ForgeSim...`, duration: 3000 });
+      router.push('/app'); 
+    } else {
+      toast({ title: "Login Failed", description: "Invalid email or password. Please try again.", variant: "destructive" });
     }
-    login(email);
-    toast({ title: "Login Successful", description: `Access granted, ${email.split('@')[0]}! Charting course for ForgeSim...`, duration: 3000 });
-    router.push('/app'); 
+    setIsLoading(false);
   };
 
   return (
@@ -59,6 +68,8 @@ export default function LoginPage() {
             </CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
               Log in to your ForgeSim Digital Twin.
+              <br />
+              <span className="text-xs">(Test with: founder@forgesim.ai / password123)</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6 sm:px-8 py-6">
@@ -74,6 +85,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="founder@forgesim.ai"
                   required
+                  disabled={isLoading}
                   className="bg-input/70 border-border focus:bg-input focus:border-accent placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
@@ -88,15 +100,16 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
                   required
+                  disabled={isLoading}
                   className="bg-input/70 border-border focus:bg-input focus:border-accent placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
               <Button 
                 type="submit" 
+                disabled={isLoading}
                 className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105"
               >
-                <LogInIcon className="mr-2 h-5 w-5"/>
-                Secure Login
+                {isLoading ? "Authenticating..." : <><LogInIcon className="mr-2 h-5 w-5"/>Secure Login</>}
               </Button>
             </form>
           </CardContent>
