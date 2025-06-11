@@ -13,7 +13,8 @@ import { SendHorizonal, Loader2, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore"; // Import the new store
-
+// import { useSimulationStore } from "@/store/simulationStore"; // If passing simulation context
+// import { usePathname } from "next/navigation"; // If passing current page
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
@@ -23,6 +24,10 @@ export function ChatInterface() {
   const { toast } = useToast();
   const { setGuidance } = useAiMentorStore(); // Get the action from the store
 
+  // For potential context to AI:
+  // const { isInitialized, simulationMonth } = useSimulationStore(state => ({ isInitialized: state.isInitialized, simulationMonth: state.simulationMonth }));
+  // const pathname = usePathname();
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
@@ -30,7 +35,7 @@ export function ChatInterface() {
   }, [messages]);
   
   useEffect(() => {
-    const initialGreeting = "Greetings! I am your AI Hive Mind Assistant for ForgeSim. I'll help synthesize insights and provide personalized guidance for your startup simulation. How can I assist you today, or would you like a suggestion on what to do next?";
+    const initialGreeting = "Greetings, Founder. I am your AI Queen Hive Mind for ForgeSim. My role is to coordinate our team of specialized AI agents—Accountant, Marketing Guru, Operations Manager, and more—to provide you with synthesized insights and personalized guidance for your startup simulation. How can I direct our collective intelligence to assist you today, or would you like a suggestion for your next strategic move?";
     setMessages([
       {
         id: "initial-hivemind-greeting",
@@ -65,6 +70,10 @@ export function ChatInterface() {
       const mentorInput: MentorConversationInput = {
         userInput: newUserMessage.content,
         conversationHistory: [...conversationHistoryForAI, {role: 'user', content: newUserMessage.content}],
+        // Potentially add context:
+        // currentSimulationPage: pathname,
+        // isSimulationInitialized: isInitialized,
+        // simulationMonth: simulationMonth,
       };
       
       const result: MentorConversationOutput = await mentorConversation(mentorInput);
@@ -131,7 +140,7 @@ export function ChatInterface() {
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ask your AI Hive Mind, or type 'what next?'"
+          placeholder="Ask your AI Hive Mind..."
           className="flex-grow"
           disabled={isLoading}
           aria-label="User input for AI Hive Mind"
@@ -148,3 +157,4 @@ export function ChatInterface() {
     </div>
   );
 }
+
