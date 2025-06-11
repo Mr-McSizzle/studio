@@ -1,4 +1,6 @@
 
+import {z} from 'genkit';
+
 export interface FinancialMetrics {
   revenue: number;
   expenses: number;
@@ -51,7 +53,7 @@ export interface MarketConditions {
 // For chart data
 export interface MonthlyDataPoint {
   month: string; // e.g., "M1", "M2" or "Jan", "Feb"
-  value: number; 
+  value: number;
   desktop?: number; // for recharts compatibility if needed
 }
 export interface RevenueDataPoint {
@@ -115,6 +117,8 @@ export interface AIInitialConditions {
     initialFunding?: number | string; // Can be string like "$50,000"
     coreTeam?: string | TeamMember[]; // Can be descriptive string or array
     initialIpOrAssets?: string;
+    marketingSpend?: number | string;
+    rndSpend?: number | string;
   };
   productService?: { // Note: key might differ slightly, be flexible
     initialDevelopmentStage?: string;
@@ -128,3 +132,17 @@ export interface AIInitialConditions {
   companyName?: string; // AI might suggest a name
 }
 
+// Corrected Zod schema definitions and corresponding types for the Accountant Tool
+export const AccountantToolInputZodSchema = z.object({
+  simulationMonth: z.number().optional().describe("The current month of the simulation."),
+  cashOnHand: z.number().optional().describe("Current cash on hand for the startup."),
+  burnRate: z.number().optional().describe("Current monthly burn rate."),
+  monthlyRevenue: z.number().optional().describe("Current monthly revenue."),
+  monthlyExpenses: z.number().optional().describe("Current monthly expenses."),
+});
+export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;
+
+export const AccountantToolOutputZodSchema = z.object({
+  summary: z.string().describe("A brief financial health check or insight from the AI accountant."),
+});
+export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>;
