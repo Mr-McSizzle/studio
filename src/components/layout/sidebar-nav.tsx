@@ -11,7 +11,7 @@ import {
   Trophy,
   PanelLeft,
   Rocket,
-  User as UserIcon, // Renamed to avoid conflict
+  User as UserIcon, 
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -89,7 +89,7 @@ export function MobileSidebarNav({ onLinkClick }: { onLinkClick?: () => void }) 
             <Link
               key={item.href}
               href={item.href}
-              onClick={onLinkClick} // Call this to close the sheet
+              onClick={onLinkClick} 
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
                 isActive ? "bg-muted text-primary" : "text-muted-foreground"

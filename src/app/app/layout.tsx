@@ -1,11 +1,11 @@
 
-"use client"; // Required for Sheet state and AI store interaction
+"use client"; 
 
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { PanelLeft, MessagesSquare, ChevronRight, Lightbulb } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation"; // For navigation button
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; 
 
 import { ForgeSimLogo } from "@/components/icons/logo";
 import { SidebarNav, MobileSidebarNav, SidebarToggleButton } from "@/components/layout/sidebar-nav";
@@ -21,9 +21,10 @@ import {
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAiMentorStore } from "@/store/aiMentorStore"; // New store for AI guidance
+import { useAiMentorStore } from "@/store/aiMentorStore"; 
+import { useAuthStore } from "@/store/authStore"; // Import auth store
 
-// New HiveMindGuidanceBar component
+// HiveMindGuidanceBar component
 function HiveMindGuidanceBar() {
   const { lastMessage, suggestedNextAction, clearSuggestion } = useAiMentorStore();
   const router = useRouter();
@@ -31,16 +32,16 @@ function HiveMindGuidanceBar() {
   const handleSuggestionClick = () => {
     if (suggestedNextAction?.page) {
       router.push(suggestedNextAction.page);
-      clearSuggestion(); // Clear suggestion after navigation
+      clearSuggestion(); 
     }
   };
   
   const handleAskMentor = () => {
-    router.push('/app/mentor'); // Navigate to full mentor chat
+    router.push('/app/mentor'); 
   };
 
   if (!lastMessage && !suggestedNextAction) {
-    return null; // Don't render if there's no guidance
+    return null; 
   }
 
   return (
@@ -52,8 +53,8 @@ function HiveMindGuidanceBar() {
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4 text-sm">
-        {lastMessage && <p className="text-muted-foreground mb-3">{lastMessage}</p>}
-        <div className="flex items-center gap-3">
+        {lastMessage && <p className="text-muted-foreground mb-3 whitespace-pre-wrap">{lastMessage}</p>}
+        <div className="flex items-center gap-3 flex-wrap">
           {suggestedNextAction?.label && suggestedNextAction?.page && (
             <Button onClick={handleSuggestionClick} size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
               {suggestedNextAction.label}
@@ -73,8 +74,31 @@ function HiveMindGuidanceBar() {
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+  const router = useRouter();
+  const { isAuthenticated, userEmail } = useAuthStore(); // Get auth state
+
+  useEffect(() => {
+    // If auth state is resolved (not undefined) and user is not authenticated
+    if (userEmail === undefined) return; // Still loading auth state from storage
+
+    if (!isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, userEmail, router]);
+
 
   const closeMobileSheet = () => setIsMobileSheetOpen(false);
+  
+  // Prevent rendering children if not authenticated, router.replace is async
+  if (!isAuthenticated && userEmail !== undefined) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
+            <p>Redirecting to login...</p>
+            {/* Optionally, a loader icon */}
+        </div>
+    );
+  }
+
 
   return (
     <TooltipProvider>
@@ -117,10 +141,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   <MobileSidebarNav onLinkClick={closeMobileSheet} />
                 </SheetContent>
               </Sheet>
-              {/* Mobile Header Right Content, e.g. User Menu */}
             </header>
             <SidebarInset className="p-4 sm:px-6 sm:py-0">
-              <HiveMindGuidanceBar /> {/* Display guidance bar here */}
+              <HiveMindGuidanceBar /> 
               <main className="flex-1 overflow-auto">
                 {children}
               </main>
@@ -131,4 +154,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </TooltipProvider>
   );
 }
-

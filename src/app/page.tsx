@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ForgeSimLogo } from '@/components/icons/logo';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Zap, Brain, Target, ShieldCheck, Users, TrendingUpIcon, Briefcase, Network } from 'lucide-react';
+import { Zap, Brain, Target, ShieldCheck, Users, TrendingUpIcon, Briefcase, Network, LogIn } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -66,10 +66,13 @@ export default function HomePage() {
 
         <section className="text-center mt-16">
           <Button asChild size="lg" className="w-full max-w-sm bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-4 rounded-lg shadow-lg transition-transform hover:scale-105 focus:ring-4 focus:ring-accent/50">
-            <Link href="/app/setup">Initialize Your Digital Twin</Link>
+            <Link href="/app">
+              <LogIn className="mr-2 h-5 w-5" />
+              Start Your Simulation
+            </Link>
           </Button>
           <p className="text-sm text-muted-foreground mt-4">
-            Ready to forge your startup's future? Click above to begin setting up your simulation.
+            Ready to forge your startup&apos;s future? Click above to begin.
           </p>
         </section>
       </main>
