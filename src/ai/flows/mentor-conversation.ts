@@ -58,6 +58,9 @@ const prompt = ai.definePrompt({
   {{/ifCond}}
   {{/each}}
   {{/if}}
+
+  Provide your response as the AI mentor:
+  {{output}}
   `,
 });
 
