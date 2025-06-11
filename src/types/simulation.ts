@@ -127,3 +127,4 @@ export interface AIInitialConditions {
   initialGoals?: string[];
   companyName?: string; // AI might suggest a name
 }
+

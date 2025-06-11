@@ -1,41 +1,121 @@
 
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, type ChangeEvent } from "react";
+import { useSimulationStore } from "@/store/simulationStore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { SlidersHorizontal, Info, Construction, Zap, PackageOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { SlidersHorizontal, Info, Construction, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+const DEFAULT_ENGINEER_SALARY = 5000; // Should ideally come from a config or store constants
 
 export default function SimulationPage() {
+  const {
+    isInitialized,
+    resources,
+    financials,
+    setMarketingSpend,
+    setRndSpend,
+    adjustTeamMemberCount,
+    keyEvents
+  } = useSimulationStore();
+
+  const [localMarketingSpend, setLocalMarketingSpend] = useState(resources.marketingSpend);
+  const [localRndSpend, setLocalRndSpend] = useState(resources.rndSpend);
+
+  useEffect(() => {
+    if (isInitialized) {
+      setLocalMarketingSpend(resources.marketingSpend);
+      setLocalRndSpend(resources.rndSpend);
+    }
+  }, [resources.marketingSpend, resources.rndSpend, isInitialized]);
+
+  const handleMarketingSpendChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    setLocalMarketingSpend(isNaN(value) ? 0 : value);
+  };
+
+  const handleRndSpendChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    setLocalRndSpend(isNaN(value) ? 0 : value);
+  };
+
+  const applyMarketingSpend = () => {
+    setMarketingSpend(localMarketingSpend);
+  };
+
+  const applyRndSpend = () => {
+    setRndSpend(localRndSpend);
+  };
+
+  const getTeamMemberCount = (role: string): number => {
+    const member = resources.team.find(m => m.role === role);
+    return member ? member.count : 0;
+  };
+
+  const getTeamMemberSalary = (role: string): number => {
+    const member = resources.team.find(m => m.role === role);
+    return member ? member.salary : 0;
+  };
+
+
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
       <header className="mb-8">
         <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
-            <Zap className="h-8 w-8 text-accent"/>
-            Interactive Digital Twin Simulation
+          <Zap className="h-8 w-8 text-accent" />
+          Interactive Digital Twin Simulation
         </h1>
         <p className="text-muted-foreground">
-          Visualize your startup's journey within its dynamic digital twin. Test "what-if" scenarios and observe outcomes in real-time.
+          Manage your startup's resources, make strategic decisions, and observe their impact on your digital twin. Advance months on the Dashboard to see results.
         </p>
       </header>
+
+      {!isInitialized && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Simulation Not Initialized</AlertTitle>
+          <AlertDescription>
+            Please go to the "Setup Simulation" page to initialize your digital twin before interacting with simulation controls.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+       {financials.cashOnHand <= 0 && isInitialized && (
+         <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Game Over - Out of Cash!</AlertTitle>
+          <AlertDescription>
+            Your startup has run out of cash. Decision controls are disabled. Reset the simulation to try again.
+          </AlertDescription>
+        </Alert>
+      )}
+
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card className="shadow-lg overflow-hidden">
             <CardHeader>
               <CardTitle className="font-headline flex items-center gap-2">
-                <PackageOpen className="h-6 w-6 text-primary"/> Your Business Digital Twin
+                <PackageOpen className="h-6 w-6 text-primary" /> Your Business Digital Twin
               </CardTitle>
               <CardDescription>
-                This space will dynamically render your simulated business environment. Watch your decisions unfold and market forces interact.
+                This space will dynamically render your simulated business environment in future updates. For now, make decisions below and see outcomes on your Dashboard after advancing months.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="aspect-video bg-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-8">
                 <Construction className="h-16 w-16 mb-4 text-accent" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">3D Environment Under Development</h3>
+                <h3 className="text-xl font-semibold text-foreground mb-2">Dynamic Visualization Under Development</h3>
                 <p className="text-center">
-                  The interactive 3D visualization of your digital twin is currently being built.
+                  Interactive visualizations of your digital twin's market, operations, and finances are being built.
                 </p>
                 <p className="text-xs text-center mt-1">
-                   Future updates will bring your startup's world, market, and operations to life here.
+                  Current key metrics are available on the Dashboard.
                 </p>
               </div>
             </CardContent>
@@ -45,22 +125,93 @@ export default function SimulationPage() {
         <div className="lg:col-span-1">
           <Card className="shadow-lg">
             <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-               <SlidersHorizontal className="h-6 w-6 text-accent" />
-              <CardTitle className="font-headline">Scenario & Decision Controls</CardTitle>
+              <SlidersHorizontal className="h-6 w-6 text-accent" />
+              <CardTitle className="font-headline">Decision Controls</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Adjust strategic variables (e.g., funding allocation, marketing spend, hiring pace, product feature rollout) to see their real-time impact on your digital twin. (Controls to be implemented)
-              </p>
-              <div className="p-4 border border-dashed border-border rounded-md text-center text-muted-foreground min-h-[100px] flex flex-col justify-center items-center">
-                <Construction className="h-8 w-8 mb-2 text-accent" />
-                <p className="font-medium text-foreground">Dynamic Control Panel</p>
-                <p className="text-xs">Interactive controls for making decisions and managing your simulated startup will be available here.</p>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="marketing-spend" className="flex items-center gap-2"><DollarSign className="h-4 w-4"/>Monthly Marketing Spend</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="marketing-spend"
+                    type="number"
+                    value={localMarketingSpend}
+                    onChange={handleMarketingSpendChange}
+                    onBlur={applyMarketingSpend}
+                    min="0"
+                    disabled={!isInitialized || financials.cashOnHand <= 0}
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Current: ${resources.marketingSpend.toLocaleString()}</p>
               </div>
-               <div className="flex items-start gap-2 p-3 bg-secondary/50 rounded-md border border-secondary">
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&D Spend</Label>
+                 <div className="flex items-center gap-2">
+                  <Input
+                    id="rnd-spend"
+                    type="number"
+                    value={localRndSpend}
+                    onChange={handleRndSpendChange}
+                    onBlur={applyRndSpend}
+                    min="0"
+                    disabled={!isInitialized || financials.cashOnHand <= 0}
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Current: ${resources.rndSpend.toLocaleString()}</p>
+              </div>
+              
+              <Separator />
+
+              <div className="space-y-4">
+                <Label className="flex items-center gap-2"><Users className="h-4 w-4"/>Team Management</Label>
+                <div className="space-y-3">
+                  {/* Engineer Management Example */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">Engineers: {getTeamMemberCount("Engineer")}</p>
+                      <p className="text-xs text-muted-foreground">Salary: ${DEFAULT_ENGINEER_SALARY.toLocaleString()}/mo each</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustTeamMemberCount("Engineer", -1)}
+                        disabled={!isInitialized || getTeamMemberCount("Engineer") === 0 || financials.cashOnHand <= 0}
+                        aria-label="Reduce engineers"
+                      >
+                        <MinusCircle className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustTeamMemberCount("Engineer", 1, DEFAULT_ENGINEER_SALARY)}
+                        disabled={!isInitialized || financials.cashOnHand <= 0}
+                        aria-label="Hire engineer"
+                      >
+                        <PlusCircle className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                  {/* Add more roles here as needed */}
+                   <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">Founders: {getTeamMemberCount("Founder")}</p>
+                      <p className="text-xs text-muted-foreground">Salary: ${getTeamMemberSalary("Founder").toLocaleString()}/mo each (configurable during setup)</p>
+                    </div>
+                    {/* Typically founders are not hired/fired this way in early simulation, but count is shown */}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 p-3 bg-secondary/50 rounded-md border border-secondary mt-4">
                 <Info className="h-5 w-5 text-accent shrink-0 mt-0.5" />
                 <p className="text-sm text-secondary-foreground">
-                  <strong>Note:</strong> This section will house dynamic controls for your digital twin, allowing you to make strategic decisions and observe their consequences in the simulation.
+                  Make your monthly strategic adjustments here. Then, go to the <strong>Dashboard</strong> and click "Simulate Next Month" to see their impact.
                 </p>
               </div>
             </CardContent>
