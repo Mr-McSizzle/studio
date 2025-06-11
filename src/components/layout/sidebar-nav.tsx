@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -44,7 +45,7 @@ export function SidebarNav() {
           <SidebarMenuItem key={item.label}>
              <Tooltip>
               <TooltipTrigger asChild>
-                <Link href={item.href} passHref legacyBehavior>
+                <Link href={item.href}>
                   <SidebarMenuButton
                     asChild
                     variant="default"
@@ -118,3 +119,4 @@ export function SidebarToggleButton() {
     </Button>
   );
 }
+
