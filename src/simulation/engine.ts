@@ -1,15 +1,22 @@
 
-import type { DigitalTwinState, FinancialMetrics, UserMetrics, ProductDetails, Resources, MarketConditions } from '@/types/simulation';
+// This file can be used for more complex, pure simulation logic functions
+// that might be called by the Zustand store actions, or for defining constants.
+// For now, most of the core logic has been moved into the Zustand store (src/store/simulationStore.ts)
+// to keep state and its manipulation closely tied.
 
-export const initialDigitalTwinState: DigitalTwinState = {
+import type { DigitalTwinState, AIInitialConditions } from '@/types/simulation';
+
+// This initial state is now primarily managed within the Zustand store.
+// It's kept here as a reference or for utility functions if needed.
+export const initialReferenceDigitalTwinState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'isInitialized'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
     revenue: 0,
-    expenses: 5000, // Basic operational costs
+    expenses: 5000,
     profit: -5000,
     burnRate: 5000,
-    cashOnHand: 50000, // From initial budget
+    cashOnHand: 50000,
     fundingRaised: 50000,
   },
   userMetrics: {
@@ -27,8 +34,8 @@ export const initialDigitalTwinState: DigitalTwinState = {
   },
   resources: {
     initialBudget: 50000,
-    marketingSpend: 1000, // Default starting marketing spend
-    rndSpend: 1000,      // Default starting R&D spend
+    marketingSpend: 1000,
+    rndSpend: 1000,
     team: [{ role: 'Founder', count: 1, salary: 0 }],
   },
   market: {
@@ -37,81 +44,41 @@ export const initialDigitalTwinState: DigitalTwinState = {
     competitionLevel: 'moderate',
   },
   startupScore: 10,
-  keyEvents: ["Simulation initialized."],
-  missions: [],
-  rewards: [],
+  initialGoals: [],
 };
 
-const MOCK_PRICE_PER_USER_PER_MONTH = 10;
-const MOCK_NEW_USERS_PER_MARKETING_DOLLAR = 0.1; // Highly simplified
-const MOCK_SALARY_PER_TEAM_MEMBER = 3000; // Simplified
 
-export function advanceMonth(currentState: DigitalTwinState): DigitalTwinState {
-  const newState = JSON.parse(JSON.stringify(currentState)) as DigitalTwinState; // Deep copy
+/**
+ * Placeholder or utility function to help adapt AI prompt output.
+ * The primary logic for this is now within the Zustand store's
+ * initializeSimulation action.
+ */
+export function adaptAIOutputToState(
+  aiOutput: AIInitialConditions,
+  currentPartialState: Partial<DigitalTwinState>
+): Partial<DigitalTwinState> {
+  const adaptedState: Partial<DigitalTwinState> = { ...currentPartialState };
 
-  newState.simulationMonth += 1;
-
-  // 1. User Acquisition (very basic)
-  const newUsersFromMarketing = Math.floor(newState.resources.marketingSpend * MOCK_NEW_USERS_PER_MARKETING_DOLLAR);
-  const churnedUsers = Math.floor(newState.userMetrics.activeUsers * newState.userMetrics.churnRate);
-  newState.userMetrics.activeUsers += newUsersFromMarketing - churnedUsers;
-  if (newState.userMetrics.activeUsers < 0) newState.userMetrics.activeUsers = 0;
-  newState.userMetrics.newUserAcquisitionRate = newUsersFromMarketing; // For this month
-
-  // 2. Revenue
-  newState.userMetrics.monthlyRecurringRevenue = newState.userMetrics.activeUsers * MOCK_PRICE_PER_USER_PER_MONTH;
-  newState.financials.revenue = newState.userMetrics.monthlyRecurringRevenue; // For this month
-
-  // 3. Expenses
-  let monthlySalaries = 0;
-  newState.resources.team.forEach(tm => {
-    monthlySalaries += tm.count * tm.salary;
-  });
-  // Add other fixed costs if any, marketing, R&D
-  const otherOperationalCosts = 2000; // e.g. rent, utilities, software
-  newState.financials.expenses = monthlySalaries + newState.resources.marketingSpend + newState.resources.rndSpend + otherOperationalCosts;
-  
-  // 4. Financials update
-  newState.financials.profit = newState.financials.revenue - newState.financials.expenses;
-  newState.financials.cashOnHand += newState.financials.profit;
-  newState.financials.burnRate = newState.financials.expenses > newState.financials.revenue ? newState.financials.expenses - newState.financials.revenue : 0;
-
-  // 5. Product Development (simple progress)
-  if (newState.product.stage !== 'mature') {
-    newState.product.developmentProgress += Math.floor(newState.resources.rndSpend / 500); // 5% progress per 500 spend
-    if (newState.product.developmentProgress >= 100) {
-      newState.product.developmentProgress = 100;
-      // Potentially advance product stage here based on logic
-      if (newState.product.stage === 'idea') newState.product.stage = 'prototype';
-      else if (newState.product.stage === 'prototype') newState.product.stage = 'mvp';
-      // etc.
-      newState.keyEvents.push(`Product reached 100% progress for ${newState.product.stage} stage.`);
-    }
-  }
-  
-  // 6. Startup Score (very basic placeholder)
-  if (newState.financials.profit > 0) newState.startupScore += 2;
-  if (newUsersFromMarketing > 10) newState.startupScore += 1;
-  if (newState.financials.cashOnHand <= 0) {
-    newState.startupScore -=10;
-    newState.keyEvents.push("Ran out of cash! Game Over (simulated).");
-     // Potentially end simulation here
+  if (aiOutput.companyName) {
+    adaptedState.companyName = aiOutput.companyName;
   }
 
+  if (aiOutput.market) {
+    adaptedState.market = {
+      ...initialReferenceDigitalTwinState.market, // Start with defaults
+      ...adaptedState.market, // Apply any existing adaptations
+      marketSize: aiOutput.market.estimatedSize || initialReferenceDigitalTwinState.market.marketSize,
+      marketGrowthRate: aiOutput.market.growthRate,
+      keySegments: typeof aiOutput.market.keySegments === 'string' ? [aiOutput.market.keySegments] : aiOutput.market.keySegments,
+    };
+  }
 
-  newState.keyEvents.push(`Advanced to month ${newState.simulationMonth}. Revenue: $${newState.financials.revenue}, Users: ${newState.userMetrics.activeUsers}`);
+  // ... and so on for other fields like resources, product, financials
+  // This function can be expanded if complex adaptation logic is needed outside the store.
 
-  return newState;
+  return adaptedState;
 }
 
-// Placeholder for when user inputs their startup details
-export function initializeFromPrompt(companyName: string, initialBudget: number, targetMarket: string): DigitalTwinState {
-  const initialState = JSON.parse(JSON.stringify(initialDigitalTwinState)) as DigitalTwinState;
-  initialState.companyName = companyName;
-  initialState.resources.initialBudget = initialBudget;
-  initialState.financials.cashOnHand = initialBudget;
-  initialState.financials.fundingRaised = initialBudget;
-  initialState.market.targetMarketDescription = targetMarket;
-  initialState.keyEvents = [`${companyName} simulation initialized with budget $${initialBudget} targeting ${targetMarket}.`];
-  return initialState;
-}
+// Any other complex simulation helper functions could go here.
+// For example, detailed market simulation, competitor actions, etc.
+// These would be pure functions taking state and parameters, returning new state aspects.

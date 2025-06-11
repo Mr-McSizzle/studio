@@ -2,33 +2,40 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { promptStartup, type PromptStartupInput, type PromptStartupOutput } from "@/ai/flows/prompt-startup";
+import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target } from "lucide-react"; // Target is used instead of Bullseye
+import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Added ScrollArea import
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 export default function SetupSimulationPage() {
-  const [startupPrompt, setStartupPrompt] = useState("");
+  const [startupName, setStartupName] = useState(""); // Renamed from startupPrompt for clarity
   const [targetMarket, setTargetMarket] = useState("");
   const [budget, setBudget] = useState("");
   const [simulationOutput, setSimulationOutput] = useState<PromptStartupOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
+
+  const initializeSimulationInStore = useSimulationStore(state => state.initializeSimulation);
+  const resetSimStore = useSimulationStore(state => state.resetSimulation);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!startupPrompt.trim() || !targetMarket.trim() || !budget.trim()) {
+    if (!startupName.trim() || !targetMarket.trim() || !budget.trim()) {
       toast({
         title: "Input Required",
-        description: "Please describe your startup idea, target market, and initial budget.",
+        description: "Please provide your startup name/idea, target market, and initial budget.",
         variant: "destructive",
       });
       return;
@@ -37,26 +44,30 @@ export default function SetupSimulationPage() {
     setIsLoading(true);
     setError(null);
     setSimulationOutput(null);
+    resetSimStore(); // Reset store before initializing new one
 
-    const fullPrompt = `
-      Business Plan / Idea: ${startupPrompt}
+    const fullPromptForAI = `
+      Business Plan / Idea: ${startupName}
       Target Market: ${targetMarket}
       Initial Budget: ${budget}
     `;
 
     try {
-      const input: PromptStartupInput = { prompt: fullPrompt };
+      const input: PromptStartupInput = { prompt: fullPromptForAI };
       const result = await promptStartup(input);
       setSimulationOutput(result);
+      
+      // Initialize the global simulation store
+      initializeSimulationInStore(result, startupName, targetMarket, budget);
+
       toast({
         title: "Digital Twin Initialized!",
-        description: "Initial conditions and challenges for your simulation have been generated.",
+        description: "Your simulation is ready. Redirecting to dashboard...",
       });
-      // Here you would typically pass this data to your simulation state manager
-      // e.g., updateGlobalSimulationState(JSON.parse(result.initialConditions));
+      router.push("/app/dashboard"); // Navigate to dashboard after successful setup
     } catch (err) {
       console.error("Error initializing startup simulation:", err);
-      let errorMessage = "Failed to initialize simulation. Please try again.";
+      let errorMessage = "Failed to initialize simulation. The AI might be unavailable or returned an unexpected response. Please try again.";
       if (err instanceof Error) {
         errorMessage = err.message;
       }
@@ -76,20 +87,20 @@ export default function SetupSimulationPage() {
       const parsed = JSON.parse(jsonString);
       return JSON.stringify(parsed, null, 2);
     } catch (e) {
-      // If it's not valid JSON (e.g. AI returned malformed string), display as is.
       return jsonString; 
     }
   };
 
-  const parseChallenges = (challengesString: string): string[] => {
+  const parseChallenges = (challengesString: string | undefined): string[] => {
+    if (!challengesString) return ["No challenges suggested."];
     try {
       const parsed = JSON.parse(challengesString);
       if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
-        return parsed;
+        return parsed.length > 0 ? parsed : ["No specific challenges listed by AI."];
       }
-      return ["Invalid challenges format received. Ensure it's a JSON array of strings."];
+      return ["Invalid challenges format: Expected a JSON array of strings."];
     } catch (e) {
-      return ["Error parsing challenges: AI response might not be a valid JSON array of strings."];
+      return ["Error parsing challenges: AI response might be malformed."];
     }
   }
 
@@ -109,20 +120,20 @@ export default function SetupSimulationPage() {
         <CardHeader>
           <CardTitle>Define Your Startup Venture</CardTitle>
           <CardDescription>
-            Provide details about your business concept. The more specific you are, the more tailored your simulation's starting point will be. This information will be used by the AI to create your digital twin.
+            Provide details about your business concept. The more specific you are, the more tailored your simulation's starting point will be.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="startup-prompt" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground"/> Business Idea / Plan Summary
+              <Label htmlFor="startup-name" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground"/> Startup Name / Business Idea Summary
               </Label>
               <Textarea
-                id="startup-prompt"
-                value={startupPrompt}
-                onChange={(e) => setStartupPrompt(e.target.value)}
-                placeholder="e.g., A SaaS platform for small businesses to manage social media with AI content suggestions, focusing on ease of use and affordability..."
+                id="startup-name"
+                value={startupName}
+                onChange={(e) => setStartupName(e.target.value)}
+                placeholder="e.g., 'ForgePress' - A SaaS platform for small businesses to manage social media with AI content suggestions, focusing on ease of use and affordability..."
                 rows={5}
                 className="w-full"
                 disabled={isLoading}
@@ -149,14 +160,14 @@ export default function SetupSimulationPage() {
                 id="budget"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
-                placeholder="e.g., $50,000 seed capital for first 6 months from personal savings."
+                placeholder="e.g., $50,000 seed capital (or 50k, 20000 etc.)"
                 className="w-full"
                 disabled={isLoading}
               />
             </div>
             <Button
               type="submit"
-              disabled={isLoading || !startupPrompt.trim() || !targetMarket.trim() || !budget.trim()}
+              disabled={isLoading || !startupName.trim() || !targetMarket.trim() || !budget.trim()}
               className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto"
               size="lg"
             >
@@ -181,16 +192,16 @@ export default function SetupSimulationPage() {
         </Alert>
       )}
 
-      {simulationOutput && (
-        <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2">
+      {simulationOutput && !isLoading && ( // Only show this if not loading and output exists
+        <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2 mt-8">
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Digital Twin: Initial Conditions (AI Generated)</CardTitle>
-              <CardDescription>This JSON outlines the starting state of your simulated startup. This data would feed into the simulation engine.</CardDescription>
+              <CardDescription>This JSON outlines the AI's suggested starting state for your simulation. This has been used to initialize your digital twin.</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="max-h-96">
-                <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+                <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto whitespace-pre-wrap">
                   {prettyPrintJson(simulationOutput.initialConditions)}
                 </pre>
               </ScrollArea>
@@ -199,15 +210,19 @@ export default function SetupSimulationPage() {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Potential Early Challenges (AI Suggested)</CardTitle>
-              <CardDescription>Foreseen hurdles your digital twin might encounter. Consider these as you plan your strategy.</CardDescription>
+              <CardDescription>Foreseen hurdles your digital twin might encounter. These have been noted in your simulation.</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="max-h-96">
-                <ul className="list-disc pl-5 space-y-2 bg-muted p-4 rounded-md text-sm">
-                  {parseChallenges(simulationOutput.suggestedChallenges).map((challenge, index) => (
-                    <li key={index} className="leading-relaxed">{challenge}</li>
-                  ))}
-                </ul>
+                {parseChallenges(simulationOutput.suggestedChallenges).length > 0 ? (
+                  <ul className="list-disc pl-5 space-y-2 bg-muted p-4 rounded-md text-sm">
+                    {parseChallenges(simulationOutput.suggestedChallenges).map((challenge, index) => (
+                      <li key={index} className="leading-relaxed">{challenge}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground">No specific challenges listed by AI.</p>
+                )}
               </ScrollArea>
             </CardContent>
           </Card>
