@@ -11,7 +11,8 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z, Handlebars} from 'genkit';
+import {z} from 'genkit';
+import Handlebars from 'handlebars'; // Import Handlebars from the handlebars package
 
 const MentorConversationInputSchema = z.object({
   userInput: z
