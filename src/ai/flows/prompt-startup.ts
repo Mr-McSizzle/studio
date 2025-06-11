@@ -49,14 +49,14 @@ Based on this comprehensive description, generate:
     - Market: Estimated size, growth rate, key segments.
     - Resources: 
         - initialFunding: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
-        - coreTeam: (e.g., number of founders, initial hires if any, salaries).
+        - coreTeam: (e.g., number of founders, initial hires if any, AI-suggested salaries).
         - any initial IP or assets.
-        - marketingSpend: Suggest a realistic initial monthly marketing spend.
-        - rndSpend: Suggest a realistic initial monthly R&D spend.
+        - marketingSpend: Suggest a realistic initial monthly marketing spend based on budget and currency.
+        - rndSpend: Suggest a realistic initial monthly R&D spend based on budget and currency.
     - Product/Service: 
         - name: A suitable name for the product/service.
         - initialDevelopmentStage: (e.g., idea, prototype, mvp).
-        - pricePerUser: Suggest an initial monthly price per user/customer.
+        - pricePerUser: Suggest an initial monthly price per user/customer, appropriate for the currency.
     - Financials: 
         - startingCash: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
         - estimatedInitialMonthlyBurnRate: CRITICALLY IMPORTANT - Provide a realistic estimate of the *total* initial monthly burn rate for the startup. This figure should be based on its business plan, suggested initial team (and their AI-suggested salaries if not provided by user), suggested marketing/R&D spend, and other likely operational costs (rent, software, utilities, etc.) appropriate for the specified {{{currencyCode}}} and startup scale. This burn rate should be a comprehensive single number.
@@ -65,14 +65,16 @@ Based on this comprehensive description, generate:
     - companyName: A suitable name for the startup itself.
 2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges or critical decisions the startup might face early in the simulation. These should be specific and actionable.
 
-CRITICAL INSTRUCTIONS:
-- All monetary values you generate (initialFunding, startingCash, burn rate, market size if applicable, salaries, spends, pricePerUser) MUST be expressed as plain numbers in the specified {{{currencyCode}}}. Do NOT include currency symbols or non-standard formatting within the JSON numbers.
-- You MUST also adjust the *scale* of other related numbers to be realistic for a business operating with that currency and the provided budget magnitude. For example, a 'small tech startup' budget of 50,000 JPY is vastly different from 50,000 USD. Make the simulation parameters feel appropriate for the chosen currency context, while ensuring 'startingCash' and 'initialFunding' directly reflect the user's budget input.
-- Ensure the 'initialConditions' field is a single, valid, parsable JSON string.
-- Ensure it includes: 'financials.currencyCode': '{{{currencyCode}}}'.
+CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
+- The 'initialConditions' field MUST be a single, valid, strictly parsable JSON string. NO EXCEPTIONS.
+- Ensure NO trailing commas in JSON objects or arrays (e.g., do not use \`{"key": "value",}\`).
+- Ensure all strings within the JSON are properly quoted (e.g., \`"string value"\`) and any special characters (like newlines or quotes within strings) are correctly escaped (e.g., use \`\\n\` for newline, \`\\"\` for a quote inside a string).
+- All monetary values you generate (initialFunding, startingCash, burn rate, market size if applicable, salaries, spends, pricePerUser) MUST be expressed as plain numbers (e.g., \`50000\`, not \`"50,000 USD"\`) in the specified {{{currencyCode}}}. Do NOT include currency symbols or non-standard formatting within the JSON numbers.
+- You MUST adjust the *scale* of other related numbers to be realistic for a business operating with that currency and the provided budget magnitude.
+- Ensure the 'initialConditions' JSON includes: \`"financials": { "currencyCode": "{{{currencyCode}}}" ... }\`.
 - Ensure 'financials.startingCash', 'resources.initialFunding', and 'financials.estimatedInitialMonthlyBurnRate' are clean numerical values.
-- Ensure the 'suggestedChallenges' field is a valid JSON array of strings.
-Do not include any prose or explanations outside of the structured JSON output. The entire response should be only the JSON object defined by the output schema.
+- The 'suggestedChallenges' field MUST be a valid JSON array of strings (e.g., \`["Challenge 1", "Challenge 2"]\`).
+- Do not include any prose, explanations, or markdown formatting outside of the structured JSON output. The entire response MUST BE ONLY the JSON object defined by the output schema.
 
 {{output}}
 `,
@@ -90,7 +92,7 @@ const promptStartupFlow = ai.defineFlow(
       console.error("AI promptStartup did not return the expected structure.", output);
       throw new Error("Failed to get complete initial conditions from AI. The response was malformed.");
     }
-    // Validate if AI included currencyCode in financials (optional, good for debugging)
+    // Basic validation of critical numeric fields can be helpful for debugging AI consistency
     try {
         const conditions = JSON.parse(output.initialConditions);
         if (!conditions.financials || !conditions.financials.currencyCode) {
@@ -108,7 +110,9 @@ const promptStartupFlow = ai.defineFlow(
             console.warn(`AI returned financials.estimatedInitialMonthlyBurnRate that is not a number: `, conditions.financials.estimatedInitialMonthlyBurnRate);
         }
     } catch (e) {
-        console.error("Could not parse initialConditions to check critical numeric fields.", e);
+        // This catch is for the debugging validation above, not the main parse in the store.
+        // The main parse error is handled in simulationStore.ts.
+        console.error("Could not parse initialConditions during AI flow for validation. This is not the main parsing error but indicates a problem with AI's JSON output.", e);
     }
     return output;
   }
