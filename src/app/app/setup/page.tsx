@@ -6,13 +6,17 @@ import { promptStartup, type PromptStartupInput, type PromptStartupOutput } from
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertTriangle, Lightbulb, Rocket } from "lucide-react";
+import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Bullseye } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
 
 export default function SetupSimulationPage() {
   const [startupPrompt, setStartupPrompt] = useState("");
+  const [targetMarket, setTargetMarket] = useState("");
+  const [budget, setBudget] = useState("");
   const [simulationOutput, setSimulationOutput] = useState<PromptStartupOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,10 +24,10 @@ export default function SetupSimulationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!startupPrompt.trim()) {
+    if (!startupPrompt.trim() || !targetMarket.trim() || !budget.trim()) {
       toast({
         title: "Input Required",
-        description: "Please describe your startup idea.",
+        description: "Please describe your startup idea, target market, and initial budget.",
         variant: "destructive",
       });
       return;
@@ -33,16 +37,22 @@ export default function SetupSimulationPage() {
     setError(null);
     setSimulationOutput(null);
 
+    const fullPrompt = `
+      Business Plan / Idea: ${startupPrompt}
+      Target Market: ${targetMarket}
+      Initial Budget: ${budget}
+    `;
+
     try {
-      const input: PromptStartupInput = { prompt: startupPrompt };
+      const input: PromptStartupInput = { prompt: fullPrompt };
       const result = await promptStartup(input);
       setSimulationOutput(result);
       toast({
-        title: "Simulation Initialized!",
-        description: "Initial conditions and challenges have been generated.",
+        title: "Digital Twin Initialized!",
+        description: "Initial conditions and challenges for your simulation have been generated.",
       });
     } catch (err) {
-      console.error("Error initializing startup:", err);
+      console.error("Error initializing startup simulation:", err);
       let errorMessage = "Failed to initialize simulation. Please try again.";
       if (err instanceof Error) {
         errorMessage = err.message;
@@ -63,7 +73,7 @@ export default function SetupSimulationPage() {
       const parsed = JSON.parse(jsonString);
       return JSON.stringify(parsed, null, 2);
     } catch (e) {
-      return jsonString; // Return original if parsing fails
+      return jsonString; 
     }
   };
 
@@ -73,9 +83,9 @@ export default function SetupSimulationPage() {
       if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
         return parsed;
       }
-      return ["Invalid challenges format."];
+      return ["Invalid challenges format received."];
     } catch (e) {
-      return ["Error parsing challenges."];
+      return ["Error parsing challenges from AI."];
     }
   }
 
@@ -84,45 +94,72 @@ export default function SetupSimulationPage() {
       <header className="mb-8">
         <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
           <Rocket className="h-8 w-8 text-accent" />
-          Setup Your Simulation
+          Initialize Your Digital Twin
         </h1>
         <p className="text-muted-foreground">
-          Describe your startup idea, and we'll generate the initial scenario for your simulation.
+          Describe your startup's core concept, target market, and initial budget. ForgeSim will generate the initial scenario for your business simulation.
         </p>
       </header>
 
       <Card className="shadow-lg mb-8">
         <CardHeader>
-          <CardTitle>Describe Your Startup</CardTitle>
+          <CardTitle>Define Your Startup Venture</CardTitle>
           <CardDescription>
-            Provide a detailed description of your business concept, target market, and unique selling propositions.
-            The more detail you provide, the better the simulation setup will be.
+            Provide details about your business concept. The more specific you are, the more tailored your simulation's starting point will be.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="startup-prompt" className="text-sm font-medium mb-2 block">Your Startup Idea</Label>
+              <Label htmlFor="startup-prompt" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground"/> Business Idea / Plan Summary
+              </Label>
               <Textarea
                 id="startup-prompt"
                 value={startupPrompt}
                 onChange={(e) => setStartupPrompt(e.target.value)}
-                placeholder="e.g., A SaaS platform for small businesses to manage their social media presence, with AI-powered content suggestions..."
-                rows={6}
+                placeholder="e.g., A SaaS platform for small businesses to manage social media with AI content suggestions, focusing on ease of use and affordability..."
+                rows={5}
+                className="w-full"
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <Label htmlFor="target-market" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <Bullseye className="h-4 w-4 text-muted-foreground"/> Target Market
+              </Label>
+              <Input
+                id="target-market"
+                value={targetMarket}
+                onChange={(e) => setTargetMarket(e.target.value)}
+                placeholder="e.g., Local coffee shops and independent retailers in urban areas."
+                className="w-full"
+                disabled={isLoading}
+              />
+            </div>
+             <div>
+              <Label htmlFor="budget" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <Activity className="h-4 w-4 text-muted-foreground"/> Initial Budget
+              </Label>
+              <Input
+                id="budget"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                placeholder="e.g., $50,000 seed capital for first 6 months."
                 className="w-full"
                 disabled={isLoading}
               />
             </div>
             <Button
               type="submit"
-              disabled={isLoading || !startupPrompt.trim()}
+              disabled={isLoading || !startupPrompt.trim() || !targetMarket.trim() || !budget.trim()}
               className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto"
               size="lg"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Generating Scenario...
+                  Generating Digital Twin...
                 </>
               ) : (
                 "Initialize Simulation"
@@ -144,26 +181,28 @@ export default function SetupSimulationPage() {
         <div className="grid gap-8 md:grid-cols-2">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Initial Conditions</CardTitle>
-              <CardDescription>This JSON outlines the starting state of your simulated startup.</CardDescription>
+              <CardTitle>Digital Twin: Initial Conditions</CardTitle>
+              <CardDescription>This JSON outlines the starting state of your simulated startup (your digital twin).</CardDescription>
             </CardHeader>
             <CardContent>
-              <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+              <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto max-h-96">
                 {prettyPrintJson(simulationOutput.initialConditions)}
               </pre>
             </CardContent>
           </Card>
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Suggested Challenges</CardTitle>
-              <CardDescription>Potential hurdles your startup might encounter.</CardDescription>
+              <CardTitle>Potential Challenges</CardTitle>
+              <CardDescription>Foreseen hurdles your digital twin might encounter in the simulation.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="list-disc pl-5 space-y-1 bg-muted p-4 rounded-md text-sm">
-                {parseChallenges(simulationOutput.suggestedChallenges).map((challenge, index) => (
-                  <li key={index}>{challenge}</li>
-                ))}
-              </ul>
+              <ScrollArea className="h-auto max-h-96">
+                <ul className="list-disc pl-5 space-y-1 bg-muted p-4 rounded-md text-sm">
+                  {parseChallenges(simulationOutput.suggestedChallenges).map((challenge, index) => (
+                    <li key={index}>{challenge}</li>
+                  ))}
+                </ul>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
@@ -174,7 +213,7 @@ export default function SetupSimulationPage() {
           <CardContent>
             <Lightbulb className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
-              Enter your startup idea above and click "Initialize Simulation" to see the generated scenario.
+              Define your startup venture above and click "Initialize Simulation" to generate its digital twin and begin your journey.
             </p>
           </CardContent>
         </Card>

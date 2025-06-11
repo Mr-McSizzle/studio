@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -8,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessage } from "./chat-message";
 import type { ChatMessage as ChatMessageType } from "@/types";
-import { SendHorizonal, Loader2 } from "lucide-react";
+import { SendHorizonal, Loader2, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
@@ -24,13 +27,12 @@ export function ChatInterface() {
     }
   }, [messages]);
   
-  // Initial greeting from mentor
   useEffect(() => {
     setMessages([
       {
-        id: "initial-mentor-greeting",
+        id: "initial-hivemind-greeting",
         role: "assistant",
-        content: "Hello! I'm your AI Mentor for ForgeSim. How can I assist you with your startup today?",
+        content: "Greetings! I am your AI Hive Mind Assistant for ForgeSim. I'll help synthesize insights and provide personalized guidance for your startup simulation. How can I assist you today?",
         timestamp: new Date(),
       }
     ]);
@@ -52,12 +54,13 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
-      const conversationHistory = messages.map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content }));
+      const conversationHistoryForAI = messages
+        .filter(msg => msg.role === 'user' || msg.role === 'assistant') // Only send user and assistant messages
+        .map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content }));
       
       const mentorInput: MentorConversationInput = {
         userInput: newUserMessage.content,
-        // Genkit expects history in {role, content} not full ChatMessageType
-        conversationHistory: [...conversationHistory, {role: 'user', content: newUserMessage.content}],
+        conversationHistory: [...conversationHistoryForAI, {role: 'user', content: newUserMessage.content}],
       };
       
       const result = await mentorConversation(mentorInput);
@@ -70,17 +73,16 @@ export function ChatInterface() {
       };
       setMessages((prevMessages) => [...prevMessages, newMentorMessage]);
     } catch (error) {
-      console.error("Error getting mentor response:", error);
+      console.error("Error getting Hive Mind response:", error);
       toast({
         title: "Error",
-        description: "Failed to get response from AI Mentor. Please try again.",
+        description: "Failed to get response from AI Hive Mind. Please try again.",
         variant: "destructive",
       });
-      // Optionally add the error message back to the chat for the user
        const errorResponseMessage: ChatMessageType = {
         id: `error-${Date.now()}`,
-        role: "system", // Or assistant, to show it in chat
-        content: "Sorry, I encountered an error. Please try again.",
+        role: "system",
+        content: "Sorry, I encountered an error connecting to the Hive Mind. Please try your request again.",
         timestamp: new Date(),
       };
       setMessages((prevMessages) => [...prevMessages, errorResponseMessage]);
@@ -97,9 +99,19 @@ export function ChatInterface() {
             <ChatMessage key={msg.id} message={msg} />
           ))}
           {isLoading && (
-            <div className="flex justify-start items-center gap-3 my-4">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <span className="text-sm text-muted-foreground">AI Mentor is thinking...</span>
+             <div className="flex items-start gap-3 my-4 justify-start">
+                <Avatar className="h-8 w-8 border border-border">
+                    <AvatarImage src="https://placehold.co/40x40.png" alt="AI Hive Mind Avatar" data-ai-hint="robot brain" />
+                    <AvatarFallback>
+                        <Brain className="h-5 w-5 text-muted-foreground" />
+                    </AvatarFallback>
+                </Avatar>
+                <div className="max-w-[70%] rounded-lg p-3 shadow-md bg-card text-card-foreground">
+                    <div className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        <span className="text-sm text-muted-foreground">Hive Mind is processing...</span>
+                    </div>
+                </div>
             </div>
           )}
         </div>
@@ -112,10 +124,10 @@ export function ChatInterface() {
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ask your AI Mentor..."
+          placeholder="Ask your AI Hive Mind..."
           className="flex-grow"
           disabled={isLoading}
-          aria-label="User input for AI Mentor"
+          aria-label="User input for AI Hive Mind"
         />
         <Button type="submit" disabled={isLoading || !userInput.trim()} className="bg-accent hover:bg-accent/90 text-accent-foreground">
           {isLoading ? (
