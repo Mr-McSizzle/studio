@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, type ChangeEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,26 +12,36 @@ import { Separator } from "@/components/ui/separator";
 import { SlidersHorizontal, Info, Construction, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-const DEFAULT_ENGINEER_SALARY = 5000; // Should ideally come from a config or store constants
+const DEFAULT_ENGINEER_SALARY = 5000; 
 
 export default function SimulationPage() {
+  const router = useRouter();
   const {
     isInitialized,
     resources,
     financials,
+    simulationMonth,
     setMarketingSpend,
     setRndSpend,
     adjustTeamMemberCount,
-    keyEvents
   } = useSimulationStore();
 
   const [localMarketingSpend, setLocalMarketingSpend] = useState(resources.marketingSpend);
   const [localRndSpend, setLocalRndSpend] = useState(resources.rndSpend);
 
   useEffect(() => {
+     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
+        router.replace('/app/setup');
+    }
+  }, [isInitialized, simulationMonth, router]);
+
+  useEffect(() => {
     if (isInitialized) {
       setLocalMarketingSpend(resources.marketingSpend);
       setLocalRndSpend(resources.rndSpend);
+    } else {
+      setLocalMarketingSpend(0); // Default if not initialized
+      setLocalRndSpend(0);
     }
   }, [resources.marketingSpend, resources.rndSpend, isInitialized]);
 
@@ -38,26 +49,28 @@ export default function SimulationPage() {
     const value = parseInt(e.target.value, 10);
     setLocalMarketingSpend(isNaN(value) ? 0 : value);
   };
+   const applyMarketingSpend = () => {
+    if(isInitialized) setMarketingSpend(localMarketingSpend);
+  };
+
 
   const handleRndSpendChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setLocalRndSpend(isNaN(value) ? 0 : value);
   };
-
-  const applyMarketingSpend = () => {
-    setMarketingSpend(localMarketingSpend);
-  };
-
   const applyRndSpend = () => {
-    setRndSpend(localRndSpend);
+    if(isInitialized) setRndSpend(localRndSpend);
   };
+
 
   const getTeamMemberCount = (role: string): number => {
+    if(!isInitialized) return 0;
     const member = resources.team.find(m => m.role === role);
     return member ? member.count : 0;
   };
 
   const getTeamMemberSalary = (role: string): number => {
+    if(!isInitialized) return 0;
     const member = resources.team.find(m => m.role === role);
     return member ? member.salary : 0;
   };
@@ -68,10 +81,10 @@ export default function SimulationPage() {
       <header className="mb-8">
         <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
           <Zap className="h-8 w-8 text-accent" />
-          Interactive Digital Twin Simulation
+          Decision Controls
         </h1>
         <p className="text-muted-foreground">
-          Manage your startup's resources, make strategic decisions, and observe their impact on your digital twin. Advance months on the Dashboard to see results.
+          Manage your startup's resources and make strategic decisions for your digital twin. Advance months on the Dashboard to see their impact.
         </p>
       </header>
 
@@ -80,7 +93,8 @@ export default function SimulationPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Simulation Not Initialized</AlertTitle>
           <AlertDescription>
-            Please go to the "Setup Simulation" page to initialize your digital twin before interacting with simulation controls.
+            Please go to the "Setup Simulation" page to initialize your digital twin before interacting with decision controls.
+            <Button onClick={() => router.push('/app/setup')} className="mt-2 ml-2" size="sm">Go to Setup</Button>
           </AlertDescription>
         </Alert>
       )}
@@ -90,7 +104,7 @@ export default function SimulationPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Game Over - Out of Cash!</AlertTitle>
           <AlertDescription>
-            Your startup has run out of cash. Decision controls are disabled. Reset the simulation to try again.
+            Your startup has run out of cash. Decision controls are disabled. Reset the simulation from the dashboard to try again.
           </AlertDescription>
         </Alert>
       )}
@@ -126,7 +140,7 @@ export default function SimulationPage() {
           <Card className="shadow-lg">
             <CardHeader className="flex flex-row items-center gap-3 space-y-0">
               <SlidersHorizontal className="h-6 w-6 text-accent" />
-              <CardTitle className="font-headline">Decision Controls</CardTitle>
+              <CardTitle className="font-headline">Monthly Adjustments</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -143,13 +157,13 @@ export default function SimulationPage() {
                     className="w-full"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Current: ${resources.marketingSpend.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Current: ${isInitialized ? resources.marketingSpend.toLocaleString() : "N/A"}</p>
               </div>
 
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&D Spend</Label>
+                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&amp;D Spend</Label>
                  <div className="flex items-center gap-2">
                   <Input
                     id="rnd-spend"
@@ -162,7 +176,7 @@ export default function SimulationPage() {
                     className="w-full"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Current: ${resources.rndSpend.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Current: ${isInitialized ? resources.rndSpend.toLocaleString() : "N/A"}</p>
               </div>
               
               <Separator />
@@ -201,7 +215,7 @@ export default function SimulationPage() {
                    <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">Founders: {getTeamMemberCount("Founder")}</p>
-                      <p className="text-xs text-muted-foreground">Salary: ${getTeamMemberSalary("Founder").toLocaleString()}/mo each (configurable during setup)</p>
+                      <p className="text-xs text-muted-foreground">Salary: ${getTeamMemberSalary("Founder").toLocaleString()}/mo each</p>
                     </div>
                     {/* Typically founders are not hired/fired this way in early simulation, but count is shown */}
                   </div>

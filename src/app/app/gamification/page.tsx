@@ -1,17 +1,26 @@
 
 "use client";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ScoreDisplay } from "@/components/gamification/score-display";
 import { MissionsCard, type Mission } from "@/components/gamification/missions-card";
 import { RewardsCard, type Reward } from "@/components/gamification/rewards-card";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Trophy, AlertTriangle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Corrected import
-import { Card } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+
 
 export default function GamificationPage() {
-  const { startupScore, missions, rewards, isInitialized, financials } = useSimulationStore();
+  const router = useRouter();
+  const { startupScore, missions, rewards, isInitialized, financials, simulationMonth } = useSimulationStore();
   
+  useEffect(() => {
+     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
+        router.replace('/app/setup');
+    }
+  }, [isInitialized, simulationMonth, router]);
+
   // Basic trend calculation (can be improved)
   const scoreTrend = startupScore > (useSimulationStore.getState().startupScore - 1) ? "up" : startupScore < (useSimulationStore.getState().startupScore -1 ) ? "down" : "neutral";
 
@@ -24,6 +33,7 @@ export default function GamificationPage() {
           <AlertTitle>Simulation Not Initialized</AlertTitle>
           <AlertDescription>
             Please go to the "Setup Simulation" page to initialize your digital twin before viewing gamification progress.
+             <Button onClick={() => router.push('/app/setup')} className="mt-2 ml-2" size="sm">Go to Setup</Button>
           </AlertDescription>
         </Alert>
       )}
@@ -46,7 +56,7 @@ export default function GamificationPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Game Over - Out of Cash!</AlertTitle>
           <AlertDescription>
-            Mission progress and rewards are paused as the simulation is unstable.
+            Mission progress and rewards are paused as the simulation is unstable. Reset the simulation from the dashboard to try again.
           </AlertDescription>
         </Alert>
       )}

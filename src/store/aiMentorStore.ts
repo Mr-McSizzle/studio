@@ -21,3 +21,4 @@ export const useAiMentorStore = create<AiMentorState>((set) => ({
   clearGuidance: () => set({ lastMessage: null, suggestedNextAction: null }),
   clearSuggestion: () => set(state => ({ ...state, suggestedNextAction: null })),
 }));
+

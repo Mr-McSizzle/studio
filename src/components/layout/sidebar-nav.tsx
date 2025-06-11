@@ -11,6 +11,7 @@ import {
   Trophy,
   PanelLeft,
   Rocket,
+  User as UserIcon, // Renamed to avoid conflict
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -27,10 +28,11 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/setup", label: "Setup Simulation", icon: Rocket },
-  { href: "/app/mentor", label: "Hive Mind Assistant", icon: MessageSquare }, // Changed label
-  { href: "/app/strategy", label: "Strategy & Analytics", icon: Lightbulb }, // Changed label
-  { href: "/app/simulation", label: "Decision Controls", icon: Box }, // Changed label
-  { href: "/app/gamification", label: "Milestones", icon: Trophy }, // Changed label
+  { href: "/app/mentor", label: "Hive Mind Assistant", icon: MessageSquare },
+  { href: "/app/simulation", label: "Decision Controls", icon: Box },
+  { href: "/app/strategy", label: "Strategy & Analytics", icon: Lightbulb },
+  { href: "/app/gamification", label: "Milestones & Score", icon: Trophy },
+  { href: "/app/profile", label: "Founder Profile", icon: UserIcon },
 ];
 
 export function SidebarNav() {
@@ -41,7 +43,7 @@ export function SidebarNav() {
     <SidebarMenu>
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app");
+        const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app" && item.href.length > "/app".length);
         
         return (
           <SidebarMenuItem key={item.label}>
@@ -82,7 +84,7 @@ export function MobileSidebarNav({ onLinkClick }: { onLinkClick?: () => void }) 
      <nav className="grid gap-2 text-lg font-medium">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app");
+          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app" && item.href.length > "/app".length);
           return (
             <Link
               key={item.href}

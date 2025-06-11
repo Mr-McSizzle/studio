@@ -1,14 +1,16 @@
 
 "use client";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Corrected AlertTitle import
 
 export default function DashboardPage() {
+  const router = useRouter();
   const {
     companyName,
     simulationMonth,
@@ -23,6 +25,12 @@ export default function DashboardPage() {
     resetSimulation,
   } = useSimulationStore();
 
+  useEffect(() => {
+    if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) { // Check if store is hydrated but sim not set up
+        router.replace('/app/setup');
+    }
+  }, [isInitialized, simulationMonth, router]);
+
 
   const handleAdvanceMonth = () => {
     if (isInitialized && financials.cashOnHand > 0) { // Prevent advancing if game over or not started
@@ -33,17 +41,33 @@ export default function DashboardPage() {
   const handleReset = () => {
     // Could add a confirmation dialog here
     resetSimulation();
-    // Potentially navigate to setup page: router.push('/app/setup');
+    router.push('/app/setup');
   };
+
+  if (typeof simulationMonth === 'number' && simulationMonth === 0 && !isInitialized) {
+    return (
+      <div className="container mx-auto py-8 px-4 md:px-0">
+        <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Simulation Not Initialized</AlertTitle>
+            <AlertDescription>
+                Please go to the "Setup Simulation" page to initialize your digital twin. Redirecting...
+            </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
       {!isInitialized && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
-          <CardTitle>Simulation Not Initialized</CardTitle>
+          <AlertTitle>Simulation Not Initialized</AlertTitle>
           <AlertDescription>
             Please go to the "Setup Simulation" page to initialize your digital twin before viewing the dashboard.
+            <Button onClick={() => router.push('/app/setup')} className="mt-2 ml-2" size="sm">Go to Setup</Button>
           </AlertDescription>
         </Alert>
       )}
@@ -51,10 +75,10 @@ export default function DashboardPage() {
         <div>
             <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
                 <Zap className="h-8 w-8 text-accent" />
-                {companyName} - Digital Twin
+                {isInitialized ? companyName : "ForgeSim"} - Digital Twin
             </h1>
             <p className="text-muted-foreground">
-             Month: {simulationMonth}
+             Month: {isInitialized ? simulationMonth : "N/A"}
             </p>
         </div>
         <div className="flex gap-2">
@@ -75,9 +99,9 @@ export default function DashboardPage() {
       {financials.cashOnHand <= 0 && isInitialized && (
          <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
-          <CardTitle>Game Over - Out of Cash!</CardTitle>
+          <AlertTitle>Game Over - Out of Cash!</AlertTitle>
           <AlertDescription>
-            Your startup has run out of cash. Reset the simulation to try again or analyze what went wrong.
+            Your startup has run out of cash. Key actions are disabled. Reset the simulation to try again or analyze what went wrong.
           </AlertDescription>
         </Alert>
       )}
@@ -92,10 +116,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              ${financials.revenue.toLocaleString()}
+              {isInitialized ? `$${financials.revenue.toLocaleString()}` : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              MRR: ${userMetrics.monthlyRecurringRevenue.toLocaleString()}
+              MRR: {isInitialized ? `$${userMetrics.monthlyRecurringRevenue.toLocaleString()}` : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -108,10 +132,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {userMetrics.activeUsers.toLocaleString()}
+              {isInitialized ? userMetrics.activeUsers.toLocaleString() : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              New this month: {userMetrics.newUserAcquisitionRate.toLocaleString()}
+              New this month: {isInitialized ? userMetrics.newUserAcquisitionRate.toLocaleString() : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -123,11 +147,11 @@ export default function DashboardPage() {
             <TrendingUp className="h-5 w-5 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${financials.cashOnHand < 0 ? 'text-destructive' : 'text-foreground'}`}>
-               ${financials.cashOnHand.toLocaleString()}
+            <div className={`text-2xl font-bold ${financials.cashOnHand < 0 && isInitialized ? 'text-destructive' : 'text-foreground'}`}>
+               {isInitialized ? `$${financials.cashOnHand.toLocaleString()}` : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              Burn Rate: ${financials.burnRate.toLocaleString()}/month
+              Burn Rate: {isInitialized ? `$${financials.burnRate.toLocaleString()}/month` : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -139,7 +163,7 @@ export default function DashboardPage() {
             <BarChartBig className="h-5 w-5 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{startupScore}/100</div>
+            <div className="text-2xl font-bold text-foreground">{isInitialized ? startupScore : "0"}/100</div>
             <p className="text-xs text-muted-foreground">
               Based on simulation progress
             </p>
@@ -148,8 +172,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-8">
-        <PerformanceChart title="Simulated Monthly Revenue" description="Tracking revenue trends in your digital twin." dataKey="revenue" data={historicalRevenue} />
-        <PerformanceChart title="Simulated User Growth" description="Tracking user acquisition in your digital twin." dataKey="users" data={historicalUserGrowth} />
+        <PerformanceChart title="Simulated Monthly Revenue" description="Tracking revenue trends in your digital twin." dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
+        <PerformanceChart title="Simulated User Growth" description="Tracking user acquisition in your digital twin." dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
       </div>
       
       <Card className="mt-8 shadow-lg">
@@ -157,14 +181,14 @@ export default function DashboardPage() {
           <CardTitle>Key Simulation Events</CardTitle>
         </CardHeader>
         <CardContent>
-          {keyEvents.length > 0 ? (
+          {isInitialized && keyEvents.length > 0 ? (
             <ul className="max-h-48 overflow-y-auto text-sm space-y-1 text-muted-foreground">
               {keyEvents.slice().reverse().map((event, index) => (
                 <li key={index} className="border-b border-border/50 pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0">{event}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">No key events recorded yet.</p>
+            <p className="text-sm text-muted-foreground">{isInitialized ? "No key events recorded yet." : "Initialize simulation to see events."}</p>
           )}
         </CardContent>
       </Card>
