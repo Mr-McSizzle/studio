@@ -6,11 +6,12 @@ import { promptStartup, type PromptStartupInput, type PromptStartupOutput } from
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Bullseye } from "lucide-react";
+import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 export default function SetupSimulationPage() {
@@ -126,7 +127,7 @@ export default function SetupSimulationPage() {
             </div>
             <div>
               <Label htmlFor="target-market" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                <Bullseye className="h-4 w-4 text-muted-foreground"/> Target Market
+                <Target className="h-4 w-4 text-muted-foreground"/> Target Market
               </Label>
               <Input
                 id="target-market"
