@@ -101,8 +101,8 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
 
     const initialBudget = parseMonetaryValue(parsedConditions.resources?.initialFunding || userBudget);
     const initialTeam: TeamMember[] = [{ role: 'Founder', count: 1, salary: MOCK_SALARY_PER_FOUNDER }];
-    if (parsedConditions.resources?.coreTeam && typeof parsedConditions.resources.coreTeam !== 'string') {
-        initialTeam.push(...parsedConditions.resources.coreTeam.map(member => ({...member, salary: member.salary || (member.role.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : MOCK_SALARY_PER_EMPLOYEE) })));
+    if (parsedConditions.resources?.coreTeam && Array.isArray(parsedConditions.resources.coreTeam)) {
+        initialTeam.push(...parsedConditions.resources.coreTeam.map(member => ({...member, count: member.count || 1, salary: member.salary || (member.role.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : MOCK_SALARY_PER_EMPLOYEE) })));
     }
 
 
@@ -121,6 +121,9 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
         initialBudget: initialBudget,
         team: initialTeam,
         initialIpOrAssets: parsedConditions.resources?.initialIpOrAssets,
+        // Ensure marketing and R&D spend from parsedConditions are used if available, otherwise defaults
+        marketingSpend: parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend,
+        rndSpend: parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend,
       },
       product: {
         ...initialBaseState.product,
@@ -131,9 +134,20 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
         ...initialBaseState.financials,
         cashOnHand: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudget,
         fundingRaised: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudget,
-        estimatedMonthlyBurnRate: parseMonetaryValue(parsedConditions.financials?.estimatedInitialMonthlyBurnRate),
-        expenses: parseMonetaryValue(parsedConditions.financials?.estimatedInitialMonthlyBurnRate) || initialBaseState.financials.expenses,
-        profit: -(parseMonetaryValue(parsedConditions.financials?.estimatedInitialMonthlyBurnRate) || initialBaseState.financials.expenses),
+        // Calculate initial expenses based on team, marketing, R&D, and other costs
+        // This calculation will be refined in advanceMonth, but good to have a starting point
+        expenses: (initialTeam.reduce((acc, tm) => acc + (tm.count * tm.salary), 0)) + 
+                  (parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend) +
+                  (parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend) + MOCK_OTHER_OPERATIONAL_COSTS,
+        // Profit is initially negative if expenses > 0 and revenue = 0
+        profit: 0 - ((initialTeam.reduce((acc, tm) => acc + (tm.count * tm.salary), 0)) + 
+                      (parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend) +
+                      (parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend) + MOCK_OTHER_OPERATIONAL_COSTS),
+        // Burn rate is effectively initial expenses if revenue is zero
+        burnRate: (initialTeam.reduce((acc, tm) => acc + (tm.count * tm.salary), 0)) + 
+                  (parseMonetaryValue(parsedConditions.resources?.marketingSpend) || initialBaseState.resources.marketingSpend) +
+                  (parseMonetaryValue(parsedConditions.resources?.rndSpend) || initialBaseState.resources.rndSpend) + MOCK_OTHER_OPERATIONAL_COSTS,
+
       },
       initialGoals: parsedConditions.initialGoals || [],
       suggestedChallenges: aiOutput.suggestedChallenges ? JSON.parse(aiOutput.suggestedChallenges) : [],
@@ -144,7 +158,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
       historicalUserGrowth: [],
       isInitialized: true,
       simulationMonth: 0,
-      startupScore: 10,
+      startupScore: 10, // Reset score
     }));
   },
 
@@ -166,16 +180,14 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
     if (roleIndex > -1) {
       const newCount = Math.max(0, team[roleIndex].count + change);
        if (team[roleIndex].role.toLowerCase() === 'founder' && newCount === 0 && change < 0) {
-        // Prevent reducing founders to zero if they are the only ones or critical
-        // This logic can be more sophisticated. For now, just a simple block for founders.
         console.warn("Cannot remove all founders.");
-        return state; // Or adjust to minimum 1 founder
+        return state; 
       }
       team[roleIndex] = { ...team[roleIndex], count: newCount };
       if (newCount === 0 && team[roleIndex].role.toLowerCase() !== 'founder') {
-        team.splice(roleIndex, 1); // Remove role if count is zero (unless founder)
+        team.splice(roleIndex, 1); 
       }
-    } else if (change > 0) { // Add new role type
+    } else if (change > 0) { 
       team.push({ role: roleToAdjust, count: change, salary: salaryPerMember || (roleToAdjust.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : DEFAULT_ENGINEER_SALARY) });
     }
     return { resources: { ...state.resources, team } };
@@ -264,7 +276,16 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>((
     return newState;
   }),
 
-  resetSimulation: () => set(getInitialState()),
+  resetSimulation: () => {
+    set(state => ({
+        ...getInitialState(),
+        // Make sure to carry over any non-resettable parts if needed in future
+        // For now, full reset is fine.
+        // Ensure missions are truly reset
+        missions: exampleMissions.map(m => ({...m, isCompleted: false})),
+        keyEvents: ["Simulation reset. Please initialize a new venture."],
+    }));
+  }
 }));
 
 const exampleMissions: Mission[] = [
@@ -308,19 +329,11 @@ const exampleMissions: Mission[] = [
       const newState = JSON.parse(JSON.stringify(currentState));
       newState.startupScore = Math.min(100, newState.startupScore + 10);
       newState.rewards.push({ id: 'reward-mvp-launch', name: 'MVP Launched!', description: 'Successfully reached MVP stage.', dateEarned: new Date().toISOString() });
-      // Conceptual: Could add a flag here that `advanceMonth` uses to make R&D more effective
       return newState;
     }
   }
 ];
-
-// Initialize store with example missions
-// This needs to happen after the store is created.
-// It's okay for this to be outside the create call as it's setting initial non-dynamic data.
-// Ensure missions are reset properly in initializeSimulation.
-// useSimulationStore.setState(state => ({
-//   ...state,
-//   missions: exampleMissions
-// }));
-// Moved mission initialization into initializeSimulation for better reset behavior.
-
+// I've also slightly adjusted the initializeSimulation action to ensure default `count` and `salary` for team members if not provided by AI,
+// and made sure initial expenses, profit, and burn rate reflect these initial settings for better consistency.
+// The resetSimulation function now also explicitly resets missions and provides a key event.
+// Marketing and R&D spend from AI conditions are also now respected.
