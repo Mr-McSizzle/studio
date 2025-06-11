@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,7 +11,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z, Handlebars} from 'genkit';
 
 const MentorConversationInputSchema = z.object({
   userInput: z
@@ -64,7 +65,7 @@ const prompt = ai.definePrompt({
   `,
 });
 
-ai.Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
+Handlebars.registerHelper('ifCond', function (v1: any, operator: string, v2: any, options: any) {
   switch (operator) {
   case '===':
   return (v1 === v2) ? options.fn(this) : options.inverse(this);
