@@ -7,7 +7,6 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { 
   AccountantToolInputZodSchema, 
   type AccountantToolInput, 
@@ -18,19 +17,19 @@ import {
 export const aiAccountantTool = ai.defineTool(
   {
     name: 'aiAccountantTool',
-    description: 'Provides a financial health check and summary based on current simulation data. Use this when the user asks for the AI Accountant\'s opinion or specific financial details like runway or profit margins.',
+    description: 'Provides a financial health check and summary based on current simulation data. Use this when the user asks for the AI Accountant\'s opinion or specific financial details like runway or profit margins. Ensure you provide the currencySymbol in your output.',
     inputSchema: AccountantToolInputZodSchema,
     outputSchema: AccountantToolOutputZodSchema,
   },
   async (input: AccountantToolInput): Promise<AccountantToolOutput> => {
     let summary = "The AI Accountant is reviewing your figures. ";
-    const { cashOnHand, burnRate, monthlyRevenue, monthlyExpenses, simulationMonth } = input;
+    const { cashOnHand, burnRate, monthlyRevenue, monthlyExpenses, simulationMonth, currencySymbol = '$' } = input;
 
     if (typeof cashOnHand === 'number' && typeof burnRate === 'number' && burnRate > 0) {
       const runwayMonths = Math.floor(cashOnHand / burnRate);
-      summary += `With $${cashOnHand.toLocaleString()} cash and a $${burnRate.toLocaleString()} monthly burn rate, your estimated runway is approximately ${runwayMonths} months. `;
+      summary += `With ${currencySymbol}${cashOnHand.toLocaleString()} cash and a ${currencySymbol}${burnRate.toLocaleString()} monthly burn rate, your estimated runway is approximately ${runwayMonths} months. `;
     } else if (typeof cashOnHand === 'number') {
-      summary += `You have $${cashOnHand.toLocaleString()} cash on hand. Burn rate information is needed for a full runway calculation. `;
+      summary += `You have ${currencySymbol}${cashOnHand.toLocaleString()} cash on hand. Burn rate information is needed for a full runway calculation. `;
     } else {
         summary += `Cash on hand or burn rate information is incomplete for runway calculation. `;
     }
@@ -38,9 +37,9 @@ export const aiAccountantTool = ai.defineTool(
     if (typeof monthlyRevenue === 'number' && typeof monthlyExpenses === 'number') {
       const profit = monthlyRevenue - monthlyExpenses;
       if (profit > 0) {
-        summary += `This month, you are profitable with $${profit.toLocaleString()} in net profit. `;
+        summary += `This month, you are profitable with ${currencySymbol}${profit.toLocaleString()} in net profit. `;
       } else {
-        summary += `This month, you have a net loss of $${Math.abs(profit).toLocaleString()}. `;
+        summary += `This month, you have a net loss of ${currencySymbol}${Math.abs(profit).toLocaleString()}. `;
       }
       if (monthlyRevenue > 0) { 
         const profitMargin = (profit / monthlyRevenue) * 100;
@@ -52,16 +51,15 @@ export const aiAccountantTool = ai.defineTool(
         summary += `Monthly revenue or expense data is incomplete for profit analysis. `;
     }
     
-    if (summary === "The AI Accountant is reviewing your figures. ") { // Fallback if no specific data points hit
+    if (summary === "The AI Accountant is reviewing your figures. ") { 
         summary = "The AI Accountant needs more specific financial data (cash, burn rate, revenue, expenses) to provide a detailed summary. ";
     }
     
-    if (typeof simulationMonth === 'number' && simulationMonth >= 0) { // Check if simulationMonth is a valid number
+    if (typeof simulationMonth === 'number' && simulationMonth >= 0) { 
         summary += `This analysis pertains to simulation month ${simulationMonth}.`;
     } else {
         summary += `Simulation month information is not available for this analysis.`;
     }
-
 
     return { summary };
   }

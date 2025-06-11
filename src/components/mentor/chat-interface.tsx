@@ -13,8 +13,8 @@ import { SendHorizonal, Loader2, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore";
-import { useSimulationStore } from "@/store/simulationStore"; // Import the simulation store
-import { usePathname } from "next/navigation"; // Import usePathname
+import { useSimulationStore } from "@/store/simulationStore";
+import { usePathname } from "next/navigation";
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
@@ -24,12 +24,10 @@ export function ChatInterface() {
   const { toast } = useToast();
   const { setGuidance } = useAiMentorStore();
 
-  // Get current simulation state and page path
   const simState = useSimulationStore(state => ({
     isInitialized: state.isInitialized,
     simulationMonth: state.simulationMonth,
     financials: state.financials,
-    // Add any other specific parts of simState you want the AI to know about
   }));
   const pathname = usePathname();
 
@@ -40,9 +38,8 @@ export function ChatInterface() {
   }, [messages]);
   
   useEffect(() => {
-    // Only set initial greeting if messages array is empty to avoid resetting on re-renders
     if (messages.length === 0) {
-      const initialGreeting = "Greetings, Founder. I am your AI Queen Hive Mind for ForgeSim. My role is to coordinate our team of specialized AI agents—Accountant, Marketing Guru, Operations Manager, and more—to provide you with synthesized insights and personalized guidance for your startup simulation. How can I direct our collective intelligence to assist you today, or would you like a suggestion for your next strategic move?";
+      const initialGreeting = `Greetings, Founder. I am your AI Queen Hive Mind for ForgeSim. Your current simulation currency is ${simState.financials.currencySymbol} (${simState.financials.currencyCode}). My role is to coordinate our team of specialized AI agents—Accountant, Marketing Guru, Operations Manager, and more—to provide you with synthesized insights and personalized guidance for your startup simulation. How can I direct our collective intelligence to assist you today, or would you like a suggestion for your next strategic move?`;
       const initialMessage: ChatMessageType = {
         id: "initial-hivemind-greeting",
         role: "assistant",
@@ -52,7 +49,7 @@ export function ChatInterface() {
       setMessages([initialMessage]);
       setGuidance(initialGreeting);
     }
-  }, [setGuidance, messages.length]);
+  }, [setGuidance, messages.length, simState.financials.currencyCode, simState.financials.currencySymbol]);
 
 
   const handleSubmit = async (e: FormEvent) => {
@@ -70,21 +67,22 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
-      // Prepare conversation history for AI (all messages up to the new user message)
       const conversationHistoryForAI = [...messages, newUserMessage].map(msg => ({
-        role: msg.role as 'user' | 'assistant' | 'tool_response', // Ensure role matches schema
+        role: msg.role as 'user' | 'assistant' | 'tool_response',
         content: msg.content
       }));
       
       const mentorInput: MentorConversationInput = {
-        userInput: newUserMessage.content, // The current user's direct input
-        conversationHistory: conversationHistoryForAI, // Full history including the latest user message
+        userInput: newUserMessage.content,
+        conversationHistory: conversationHistoryForAI,
         simulationMonth: simState.isInitialized ? simState.simulationMonth : undefined,
         financials: simState.isInitialized ? {
           cashOnHand: simState.financials.cashOnHand,
           burnRate: simState.financials.burnRate,
           revenue: simState.financials.revenue,
           expenses: simState.financials.expenses,
+          currencyCode: simState.financials.currencyCode,
+          currencySymbol: simState.financials.currencySymbol,
         } : undefined,
         currentSimulationPage: pathname,
         isSimulationInitialized: simState.isInitialized,

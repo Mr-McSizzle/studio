@@ -32,7 +32,9 @@ const MentorConversationInputSchema = z.object({
     burnRate: z.number().optional(),
     revenue: z.number().optional(),
     expenses: z.number().optional(),
-  }).optional().describe("Key financial figures from the current simulation state."),
+    currencyCode: z.string().optional(),
+    currencySymbol: z.string().optional(),
+  }).optional().describe("Key financial figures from the current simulation state, including currency details."),
   currentSimulationPage: z.string().optional().describe("The current page the user is on in the ForgeSim app, e.g., '/app/dashboard'. Used for context-aware navigation suggestions."),
   isSimulationInitialized: z.boolean().optional().describe("Whether the simulation has been set up."),
 });
@@ -55,7 +57,6 @@ export async function mentorConversation(input: MentorConversationInput): Promis
   return mentorConversationFlow(input);
 }
 
-// Define a schema for the prompt's input, including the processed history
 const PromptInputSchemaWithProcessedHistory = MentorConversationInputSchema.extend({
   conversationHistory: z.array(z.object({
     role: z.enum(['user', 'assistant', 'tool_response']),
@@ -89,15 +90,16 @@ Current simulation context (if available):
 - Simulation Month: {{simulationMonth}}
 - Is Simulation Initialized: {{isSimulationInitialized}}
 - User is on page: {{currentSimulationPage}}
-- Cash on Hand: {{financials.cashOnHand}}
-- Monthly Burn Rate: {{financials.burnRate}}
-- Monthly Revenue: {{financials.revenue}}
-- Monthly Expenses: {{financials.expenses}}
+- Cash on Hand: {{financials.currencySymbol}}{{financials.cashOnHand}} ({{financials.currencyCode}})
+- Monthly Burn Rate: {{financials.currencySymbol}}{{financials.burnRate}} ({{financials.currencyCode}})
+- Monthly Revenue: {{financials.currencySymbol}}{{financials.revenue}} ({{financials.currencyCode}})
+- Monthly Expenses: {{financials.currencySymbol}}{{financials.expenses}} ({{financials.currencyCode}})
 
 Analyze the user's input in the context of an ongoing business simulation. Consider their goals, current situation, challenges, and the data they might be referencing. Use the conversation history to maintain context and provide coherent, evolving advice.
+When discussing financial figures, always use the provided currency symbol (e.g., {{financials.currencySymbol}}).
 
 Based on the user's query and the simulation context:
-1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents. If the user's query is about detailed finances, accounting, runway, or profit margins, consider using the 'aiAccountantTool' to get specific calculations or summaries. The tool needs cashOnHand, burnRate, monthlyRevenue, and monthlyExpenses to be most effective.
+1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents. If the user's query is about detailed finances, accounting, runway, or profit margins, consider using the 'aiAccountantTool' to get specific calculations or summaries. The tool needs cashOnHand, burnRate, monthlyRevenue, monthlyExpenses, and the currencySymbol to be most effective.
 2. Proactively suggest a next logical step or page within the ForgeSim app if the conversation or user's implied needs strongly indicate it. Your goal is to help the user navigate ForgeSim effectively and make the most of the simulation.
    Navigation suggestions should be in the 'suggestedNextAction' field with 'page' and 'label'.
    Examples for suggestedNextAction:
@@ -109,7 +111,7 @@ Based on the user's query and the simulation context:
    Only provide a 'suggestedNextAction' if it's a clear, relevant, and helpful next step. Do not force it. If no suggestion is applicable, the 'suggestedNextAction' field can be omitted or set to null. The label should be concise and action-oriented.
 
 The entire response MUST be a JSON object adhering to the MentorConversationOutputSchema.
-Specifically, include 'response' and optionally 'suggestedNextAction'. If 'suggestedNextAction' is not relevant, it can be omitted or be null.
+Specifically, include 'response' and optionally 'suggestedNextAction'. If 'suggestedNextAction' is not relevant, it must be null or omitted.
 Ensure the 'response' field contains your complete textual answer to the user.
 Ensure the 'suggestedNextAction' (if provided and not null) has 'page' and 'label'.
 `,
@@ -161,6 +163,7 @@ const mentorConversationFlow = ai.defineFlow(
         burnRate: input.financials.burnRate,
         monthlyRevenue: input.financials.revenue,
         monthlyExpenses: input.financials.expenses,
+        currencySymbol: input.financials.currencySymbol, // Pass currency symbol to tool
     } : undefined;
 
     const {output} = await prompt(flowInputForPrompt, {toolInput: accountantToolInputContext });
@@ -169,11 +172,10 @@ const mentorConversationFlow = ai.defineFlow(
       console.error("Hive Mind AI did not return a valid response structure.", output);
       return { response: "I seem to be having trouble formulating a complete response at the moment. Could you try rephrasing or asking again shortly?", suggestedNextAction: null };
     }
-
+    
     return {
       response: output.response,
-      suggestedNextAction: output.suggestedNextAction // This can now be null if the AI returns it as null
+      suggestedNextAction: output.suggestedNextAction === undefined ? null : output.suggestedNextAction,
     };
   }
 );
-

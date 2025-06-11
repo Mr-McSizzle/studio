@@ -8,7 +8,7 @@ import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target } from "lucide-react";
+import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target, DollarSign } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
@@ -17,9 +17,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 export default function SetupSimulationPage() {
-  const [startupName, setStartupName] = useState(""); // Renamed from startupPrompt for clarity
+  const [startupName, setStartupName] = useState("");
   const [targetMarket, setTargetMarket] = useState("");
   const [budget, setBudget] = useState("");
+  const [currencyCode, setCurrencyCode] = useState("USD"); // Default to USD
   const [simulationOutput, setSimulationOutput] = useState<PromptStartupOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,39 +33,51 @@ export default function SetupSimulationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!startupName.trim() || !targetMarket.trim() || !budget.trim()) {
+    if (!startupName.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim()) {
       toast({
         title: "Input Required",
-        description: "Please provide your startup name/idea, target market, and initial budget.",
+        description: "Please provide your startup name/idea, target market, initial budget, and currency code.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (currencyCode.trim().length !== 3) {
+      toast({
+        title: "Invalid Currency Code",
+        description: "Currency code should be 3 letters (e.g., USD, EUR).",
         variant: "destructive",
       });
       return;
     }
 
+
     setIsLoading(true);
     setError(null);
     setSimulationOutput(null);
-    resetSimStore(); // Reset store before initializing new one
+    resetSimStore();
 
     const fullPromptForAI = `
       Business Plan / Idea: ${startupName}
       Target Market: ${targetMarket}
       Initial Budget: ${budget}
+      Preferred Currency: ${currencyCode.toUpperCase()}
     `;
 
     try {
-      const input: PromptStartupInput = { prompt: fullPromptForAI };
+      const input: PromptStartupInput = { 
+        prompt: fullPromptForAI,
+        currencyCode: currencyCode.toUpperCase() 
+      };
       const result = await promptStartup(input);
       setSimulationOutput(result);
       
-      // Initialize the global simulation store
-      initializeSimulationInStore(result, startupName, targetMarket, budget);
+      initializeSimulationInStore(result, startupName, targetMarket, budget, currencyCode.toUpperCase());
 
       toast({
         title: "Digital Twin Initialized!",
         description: "Your simulation is ready. Redirecting to dashboard...",
       });
-      router.push("/app/dashboard"); // Navigate to dashboard after successful setup
+      router.push("/app/dashboard");
     } catch (err) {
       console.error("Error initializing startup simulation:", err);
       let errorMessage = "Failed to initialize simulation. The AI might be unavailable or returned an unexpected response. Please try again.";
@@ -112,7 +125,7 @@ export default function SetupSimulationPage() {
           Initialize Your Digital Twin
         </h1>
         <p className="text-muted-foreground">
-          Describe your startup's core concept, target market, and initial budget. ForgeSim's AI will generate the initial scenario for your business simulation.
+          Describe your startup's core concept, target market, initial budget, and preferred currency. ForgeSim's AI will generate the initial scenario.
         </p>
       </header>
 
@@ -133,7 +146,7 @@ export default function SetupSimulationPage() {
                 id="startup-name"
                 value={startupName}
                 onChange={(e) => setStartupName(e.target.value)}
-                placeholder="e.g., 'ForgePress' - A SaaS platform for small businesses to manage social media with AI content suggestions, focusing on ease of use and affordability..."
+                placeholder="e.g., 'ForgePress' - A SaaS platform for small businesses to manage social media with AI content suggestions..."
                 rows={5}
                 className="w-full"
                 disabled={isLoading}
@@ -152,22 +165,39 @@ export default function SetupSimulationPage() {
                 disabled={isLoading}
               />
             </div>
-             <div>
-              <Label htmlFor="budget" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                <Activity className="h-4 w-4 text-muted-foreground"/> Initial Budget
-              </Label>
-              <Input
-                id="budget"
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                placeholder="e.g., $50,000 seed capital (or 50k, 20000 etc.)"
-                className="w-full"
-                disabled={isLoading}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="budget" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-muted-foreground"/> Initial Budget (Numerical Value)
+                </Label>
+                <Input
+                  id="budget"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  placeholder="e.g., 50000"
+                  type="number"
+                  className="w-full"
+                  disabled={isLoading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="currency-code" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground"/> Currency Code (3 Letters)
+                </Label>
+                <Input
+                  id="currency-code"
+                  value={currencyCode}
+                  onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())}
+                  placeholder="e.g., USD, EUR, JPY"
+                  maxLength={3}
+                  className="w-full"
+                  disabled={isLoading}
+                />
+              </div>
             </div>
             <Button
               type="submit"
-              disabled={isLoading || !startupName.trim() || !targetMarket.trim() || !budget.trim()}
+              disabled={isLoading || !startupName.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim() || currencyCode.trim().length !== 3}
               className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto"
               size="lg"
             >
@@ -192,7 +222,7 @@ export default function SetupSimulationPage() {
         </Alert>
       )}
 
-      {simulationOutput && !isLoading && ( // Only show this if not loading and output exists
+      {simulationOutput && !isLoading && (
         <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2 mt-8">
           <Card className="shadow-lg">
             <CardHeader>

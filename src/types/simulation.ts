@@ -9,6 +9,8 @@ export interface FinancialMetrics {
   cashOnHand: number;
   fundingRaised: number;
   estimatedMonthlyBurnRate?: number; // From AI prompt
+  currencyCode: string; // e.g., "USD", "EUR"
+  currencySymbol: string; // e.g., "$", "€"
 }
 
 export interface UserMetrics {
@@ -80,11 +82,10 @@ export interface DigitalTwinState {
   keyEvents: string[];
   missions: Mission[];
   rewards: Reward[];
-  initialGoals: string[]; // From AI prompt, now guaranteed to be string[]
-  suggestedChallenges: string[]; // From AI prompt from the setup flow
-  isInitialized: boolean; // Flag to check if simulation has been set up
+  initialGoals: string[];
+  suggestedChallenges: string[];
+  isInitialized: boolean;
 
-  // Historical data for charts
   historicalRevenue: RevenueDataPoint[];
   historicalUserGrowth: UserDataPoint[];
 }
@@ -106,7 +107,6 @@ export interface Reward {
   dateEarned: string; // ISO date string
 }
 
-// Structure expected from the AI's initialConditions JSON string
 export interface AIInitialConditions {
   market?: {
     estimatedSize?: number;
@@ -114,35 +114,36 @@ export interface AIInitialConditions {
     keySegments?: string[] | string;
   };
   resources?: {
-    initialFunding?: number | string; // Can be string like "$50,000"
-    coreTeam?: string | TeamMember[]; // Can be descriptive string or array
+    initialFunding?: number | string;
+    coreTeam?: string | TeamMember[];
     initialIpOrAssets?: string;
     marketingSpend?: number | string;
     rndSpend?: number | string;
   };
-  productService?: { // Note: key might differ slightly, be flexible
+  productService?: {
     initialDevelopmentStage?: string;
     name?: string;
   };
   financials?: {
-    startingCash?: number | string; // Can be string
-    estimatedInitialMonthlyBurnRate?: number | string; // Can be string
+    startingCash?: number | string;
+    estimatedInitialMonthlyBurnRate?: number | string;
+    currencyCode?: string; // AI can suggest or confirm
   };
-  initialGoals?: string[] | string; // AI might return a single string or an array
-  companyName?: string; // AI might suggest a name
+  initialGoals?: string[] | string;
+  companyName?: string;
 }
 
-// Corrected Zod schema definitions and corresponding types for the Accountant Tool
 export const AccountantToolInputZodSchema = z.object({
   simulationMonth: z.number().optional().describe("The current month of the simulation."),
   cashOnHand: z.number().optional().describe("Current cash on hand for the startup."),
   burnRate: z.number().optional().describe("Current monthly burn rate."),
   monthlyRevenue: z.number().optional().describe("Current monthly revenue."),
   monthlyExpenses: z.number().optional().describe("Current monthly expenses."),
+  currencySymbol: z.string().optional().describe("The currency symbol for financial figures (e.g., $)."),
 });
 export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;
 
 export const AccountantToolOutputZodSchema = z.object({
-  summary: z.string().describe("A brief financial health check or insight from the AI accountant."),
+  summary: z.string().describe("A brief financial health check or insight from the AI accountant, using the provided currency symbol."),
 });
 export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>;

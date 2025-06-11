@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Corrected AlertTitle import
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -25,21 +25,22 @@ export default function DashboardPage() {
     resetSimulation,
   } = useSimulationStore();
 
+  const currencySymbol = financials.currencySymbol || "$"; // Fallback symbol
+
   useEffect(() => {
-    if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) { // Check if store is hydrated but sim not set up
+    if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
         router.replace('/app/setup');
     }
   }, [isInitialized, simulationMonth, router]);
 
 
   const handleAdvanceMonth = () => {
-    if (isInitialized && financials.cashOnHand > 0) { // Prevent advancing if game over or not started
+    if (isInitialized && financials.cashOnHand > 0) {
       advanceMonth();
     }
   };
 
   const handleReset = () => {
-    // Could add a confirmation dialog here
     resetSimulation();
     router.push('/app/setup');
   };
@@ -78,7 +79,7 @@ export default function DashboardPage() {
                 {isInitialized ? companyName : "ForgeSim"} - Digital Twin
             </h1>
             <p className="text-muted-foreground">
-             Month: {isInitialized ? simulationMonth : "N/A"}
+             Month: {isInitialized ? simulationMonth : "N/A"} | Currency: {isInitialized ? financials.currencyCode : "N/A"}
             </p>
         </div>
         <div className="flex gap-2">
@@ -116,10 +117,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {isInitialized ? `$${financials.revenue.toLocaleString()}` : "N/A"}
+              {isInitialized ? `${currencySymbol}${financials.revenue.toLocaleString()}` : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              MRR: {isInitialized ? `$${userMetrics.monthlyRecurringRevenue.toLocaleString()}` : "N/A"}
+              MRR: {isInitialized ? `${currencySymbol}${userMetrics.monthlyRecurringRevenue.toLocaleString()}` : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -148,10 +149,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${financials.cashOnHand < 0 && isInitialized ? 'text-destructive' : 'text-foreground'}`}>
-               {isInitialized ? `$${financials.cashOnHand.toLocaleString()}` : "N/A"}
+               {isInitialized ? `${currencySymbol}${financials.cashOnHand.toLocaleString()}` : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              Burn Rate: {isInitialized ? `$${financials.burnRate.toLocaleString()}/month` : "N/A"}
+              Burn Rate: {isInitialized ? `${currencySymbol}${financials.burnRate.toLocaleString()}/month` : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -172,7 +173,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-8">
-        <PerformanceChart title="Simulated Monthly Revenue" description="Tracking revenue trends in your digital twin." dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
+        <PerformanceChart title="Simulated Monthly Revenue" description={`Tracking revenue trends in ${currencySymbol} (${financials.currencyCode})`} dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
         <PerformanceChart title="Simulated User Growth" description="Tracking user acquisition in your digital twin." dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
       </div>
       

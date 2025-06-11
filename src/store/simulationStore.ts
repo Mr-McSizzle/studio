@@ -6,10 +6,16 @@ import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 
 const MOCK_PRICE_PER_USER_PER_MONTH = 10;
 const MOCK_NEW_USERS_PER_MARKETING_DOLLAR = 0.1;
-const MOCK_SALARY_PER_FOUNDER = 0; // Founders often don't take salaries initially
-const MOCK_SALARY_PER_EMPLOYEE = 4000; // Simplified average for non-founders
-const MOCK_OTHER_OPERATIONAL_COSTS = 1500; // Rent, utilities, software etc.
+const MOCK_SALARY_PER_FOUNDER = 0;
+const MOCK_SALARY_PER_EMPLOYEE = 4000;
+const MOCK_OTHER_OPERATIONAL_COSTS = 1500;
 const DEFAULT_ENGINEER_SALARY = 5000;
+
+const getCurrencySymbol = (code?: string): string => {
+  if (!code) return "$";
+  const map: Record<string, string> = { USD: "$", EUR: "€", JPY: "¥", GBP: "£", CAD: "C$", AUD: "A$" };
+  return map[code.toUpperCase()] || code;
+};
 
 const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges'> = {
   simulationMonth: 0,
@@ -19,14 +25,16 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
     expenses: MOCK_OTHER_OPERATIONAL_COSTS,
     profit: -MOCK_OTHER_OPERATIONAL_COSTS,
     burnRate: MOCK_OTHER_OPERATIONAL_COSTS,
-    cashOnHand: 0, // Will be set by initial budget
+    cashOnHand: 0,
     fundingRaised: 0,
+    currencyCode: "USD",
+    currencySymbol: "$",
   },
   userMetrics: {
     activeUsers: 0,
     newUserAcquisitionRate: 0,
-    customerAcquisitionCost: 20, // Example default
-    churnRate: 0.05, // Example default 5%
+    customerAcquisitionCost: 20,
+    churnRate: 0.05,
     monthlyRecurringRevenue: 0,
   },
   product: {
@@ -37,27 +45,26 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
   },
   resources: {
     initialBudget: 0,
-    marketingSpend: 500, // Default starting
-    rndSpend: 500, // Default starting
+    marketingSpend: 500,
+    rndSpend: 500,
     team: [{ role: 'Founder', count: 1, salary: MOCK_SALARY_PER_FOUNDER }],
   },
   market: {
     targetMarketDescription: "Not yet defined.",
-    marketSize: 100000, // Example default
+    marketSize: 100000,
     competitionLevel: 'moderate',
   },
   startupScore: 10,
-  initialGoals: [], // Now guaranteed to be string[]
+  initialGoals: [],
   isInitialized: false,
 };
 
-// Define exampleMissions before getInitialState
 const exampleMissions: Mission[] = [
   {
     id: "reach-100-users",
     title: "Acquire First 100 Users",
     description: "Reach 100 active users for your product.",
-    rewardText: "+5 Startup Score, $1,000 Cash Bonus",
+    rewardText: "+5 Startup Score, 1,000 (in simulation currency) Cash Bonus",
     isCompleted: false,
     criteria: (currentState) => currentState.userMetrics.activeUsers >= 100,
     onComplete: (currentState) => {
@@ -119,16 +126,16 @@ const exampleMissions: Mission[] = [
 const getInitialState = (): DigitalTwinState => ({
   ...initialBaseState,
   keyEvents: ["Simulation not yet initialized."],
-  missions: exampleMissions.map(m => ({...m, isCompleted: false})), // Initialize with functions
+  missions: exampleMissions.map(m => ({...m, isCompleted: false})),
   rewards: [],
-  initialGoals: [], // Now guaranteed to be string[]
+  initialGoals: [],
   suggestedChallenges: [],
   historicalRevenue: [],
   historicalUserGrowth: [],
 });
 
 interface SimulationActions {
-  initializeSimulation: (aiOutput: PromptStartupOutput, userStartupName: string, userTargetMarket: string, userBudget: string) => void;
+  initializeSimulation: (aiOutput: PromptStartupOutput, userStartupName: string, userTargetMarket: string, userBudget: string, userCurrencyCode: string) => void;
   advanceMonth: () => void;
   resetSimulation: () => void;
   setMarketingSpend: (amount: number) => void;
@@ -139,10 +146,7 @@ interface SimulationActions {
 const parseMonetaryValue = (value: string | number | undefined): number => {
   if (typeof value === 'number') return value;
   if (typeof value === 'string') {
-    const cleanedValue = value.replace(/\$|,/g, '').toLowerCase();
-    if (cleanedValue.endsWith('k')) {
-      return parseFloat(cleanedValue.replace('k', '')) * 1000;
-    }
+    const cleanedValue = value.replace(/[^\d.-]/g, ''); // Keep digits, dot, and minus
     return parseFloat(cleanedValue) || 0;
   }
   return 0;
@@ -154,7 +158,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
     (set, get) => ({
       ...getInitialState(),
 
-      initializeSimulation: (aiOutput, userStartupName, userTargetMarket, userBudget) => {
+      initializeSimulation: (aiOutput, userStartupName, userTargetMarket, userBudget, userCurrencyCode) => {
         let parsedConditions: AIInitialConditions = {};
         try {
           parsedConditions = JSON.parse(aiOutput.initialConditions);
@@ -167,6 +171,9 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           }));
           return;
         }
+        
+        const finalCurrencyCode = (parsedConditions.financials?.currencyCode || userCurrencyCode || "USD").toUpperCase();
+        const finalCurrencySymbol = getCurrencySymbol(finalCurrencyCode);
 
         const initialBudgetNum = parseMonetaryValue(parsedConditions.resources?.initialFunding || userBudget);
         const initialTeamFromAI: TeamMember[] = [];
@@ -179,7 +186,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
                 salary: parseMonetaryValue(member.salary) || ( (member.role || '').toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : MOCK_SALARY_PER_EMPLOYEE)
             })));
           } else if (typeof parsedConditions.resources.coreTeam === 'string') {
-            // If it's a string, we might try to parse it or use a default. For now, log and use default.
             console.warn("AI provided coreTeam as a string, using default founder setup:", parsedConditions.resources.coreTeam);
              initialTeamFromAI.push({ role: 'Founder', count: 1, salary: MOCK_SALARY_PER_FOUNDER });
           }
@@ -250,11 +256,13 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             fundingRaised: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudgetNum,
             expenses: initialExpenses,
             profit: 0 - initialExpenses,
-            burnRate: initialExpenses > 0 ? initialExpenses : 0, 
+            burnRate: initialExpenses > 0 ? initialExpenses : 0,
+            currencyCode: finalCurrencyCode,
+            currencySymbol: finalCurrencySymbol,
           },
           initialGoals: processedInitialGoals,
           suggestedChallenges: processedSuggestedChallenges,
-          keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget $${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket}. AI Challenges: ${processedSuggestedChallenges.join(', ') || 'None'}`],
+          keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket}. AI Challenges: ${processedSuggestedChallenges.join(', ') || 'None'}`],
           missions: exampleMissions.map(m => ({...m, isCompleted: false})),
           rewards: [],
           historicalRevenue: [],
@@ -315,8 +323,8 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           historicalUserGrowth: [...state.historicalUserGrowth],
           rewards: state.rewards.map(reward => ({...reward})),
           missions: state.missions.map(m => ({...m})),
-          initialGoals: [...state.initialGoals], // Now safe as state.initialGoals is always string[]
-          suggestedChallenges: [...state.suggestedChallenges],  // Assuming this is also always string[]
+          initialGoals: [...state.initialGoals],
+          suggestedChallenges: [...state.suggestedChallenges],
         };
 
         const newUsersFromMarketing = Math.floor(newState.resources.marketingSpend * MOCK_NEW_USERS_PER_MARKETING_DOLLAR);
@@ -362,12 +370,12 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         
         if (newState.financials.cashOnHand <= 0 && state.financials.cashOnHand > 0) { 
           newState.startupScore = Math.max(0, newState.startupScore - 20); 
-          newState.keyEvents.push("Critical: Ran out of cash! Simulation unstable.");
+          newState.keyEvents.push(`Critical: Ran out of cash! Simulation unstable. All values in ${newState.financials.currencySymbol}.`);
         }
         newState.startupScore = Math.max(0, Math.min(100, newState.startupScore));
 
 
-        newState.keyEvents.push(`Month ${newState.simulationMonth}: Revenue $${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash $${newState.financials.cashOnHand.toLocaleString()}`);
+        newState.keyEvents.push(`Month ${newState.simulationMonth}: Revenue ${newState.financials.currencySymbol}${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}`);
         
         const newRevenueData: RevenueDataPoint = { month: `M${newState.simulationMonth}`, revenue: newState.financials.revenue, desktop: newState.financials.revenue };
         newState.historicalRevenue.push(newRevenueData);
@@ -402,17 +410,15 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
 
       resetSimulation: () => {
         set(state => ({
-            ...getInitialState(),
+            ...getInitialState(), // This will reset currencyCode and currencySymbol to USD/$
             missions: exampleMissions.map(m => ({...m, isCompleted: false})),
             keyEvents: ["Simulation reset. Please initialize a new venture."],
         }));
       }
     }),
     {
-      name: 'simulation-storage', // Name for localStorage item
+      name: 'simulation-storage',
       storage: createJSONStorage(() => localStorage),
-      // Optional: partialize to only persist certain fields
-      // partialize: (state) => ({ ... }), 
     }
   )
 );

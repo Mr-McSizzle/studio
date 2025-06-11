@@ -26,6 +26,8 @@ export default function SimulationPage() {
     adjustTeamMemberCount,
   } = useSimulationStore();
 
+  const currencySymbol = financials.currencySymbol || "$";
+
   const [localMarketingSpend, setLocalMarketingSpend] = useState(resources.marketingSpend);
   const [localRndSpend, setLocalRndSpend] = useState(resources.rndSpend);
 
@@ -40,7 +42,7 @@ export default function SimulationPage() {
       setLocalMarketingSpend(resources.marketingSpend);
       setLocalRndSpend(resources.rndSpend);
     } else {
-      setLocalMarketingSpend(0); // Default if not initialized
+      setLocalMarketingSpend(0);
       setLocalRndSpend(0);
     }
   }, [resources.marketingSpend, resources.rndSpend, isInitialized]);
@@ -81,7 +83,7 @@ export default function SimulationPage() {
       <header className="mb-8">
         <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
           <Zap className="h-8 w-8 text-accent" />
-          Decision Controls
+          Decision Controls ({currencySymbol} {financials.currencyCode})
         </h1>
         <p className="text-muted-foreground">
           Manage your startup's resources and make strategic decisions for your digital twin. Advance months on the Dashboard to see their impact.
@@ -144,7 +146,7 @@ export default function SimulationPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="marketing-spend" className="flex items-center gap-2"><DollarSign className="h-4 w-4"/>Monthly Marketing Spend</Label>
+                <Label htmlFor="marketing-spend" className="flex items-center gap-2"><DollarSign className="h-4 w-4"/>Monthly Marketing Spend ({currencySymbol})</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     id="marketing-spend"
@@ -157,13 +159,13 @@ export default function SimulationPage() {
                     className="w-full"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Current: ${isInitialized ? resources.marketingSpend.toLocaleString() : "N/A"}</p>
+                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? resources.marketingSpend.toLocaleString() : "N/A"}</p>
               </div>
 
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&amp;D Spend</Label>
+                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&amp;D Spend ({currencySymbol})</Label>
                  <div className="flex items-center gap-2">
                   <Input
                     id="rnd-spend"
@@ -176,7 +178,7 @@ export default function SimulationPage() {
                     className="w-full"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Current: ${isInitialized ? resources.rndSpend.toLocaleString() : "N/A"}</p>
+                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? resources.rndSpend.toLocaleString() : "N/A"}</p>
               </div>
               
               <Separator />
@@ -184,11 +186,10 @@ export default function SimulationPage() {
               <div className="space-y-4">
                 <Label className="flex items-center gap-2"><Users className="h-4 w-4"/>Team Management</Label>
                 <div className="space-y-3">
-                  {/* Engineer Management Example */}
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">Engineers: {getTeamMemberCount("Engineer")}</p>
-                      <p className="text-xs text-muted-foreground">Salary: ${DEFAULT_ENGINEER_SALARY.toLocaleString()}/mo each</p>
+                      <p className="text-xs text-muted-foreground">Salary: {currencySymbol}{DEFAULT_ENGINEER_SALARY.toLocaleString()}/mo each</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -211,13 +212,11 @@ export default function SimulationPage() {
                       </Button>
                     </div>
                   </div>
-                  {/* Add more roles here as needed */}
                    <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">Founders: {getTeamMemberCount("Founder")}</p>
-                      <p className="text-xs text-muted-foreground">Salary: ${getTeamMemberSalary("Founder").toLocaleString()}/mo each</p>
+                      <p className="text-xs text-muted-foreground">Salary: {currencySymbol}{getTeamMemberSalary("Founder").toLocaleString()}/mo each</p>
                     </div>
-                    {/* Typically founders are not hired/fired this way in early simulation, but count is shown */}
                   </div>
                 </div>
               </div>
