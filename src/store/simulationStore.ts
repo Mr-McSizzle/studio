@@ -17,7 +17,7 @@ const getCurrencySymbol = (code?: string): string => {
   return map[code.toUpperCase()] || code;
 };
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'initialGoals'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -57,6 +57,7 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
   },
   startupScore: 10,
   isInitialized: false,
+  initialGoals: [],
 };
 
 const exampleMissions: Omit<Mission, 'isCompleted'>[] = [
@@ -125,7 +126,6 @@ const getInitialState = (): DigitalTwinState => ({
   keyEvents: ["Simulation not yet initialized."],
   missions: exampleMissions.map(m => ({...m, isCompleted: false})),
   rewards: [],
-  initialGoals: [],
   suggestedChallenges: [],
   historicalRevenue: [],
   historicalUserGrowth: [],
@@ -229,6 +229,18 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
                 processedSuggestedChallenges = [];
             }
         }
+        
+        const aiProductStageRaw = parsedConditions.productService?.initialDevelopmentStage?.toLowerCase();
+        let finalProductStage: DigitalTwinState['product']['stage'] = 'idea'; // Default to 'idea'
+
+        if (aiProductStageRaw) {
+          if (['idea', 'prototype', 'mvp', 'growth', 'mature'].includes(aiProductStageRaw)) {
+            finalProductStage = aiProductStageRaw as DigitalTwinState['product']['stage'];
+          } else if (aiProductStageRaw === 'concept') {
+            finalProductStage = 'idea'; // Map 'concept' to 'idea'
+          }
+          // Add other potential mappings from AI output to valid enum values here if needed
+        }
 
 
         set(state => ({
@@ -251,7 +263,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           product: {
             ...initialBaseState.product,
             name: parsedConditions.productService?.name || `${userStartupName} Product`,
-            stage: (parsedConditions.productService?.initialDevelopmentStage?.toLowerCase() as DigitalTwinState['product']['stage']) || 'idea',
+            stage: finalProductStage,
             pricePerUser: initialPricePerUser,
           },
           financials: {
@@ -266,7 +278,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           },
           initialGoals: processedInitialGoals,
           suggestedChallenges: processedSuggestedChallenges,
-          keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket}. AI Challenges: ${processedSuggestedChallenges.join(', ') || 'None'}`],
+          keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket}. Product Stage: ${finalProductStage}. AI Challenges: ${processedSuggestedChallenges.join(', ') || 'None'}`],
           missions: exampleMissions.map(m => ({...m, isCompleted: false})), 
           rewards: [],
           historicalRevenue: [],
@@ -347,11 +359,16 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
 
           set(state => {
             // Create a mutable copy for updates
-            const newState: DigitalTwinState = JSON.parse(JSON.stringify(state));
-             newState.missions = state.missions.map(persistedMission => {
-                const example = exampleMissions.find(em => em.id === persistedMission.id);
-                return example ? { ...example, isCompleted: persistedMission.isCompleted } : persistedMission;
-            }) as Mission[];
+            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); // Deep clone
+            
+            // Re-attach mission functions after JSON stringify/parse
+            newState.missions = exampleMissions.map(exampleMission => {
+                const persistedMission = state.missions.find(pm => pm.id === exampleMission.id);
+                return {
+                    ...exampleMission,
+                    isCompleted: persistedMission ? persistedMission.isCompleted : false,
+                };
+            });
 
 
             newState.simulationMonth = aiOutput.simulatedMonthNumber; // Use AI's returned month
@@ -404,12 +421,13 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             newState.historicalUserGrowth.push(newUserGrowthData);
             if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
             
-            const originalMissionsFromState = newState.missions;
+            const originalMissionsFromState = newState.missions; // These now have functions
             const updatedMissions = originalMissionsFromState.map(mission => {
               let missionCopy = {...mission};
               if (!missionCopy.isCompleted && missionCopy.criteria && typeof missionCopy.criteria === 'function' && missionCopy.criteria(newState)) {
                 if (missionCopy.onComplete && typeof missionCopy.onComplete === 'function') {
-                  const stateAfterMissionCompletion = missionCopy.onComplete(newState);
+                  const stateAfterMissionCompletion = missionCopy.onComplete(newState); // Pass the most current newState
+                  // Apply changes from mission completion directly to newState
                   newState.startupScore = stateAfterMissionCompletion.startupScore;
                   newState.financials.cashOnHand = stateAfterMissionCompletion.financials.cashOnHand;
                   newState.rewards = stateAfterMissionCompletion.rewards.map(r => ({...r})); 
@@ -494,3 +512,4 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
     }
   )
 );
+
