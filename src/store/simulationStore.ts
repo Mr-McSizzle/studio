@@ -59,13 +59,14 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
   isInitialized: false,
 };
 
-const exampleMissions: Mission[] = [
+// Define exampleMissions with functions criteria and onComplete
+// This will be the source of truth for mission logic
+const exampleMissions: Omit<Mission, 'isCompleted'>[] = [
   {
     id: "reach-100-users",
     title: "Acquire First 100 Users",
     description: "Reach 100 active users for your product.",
     rewardText: "+5 Startup Score, 1,000 (in simulation currency) Cash Bonus",
-    isCompleted: false,
     criteria: (currentState) => currentState.userMetrics.activeUsers >= 100,
     onComplete: (currentState) => {
       const returnState: DigitalTwinState = {
@@ -88,7 +89,6 @@ const exampleMissions: Mission[] = [
     title: "Achieve First Profitable Month",
     description: "Have a month where revenue exceeds expenses.",
     rewardText: "+10 Startup Score",
-    isCompleted: false,
     criteria: (currentState) => currentState.financials.profit > 0,
     onComplete: (currentState) => {
       const returnState: DigitalTwinState = {
@@ -107,7 +107,6 @@ const exampleMissions: Mission[] = [
     title: "Launch MVP",
     description: "Reach the MVP product stage.",
     rewardText: "+10 Startup Score, R&D Efficiency Boost (conceptual)",
-    isCompleted: false,
     criteria: (currentState) => currentState.product.stage === 'mvp',
     onComplete: (currentState) => {
       const returnState: DigitalTwinState = {
@@ -126,7 +125,7 @@ const exampleMissions: Mission[] = [
 const getInitialState = (): DigitalTwinState => ({
   ...initialBaseState,
   keyEvents: ["Simulation not yet initialized."],
-  missions: exampleMissions.map(m => ({...m, isCompleted: false})),
+  missions: exampleMissions.map(m => ({...m, isCompleted: false})), // Ensure functions are copied
   rewards: [],
   initialGoals: [],
   suggestedChallenges: [],
@@ -146,7 +145,7 @@ interface SimulationActions {
 const parseMonetaryValue = (value: string | number | undefined): number => {
   if (typeof value === 'number') return value;
   if (typeof value === 'string') {
-    const cleanedValue = value.replace(/[^\d.-]/g, ''); // Keep digits, dot, and minus
+    const cleanedValue = value.replace(/[^\d.-]/g, '');
     return parseFloat(cleanedValue) || 0;
   }
   return 0;
@@ -211,6 +210,8 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           processedInitialGoals = rawGoals.filter((g): g is string => typeof g === 'string');
         } else if (typeof rawGoals === 'string' && rawGoals.trim() !== '') {
           processedInitialGoals = [rawGoals];
+        } else {
+          processedInitialGoals = []; // Ensure it's always an array
         }
         
         let processedSuggestedChallenges: string[] = [];
@@ -221,9 +222,12 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
                     processedSuggestedChallenges = parsedChallenges.filter((c): c is string => typeof c === 'string');
                 } else if (typeof parsedChallenges === 'string') {
                     processedSuggestedChallenges = [parsedChallenges];
+                } else {
+                  processedSuggestedChallenges = [];
                 }
             } catch (e) {
                 console.error("Failed to parse AI suggestedChallenges JSON:", e);
+                processedSuggestedChallenges = [];
             }
         }
 
@@ -263,7 +267,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           initialGoals: processedInitialGoals,
           suggestedChallenges: processedSuggestedChallenges,
           keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket}. AI Challenges: ${processedSuggestedChallenges.join(', ') || 'None'}`],
-          missions: exampleMissions.map(m => ({...m, isCompleted: false})),
+          missions: exampleMissions.map(m => ({...m, isCompleted: false})), // Fresh missions with functions
           rewards: [],
           historicalRevenue: [],
           historicalUserGrowth: [],
@@ -307,25 +311,17 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
       advanceMonth: () => set(state => {
         if (!state.isInitialized || state.financials.cashOnHand <= 0) return state; 
 
-        const newState: DigitalTwinState = {
-          ...state,
-          simulationMonth: state.simulationMonth + 1,
-          financials: { ...state.financials },
-          userMetrics: { ...state.userMetrics },
-          product: { ...state.product, features: [...state.product.features] },
-          resources: { 
-            ...state.resources,
-            team: state.resources.team.map(member => ({ ...member })),
-          },
-          market: { ...state.market },
-          keyEvents: [...state.keyEvents], 
-          historicalRevenue: [...state.historicalRevenue],
-          historicalUserGrowth: [...state.historicalUserGrowth],
-          rewards: state.rewards.map(reward => ({...reward})),
-          missions: state.missions.map(m => ({...m})),
-          initialGoals: [...state.initialGoals],
-          suggestedChallenges: [...state.suggestedChallenges],
-        };
+        // Create a deep copy of the current state for modification
+        const newState: DigitalTwinState = JSON.parse(JSON.stringify(state));
+        
+        // Re-attach mission functions to newState.missions because JSON.parse(JSON.stringify(state)) strips them
+        newState.missions = state.missions.map(persistedMission => {
+            const example = exampleMissions.find(em => em.id === persistedMission.id);
+            return example ? { ...example, isCompleted: persistedMission.isCompleted } : persistedMission;
+        }) as Mission[];
+
+
+        newState.simulationMonth = state.simulationMonth + 1;
 
         const newUsersFromMarketing = Math.floor(newState.resources.marketingSpend * MOCK_NEW_USERS_PER_MARKETING_DOLLAR);
         const churnedUsers = Math.floor(newState.userMetrics.activeUsers * newState.userMetrics.churnRate);
@@ -386,32 +382,35 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         newState.historicalUserGrowth.push(newUserGrowthData);
         if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
         
-
-        const originalMissions = state.missions; 
-        const updatedMissions = originalMissions.map(mission => {
-          let missionCopy = { ...mission }; 
-          if (!missionCopy.isCompleted && mission.criteria(newState)) { 
-            if (missionCopy.onComplete) {
+        // Process missions
+        const originalMissionsFromState = newState.missions; // These now have functions attached
+        const updatedMissions = originalMissionsFromState.map(mission => {
+          let missionCopy = {...mission}; // Create a mutable copy for this iteration
+          if (!missionCopy.isCompleted && missionCopy.criteria && typeof missionCopy.criteria === 'function' && missionCopy.criteria(newState)) {
+            if (missionCopy.onComplete && typeof missionCopy.onComplete === 'function') {
               const stateAfterMissionCompletion = missionCopy.onComplete(newState);
               
+              // Update critical parts of newState directly from mission's onComplete logic
               newState.startupScore = stateAfterMissionCompletion.startupScore;
               newState.financials.cashOnHand = stateAfterMissionCompletion.financials.cashOnHand;
+              // Rewards are appended within onComplete, so ensure newState.rewards is correctly updated
+              // This assumes onComplete correctly returns the entire rewards array
               newState.rewards = stateAfterMissionCompletion.rewards.map(r => ({...r})); 
             }
             newState.keyEvents.push(`Mission Completed: ${missionCopy.title}! Reward: ${missionCopy.rewardText}`);
-            missionCopy.isCompleted = true;
+            missionCopy.isCompleted = true; // Mark this copy as completed
           }
-          return missionCopy;
+          return missionCopy; // Return the (potentially) updated mission copy
         });
-        newState.missions = updatedMissions;
+        newState.missions = updatedMissions; // Assign the array of updated mission copies back to newState
 
         return newState;
       }),
 
       resetSimulation: () => {
         set(state => ({
-            ...getInitialState(), // This will reset currencyCode and currencySymbol to USD/$
-            missions: exampleMissions.map(m => ({...m, isCompleted: false})),
+            ...getInitialState(), 
+            missions: exampleMissions.map(m => ({...m, isCompleted: false})), // Ensure fresh missions with functions
             keyEvents: ["Simulation reset. Please initialize a new venture."],
         }));
       }
@@ -419,6 +418,55 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
     {
       name: 'simulation-storage',
       storage: createJSONStorage(() => localStorage),
+      merge: (persistedStateUnknown, currentState) => {
+        // Default merge behavior for most of the state
+        // Ensures that properties from persistedState override currentState if they exist
+        let mergedState = { ...currentState, ...(persistedStateUnknown as object) as Partial<DigitalTwinState> };
+
+        // Custom merge for missions to re-attach functions
+        const persistedState = persistedStateUnknown as Partial<DigitalTwinState>;
+
+        if (persistedState && Array.isArray(persistedState.missions)) {
+          mergedState.missions = exampleMissions.map(em => {
+            const pMission = persistedState.missions?.find(pm => pm.id === em.id);
+            return {
+              ...em, // Get functions and default texts from exampleMissions (title, desc, rewardText, criteria, onComplete)
+              isCompleted: pMission ? pMission.isCompleted : false, // Override isCompleted from persisted data
+            };
+          });
+        } else {
+          // If no persisted missions or malformed, use fresh ones from exampleMissions
+          mergedState.missions = exampleMissions.map(em => ({ ...em, isCompleted: false }));
+        }
+        
+        // Ensure initialGoals and suggestedChallenges are always arrays after rehydration
+        mergedState.initialGoals = Array.isArray(mergedState.initialGoals) ? mergedState.initialGoals : [];
+        mergedState.suggestedChallenges = Array.isArray(mergedState.suggestedChallenges) ? mergedState.suggestedChallenges : [];
+        
+        // Ensure historical data are arrays
+        mergedState.historicalRevenue = Array.isArray(mergedState.historicalRevenue) ? mergedState.historicalRevenue : [];
+        mergedState.historicalUserGrowth = Array.isArray(mergedState.historicalUserGrowth) ? mergedState.historicalUserGrowth : [];
+        mergedState.keyEvents = Array.isArray(mergedState.keyEvents) ? mergedState.keyEvents : ["Simulation state rehydrated."];
+        mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : [];
+
+
+        // Ensure financials always has currencyCode and currencySymbol
+        if (!mergedState.financials || !mergedState.financials.currencyCode) {
+            mergedState.financials = {
+                ...initialBaseState.financials, // Fallback to defaults
+                ...(mergedState.financials || {}), // Apply any persisted financial details
+                currencyCode: (mergedState.financials?.currencyCode || initialBaseState.financials.currencyCode),
+                currencySymbol: getCurrencySymbol(mergedState.financials?.currencyCode || initialBaseState.financials.currencyCode),
+            };
+        } else if (!mergedState.financials.currencySymbol) {
+             mergedState.financials.currencySymbol = getCurrencySymbol(mergedState.financials.currencyCode);
+        }
+
+
+        return mergedState as DigitalTwinState; // Return type is just the state, not actions
+      },
     }
   )
 );
+
+    
