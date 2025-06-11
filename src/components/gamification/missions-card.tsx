@@ -1,9 +1,10 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Target } from "lucide-react";
+import { Target, Info } from "lucide-react";
 
-interface Mission {
+export interface Mission {
   id: string;
   title: string;
   description: string;
@@ -27,28 +28,33 @@ export function MissionsCard({ missions }: MissionsCardProps) {
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[250px]">
-          <ul className="space-y-4">
-            {missions.map((mission) => (
-              <li key={mission.id} className="flex items-start gap-3 p-3 border border-border rounded-md hover:bg-muted/50 transition-colors">
-                <Checkbox id={`mission-${mission.id}`} checked={mission.isCompleted} aria-label={mission.title} className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent" />
-                <div className="flex-grow">
-                  <label htmlFor={`mission-${mission.id}`} className={`font-medium ${mission.isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                    {mission.title}
-                  </label>
-                  <p className={`text-xs ${mission.isCompleted ? "text-muted-foreground/70" : "text-muted-foreground"}`}>
-                    {mission.description}
-                  </p>
-                  {!mission.isCompleted && (
-                    <p className="text-xs text-accent font-medium mt-1">Reward: {mission.reward}</p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+          {missions.length > 0 ? (
+            <ul className="space-y-4">
+              {missions.map((mission) => (
+                <li key={mission.id} className="flex items-start gap-3 p-3 border border-border rounded-md hover:bg-muted/50 transition-colors">
+                  <Checkbox id={`mission-${mission.id}`} checked={mission.isCompleted} aria-label={mission.title} className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent" />
+                  <div className="flex-grow">
+                    <label htmlFor={`mission-${mission.id}`} className={`font-medium ${mission.isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                      {mission.title}
+                    </label>
+                    <p className={`text-xs ${mission.isCompleted ? "text-muted-foreground/70" : "text-muted-foreground"}`}>
+                      {mission.description}
+                    </p>
+                    {!mission.isCompleted && (
+                      <p className="text-xs text-accent font-medium mt-1">Reward: {mission.reward}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-4">
+              <Info className="h-10 w-10 mb-2" />
+              <p>No active missions at the moment.</p>
+              <p className="text-xs">Missions will appear here as you progress in the simulation.</p>
+            </div>
+          )}
         </ScrollArea>
-         {missions.length === 0 && (
-          <p className="text-center text-muted-foreground py-4">No active missions. Great job, or check back soon!</p>
-        )}
       </CardContent>
     </Card>
   );

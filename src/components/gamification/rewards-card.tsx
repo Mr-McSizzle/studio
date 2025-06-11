@@ -1,8 +1,9 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Gift, Star } from "lucide-react";
+import { Gift, Star, Info } from "lucide-react";
 
-interface Reward {
+export interface Reward {
   id: string;
   name: string;
   description: string;
@@ -25,22 +26,27 @@ export function RewardsCard({ rewards }: RewardsCardProps) {
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[250px]">
-          <ul className="space-y-3">
-            {rewards.map((reward) => (
-              <li key={reward.id} className="flex items-center gap-3 p-3 border border-border rounded-md bg-muted/30">
-                <Star className="h-5 w-5 text-accent fill-accent shrink-0" />
-                <div className="flex-grow">
-                  <h4 className="font-medium text-foreground">{reward.name}</h4>
-                  <p className="text-xs text-muted-foreground">{reward.description}</p>
-                  <p className="text-xs text-muted-foreground/70 mt-0.5">Earned: {reward.dateEarned}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {rewards.length > 0 ? (
+            <ul className="space-y-3">
+              {rewards.map((reward) => (
+                <li key={reward.id} className="flex items-center gap-3 p-3 border border-border rounded-md bg-muted/30">
+                  <Star className="h-5 w-5 text-accent fill-accent shrink-0" />
+                  <div className="flex-grow">
+                    <h4 className="font-medium text-foreground">{reward.name}</h4>
+                    <p className="text-xs text-muted-foreground">{reward.description}</p>
+                    <p className="text-xs text-muted-foreground/70 mt-0.5">Earned: {reward.dateEarned}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+             <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-4">
+              <Info className="h-10 w-10 mb-2" />
+              <p>No rewards earned yet.</p>
+              <p className="text-xs">Complete missions and achieve milestones to earn rewards.</p>
+            </div>
+          )}
         </ScrollArea>
-        {rewards.length === 0 && (
-          <p className="text-center text-muted-foreground py-4">No rewards earned yet. Keep striving!</p>
-        )}
       </CardContent>
     </Card>
   );

@@ -1,6 +1,7 @@
+
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { SlidersHorizontal, Info } from "lucide-react";
+import { SlidersHorizontal, Info, Construction } from "lucide-react";
 
 export default function SimulationPage() {
   return (
@@ -18,23 +19,20 @@ export default function SimulationPage() {
             <CardHeader>
               <CardTitle className="font-headline">3D Simulation Environment</CardTitle>
               <CardDescription>
-                Watch your decisions unfold in a dynamic visual space. (Placeholder)
+                Watch your decisions unfold in a dynamic visual space.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
-                <Image
-                  src="https://placehold.co/1200x675.png"
-                  alt="3D Simulation Environment Placeholder"
-                  width={1200}
-                  height={675}
-                  className="object-cover rounded-md"
-                  data-ai-hint="abstract technology"
-                />
+              <div className="aspect-video bg-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-8">
+                <Construction className="h-16 w-16 mb-4 text-accent" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">Under Development</h3>
+                <p className="text-center">
+                  The interactive 3D simulation environment is currently being built.
+                </p>
+                <p className="text-xs text-center mt-1">
+                   Future updates will bring your startup's world to life here.
+                </p>
               </div>
-               <p className="text-sm text-muted-foreground mt-4 text-center">
-                Interactive 3D environment rendering here.
-              </p>
             </CardContent>
           </Card>
         </div>
@@ -47,20 +45,17 @@ export default function SimulationPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                Adjust variables like funding, marketing spend, hiring pace, and product features to see their real-time impact on your simulation.
+                Adjust variables to see their real-time impact on your simulation. (Controls to be implemented)
               </p>
-              <div className="p-4 border border-dashed border-border rounded-md text-center text-muted-foreground">
-                <p>Control Panel UI (Placeholder)</p>
-                <ul className="list-disc list-inside text-left mt-2 text-sm">
-                    <li>Adjust Funding: $ <span className="text-foreground">100,000</span></li>
-                    <li>Marketing Budget: $ <span className="text-foreground">5,000</span> / mo</li>
-                    <li>Hiring Speed: <span className="text-foreground">2</span> eng/mo</li>
-                </ul>
+              <div className="p-4 border border-dashed border-border rounded-md text-center text-muted-foreground min-h-[100px] flex flex-col justify-center items-center">
+                <Construction className="h-8 w-8 mb-2 text-accent" />
+                <p className="font-medium text-foreground">Control Panel</p>
+                <p className="text-xs">Interactive controls for the simulation will be available here.</p>
               </div>
                <div className="flex items-start gap-2 p-3 bg-secondary/50 rounded-md border border-secondary">
                 <Info className="h-5 w-5 text-accent shrink-0 mt-0.5" />
                 <p className="text-sm text-secondary-foreground">
-                  <strong>Note:</strong> This section is a conceptual placeholder for interactive scenario controls.
+                  <strong>Note:</strong> This section will house dynamic controls for funding, marketing, hiring, etc., once implemented.
                 </p>
               </div>
             </CardContent>

@@ -1,47 +1,16 @@
+
 "use client";
 
 import { useState } from "react";
-import { getStrategyRecommendations } from "@/ai/flows/strategy-recommendations";
+import { getStrategyRecommendations, type StrategyRecommendationsInput } from "@/ai/flows/strategy-recommendations";
 import { Button } from "@/components/ui/button";
 import { RecommendationCard } from "@/components/strategy/recommendation-card";
-import { Loader2, AlertTriangle, Lightbulb } from "lucide-react";
+import { Loader2, AlertTriangle, Lightbulb } from "lucide-react"; // Added Lightbulb
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
-// Dummy simulation data
-const dummySimulationData = {
-  companyName: "ForgeSim Innovations",
-  currentQuarter: "Q3 2024",
-  financials: {
-    revenue: 45231,
-    expenses: 50462,
-    profit: -5231,
-    burnRate: 5231,
-    cashOnHand: 150000,
-  },
-  metrics: {
-    activeUsers: 2350,
-    userGrowthRate: 0.25, // 25% month-over-month
-    customerAcquisitionCost: 15,
-    churnRate: 0.05, // 5%
-  },
-  product: {
-    developmentStage: "MVP v2",
-    featuresReleased: ["Core Platform", "User Profiles", "Basic Analytics"],
-    upcomingFeatures: ["Advanced Analytics", "Team Collaboration"],
-  },
-  market: {
-    targetSegment: "Early-stage tech startups",
-    marketSize: 1000000, // Potential customers
-    competitorActivity: "Moderate",
-  },
-  recentEvents: [
-    "Launched marketing campaign targeting SaaS companies.",
-    "Received positive feedback on new UI/UX.",
-    "Key competitor raised a new funding round.",
-  ],
-};
+// No dummy simulation data here. It should come from app state or services.
 
 export default function StrategyPage() {
   const [recommendations, setRecommendations] = useState<string | null>(null);
@@ -49,14 +18,41 @@ export default function StrategyPage() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // This function would ideally get simulationData from your application's state
+  // For now, it's a placeholder. You'll need to integrate this with your actual simulation data source.
+  const getCurrentSimulationData = (): object | null => {
+    // Placeholder: In a real app, this would retrieve current simulation data
+    // from a state management store (e.g., Zustand, Redux, Context API)
+    // or a service that holds the simulation state.
+    // console.log("Attempting to get current simulation data (placeholder).");
+    // Example: return mySimulationStore.getState().currentData;
+    return null; // Return null if no data is available
+  };
+
+
   const handleGenerateRecommendations = async () => {
     setIsLoading(true);
     setError(null);
     setRecommendations(null);
-    try {
-      const result = await getStrategyRecommendations({
-        simulationData: JSON.stringify(dummySimulationData, null, 2),
+
+    const currentSimData = getCurrentSimulationData();
+
+    if (!currentSimData) {
+      setError("No simulation data available to generate recommendations. Please run a simulation first.");
+      toast({
+        title: "Missing Data",
+        description: "No simulation data found. Please ensure your simulation has data.",
+        variant: "destructive",
       });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const input: StrategyRecommendationsInput = {
+        simulationData: JSON.stringify(currentSimData, null, 2),
+      };
+      const result = await getStrategyRecommendations(input);
       setRecommendations(result.recommendations);
       toast({
         title: "Recommendations Generated",
@@ -64,10 +60,14 @@ export default function StrategyPage() {
       });
     } catch (err) {
       console.error("Error generating recommendations:", err);
-      setError("Failed to generate recommendations. Please try again.");
+      let errorMessage = "Failed to generate recommendations. Please try again.";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: "Could not generate strategic recommendations.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -80,7 +80,7 @@ export default function StrategyPage() {
       <header className="mb-8">
         <h1 className="text-3xl font-headline text-foreground">Strategic Recommendations</h1>
         <p className="text-muted-foreground">
-          Leverage AI to get actionable strategies based on your simulation data.
+          Leverage AI to get actionable strategies based on your live simulation data.
         </p>
       </header>
 
@@ -116,7 +116,6 @@ export default function StrategyPage() {
             title="AI-Powered Strategy Insights"
             recommendation={recommendations}
           />
-          {/* Could potentially parse recommendations if it's structured JSON and create multiple cards */}
         </div>
       )}
 
@@ -125,7 +124,10 @@ export default function StrategyPage() {
           <CardContent>
             <Lightbulb className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
-              Click the button above to generate strategic recommendations based on your current (simulated) startup data.
+              Click the button above to generate strategic recommendations based on your current simulation data.
+            </p>
+             <p className="text-xs text-muted-foreground mt-2">
+              Ensure your simulation has progressed to provide data for analysis.
             </p>
           </CardContent>
         </Card>
