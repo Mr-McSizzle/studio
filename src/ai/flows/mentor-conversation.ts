@@ -12,7 +12,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import Handlebars from 'handlebars'; // Import Handlebars from the handlebars package
 
 const MentorConversationInputSchema = z.object({
   userInput: z
@@ -39,7 +38,13 @@ export async function mentorConversation(input: MentorConversationInput): Promis
 const prompt = ai.definePrompt({
   name: 'mentorConversationPrompt',
   input: {
-    schema: MentorConversationInputSchema,
+    schema: MentorConversationInputSchema.extend({ // Extend schema for internal processing
+      conversationHistory: z.array(z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string(),
+        isUser: z.boolean().optional(), // Add isUser for template logic
+      })).optional(),
+    }),
   },
   output: {
     schema: MentorConversationOutputSchema,
@@ -53,11 +58,11 @@ const prompt = ai.definePrompt({
   {{#if conversationHistory}}
   Conversation History:
   {{#each conversationHistory}}
-  {{#ifCond role '===' 'user'}}
+  {{#if isUser}}
   User: {{{content}}}
   {{else}}
   Mentor: {{{content}}}
-  {{/ifCond}}
+  {{/if}}
   {{/each}}
   {{/if}}
 
@@ -66,23 +71,21 @@ const prompt = ai.definePrompt({
   `,
 });
 
-Handlebars.registerHelper('ifCond', function (v1: any, operator: string, v2: any, options: any) {
-  switch (operator) {
-  case '===':
-  return (v1 === v2) ? options.fn(this) : options.inverse(this);
-  default:
-  return options.inverse(this);
-  }
-});
-
 const mentorConversationFlow = ai.defineFlow(
   {
     name: 'mentorConversationFlow',
     inputSchema: MentorConversationInputSchema,
     outputSchema: MentorConversationOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input: MentorConversationInput) => {
+    const processedInput = {
+      ...input,
+      conversationHistory: input.conversationHistory?.map(msg => ({
+        ...msg,
+        isUser: msg.role === 'user',
+      })),
+    };
+    const {output} = await prompt(processedInput);
 
     return {
       response: output!.response,
