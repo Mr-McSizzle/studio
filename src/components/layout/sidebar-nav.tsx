@@ -9,6 +9,7 @@ import {
   Lightbulb,
   Box,
   Trophy,
+  PanelLeft,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 
 const navItems = [
@@ -115,4 +117,3 @@ export function SidebarToggleButton() {
     </Button>
   );
 }
-
