@@ -27,6 +27,7 @@ export interface ProductDetails {
   features: string[];
   developmentProgress: number; // 0-100
   initialDevelopmentStage?: string; // From AI prompt
+  pricePerUser: number; // Monthly price per user
 }
 
 export interface TeamMember {
@@ -123,6 +124,7 @@ export interface AIInitialConditions {
   productService?: {
     initialDevelopmentStage?: string;
     name?: string;
+    pricePerUser?: number | string;
   };
   financials?: {
     startingCash?: number | string;
@@ -147,3 +149,65 @@ export const AccountantToolOutputZodSchema = z.object({
   summary: z.string().describe("A brief financial health check or insight from the AI accountant, using the provided currency symbol."),
 });
 export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>;
+
+
+// Schemas for the AI-driven simulation month advancement
+const SimulateMonthFinancialsInputSchema = z.object({
+  cashOnHand: z.number(),
+  currentRevenue: z.number(),
+  currentExpenses: z.number(),
+  currencyCode: z.string(),
+  currencySymbol: z.string(),
+});
+
+const SimulateMonthUserMetricsInputSchema = z.object({
+  activeUsers: z.number(),
+  churnRate: z.number(), // e.g. 0.05 for 5%
+});
+
+const SimulateMonthProductInputSchema = z.object({
+  stage: z.enum(['idea', 'prototype', 'mvp', 'growth', 'mature']),
+  developmentProgress: z.number(), // 0-100
+  pricePerUser: z.number(),
+});
+
+const SimulateMonthResourcesInputSchema = z.object({
+  marketingSpend: z.number(),
+  rndSpend: z.number(),
+  team: z.array(z.object({
+    role: z.string(),
+    count: z.number(),
+    salary: z.number(),
+  })),
+});
+
+export const SimulateMonthInputSchema = z.object({
+  currentSimulationMonth: z.number().describe("The current month number of the simulation (e.g., month 1, month 2)."),
+  companyName: z.string().describe("The name of the company being simulated."),
+  financials: SimulateMonthFinancialsInputSchema.describe("Current financial state."),
+  userMetrics: SimulateMonthUserMetricsInputSchema.describe("Current user metrics."),
+  product: SimulateMonthProductInputSchema.describe("Current product state."),
+  resources: SimulateMonthResourcesInputSchema.describe("Current resource allocation."),
+  market: z.object({ // Simplified market input for this flow for now
+    competitionLevel: z.enum(['low', 'moderate', 'high']),
+    targetMarketDescription: z.string(),
+  }).describe("Current market conditions."),
+  currentStartupScore: z.number().describe("The current startup score before this month's simulation."),
+});
+export type SimulateMonthInput = z.infer<typeof SimulateMonthInputSchema>;
+
+
+export const SimulateMonthOutputSchema = z.object({
+  simulatedMonthNumber: z.number().describe("The month number that was just simulated (should be currentSimulationMonth + 1)."),
+  calculatedRevenue: z.number().describe("Total revenue generated in this simulated month."),
+  calculatedExpenses: z.number().describe("Total expenses incurred in this simulated month."),
+  profitOrLoss: z.number().describe("Net profit or loss for this month (Revenue - Expenses)."),
+  updatedCashOnHand: z.number().describe("Cash on hand at the end of this simulated month."),
+  updatedActiveUsers: z.number().describe("Total active users at the end of this simulated month."),
+  newUserAcquisition: z.number().describe("Number of new users acquired during this month."),
+  productDevelopmentDelta: z.number().describe("The percentage points by which product development progressed this month (e.g., 10 for 10% progress). This will be added to existing progress."),
+  newProductStage: z.enum(['idea', 'prototype', 'mvp', 'growth', 'mature']).optional().describe("If the product advanced to a new stage this month, specify the new stage. Otherwise, omit this field."),
+  keyEventsGenerated: z.array(z.string()).length(2).describe("An array of exactly two significant, plausible events (positive, negative, or neutral) that occurred during the month. Each event is a short descriptive string. E.g., ['Unexpected server outage caused downtime.', 'Positive review in a major tech blog.']"),
+  startupScoreAdjustment: z.number().int().describe("An integer representing the change to the startup score based on this month's performance (e.g., +2, -1, 0)."),
+});
+export type SimulateMonthOutput = z.infer<typeof SimulateMonthOutputSchema>;
