@@ -4,90 +4,89 @@
 
 @layer base {
   :root {
-    /* Dark, Rich Red & Gold Theme */
-    --background: 345 70% 12%; /* Very dark wine red for main page background */
-    --foreground: 30 40% 92%; /* Pale gold / off-white for text */
+    /* NEXUS Inspired Dark Theme with Red/Gold Accents */
+    --background: 240 10% 4%; /* Very dark blue/black */
+    --foreground: 0 0% 95%; /* Off-white */
 
-    --card: 345 60% 18%; /* Darker wine red for cards */
-    --card-foreground: 30 40% 92%;
+    --card: 240 10% 8%; /* Slightly lighter dark blue/black for cards */
+    --card-foreground: 0 0% 95%;
 
-    --popover: 345 70% 10%; /* Even darker for popovers */
-    --popover-foreground: 30 40% 92%;
+    --popover: 240 10% 6%; /* Even darker for popovers */
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 45 80% 58%; /* Gold for primary actions/elements */
-    --primary-foreground: 345 100% 10%; /* Dark text on gold */
+    --primary: 0 70% 55%; /* Vibrant Red (like NEXUS red-600) */
+    --primary-foreground: 0 0% 98%; /* Light text on red */
 
-    --secondary: 345 50% 30%; /* Muted, slightly lighter red for secondary elements */
-    --secondary-foreground: 30 40% 90%;
+    --secondary: 0 60% 35%; /* Darker, desaturated red */
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 345 50% 22%; /* Muted red/dark tone for less emphasis */
-    --muted-foreground: 0 0% 70%; /* Lighter muted text */
+    --muted: 0 0% 15%; /* Dark gray for muted elements */
+    --muted-foreground: 0 0% 65%; /* Lighter gray for muted text */
 
-    --accent: 45 80% 65%; /* Bright Gold for accents - can be same as primary if desired */
-    --accent-foreground: 345 100% 10%; /* Dark text on accent */
+    --accent: 45 85% 55%; /* Vibrant Gold/Yellow (like NEXUS yellow-500/600) */
+    --accent-foreground: 0 0% 10%; /* Dark text on gold */
 
-    --destructive: 0 70% 45%; /* A clearer red for destructive actions */
+    --destructive: 0 70% 45%; /* Retain a clear red for destructive actions */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 345 50% 25%; /* Dark red border, subtle */
-    --input: 345 50% 25%; /* Input background, same as border */
-    --ring: 45 80% 65%; /* Gold for focus rings */
+    --border: 0 50% 30%; /* Dark red border, or very dark gray e.g. 240 5% 20% */
+    --input: 240 10% 10%; /* Dark input background */
+    --ring: 0 70% 60%; /* Red for focus rings */
 
-    --chart-1: 45 70% 60%;  /* Gold shade */
-    --chart-2: 345 60% 55%; /* Maroon/Red shade */
-    --chart-3: 30 60% 65%;  /* Lighter Gold/Orange */
+    --chart-1: 45 80% 60%;  /* Gold shade */
+    --chart-2: 0 70% 50%; /* Red shade */
+    --chart-3: 30 70% 65%;  /* Lighter Gold/Orange */
     --chart-4: 0 0% 80%;    /* Light Gray/Silver for contrast */
-    --chart-5: 345 40% 40%; /* Muted Desaturated Red */
+    --chart-5: 0 50% 40%; /* Muted Desaturated Red */
 
     --radius: 0.5rem;
 
-    /* Sidebar Theme - Very Dark with Gold Accents */
-    --sidebar-background: 0 0% 8%; /* Almost black */
-    --sidebar-foreground: 30 30% 88%; /* Off-white / pale gold for sidebar text */
-    --sidebar-primary: 45 80% 58%; /* Gold for active/primary items in sidebar */
+    /* Sidebar Theme - Very Dark with Gold/Red Accents */
+    --sidebar-background: 240 10% 3%; /* Almost black, very dark blue */
+    --sidebar-foreground: 0 0% 85%; /* Light gray for sidebar text */
+    --sidebar-primary: 45 85% 55%; /* Gold for active/primary items */
     --sidebar-primary-foreground: 0 0% 10%; /* Dark text on gold */
-    --sidebar-accent: 45 75% 65%; /* Gold for hover/accent in sidebar */
-    --sidebar-accent-foreground: 0 0% 10%; /* Dark text on gold */
+    --sidebar-accent: 0 70% 55%; /* Red for hover/accent in sidebar */
+    --sidebar-accent-foreground: 0 0% 98%; /* Light text on red */
     --sidebar-border: 0 0% 15%; /* Dark border for sidebar elements */
-    --sidebar-ring: 45 80% 58%; /* Gold for focus rings in sidebar */
+    --sidebar-ring: 45 85% 55%; /* Gold for focus rings */
   }
 
   .dark {
-    /* Ensure dark mode inherits the custom theme correctly */
-    --background: 345 70% 12%;
-    --foreground: 30 40% 92%;
-    --card: 345 60% 18%;
-    --card-foreground: 30 40% 92%;
-    --popover: 345 70% 10%;
-    --popover-foreground: 30 40% 92%;
-    --primary: 45 80% 58%;
-    --primary-foreground: 345 100% 10%;
-    --secondary: 345 50% 30%;
-    --secondary-foreground: 30 40% 90%;
-    --muted: 345 50% 22%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 45 80% 65%;
-    --accent-foreground: 345 100% 10%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 95%;
+    --card: 240 10% 8%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 0 70% 55%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 60% 35%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 45 85% 55%;
+    --accent-foreground: 0 0% 10%;
     --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 345 50% 25%;
-    --input: 345 50% 25%;
-    --ring: 45 80% 65%;
+    --border: 0 50% 30%;
+    --input: 240 10% 10%;
+    --ring: 0 70% 60%;
 
-    --chart-1: 45 70% 60%;
-    --chart-2: 345 60% 55%;
-    --chart-3: 30 60% 65%;
+    --chart-1: 45 80% 60%;
+    --chart-2: 0 70% 50%;
+    --chart-3: 30 70% 65%;
     --chart-4: 0 0% 80%;
-    --chart-5: 345 40% 40%;
+    --chart-5: 0 50% 40%;
 
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 30 30% 88%;
-    --sidebar-primary: 45 80% 58%;
+    --sidebar-background: 240 10% 3%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 45 85% 55%;
     --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 45 75% 65%;
-    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-accent: 0 70% 55%;
+    --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 45 80% 58%;
+    --sidebar-ring: 45 85% 55%;
   }
 }
 
@@ -97,31 +96,42 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Consider adding a subtle noise/texture background image for depth if desired */
   }
-  /* Add subtle texture to background if desired, requires a suitable image */
-  /* body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('/path-to-subtle-dark-red-texture.png');
-    background-repeat: repeat;
-    opacity: 0.05; 
-    z-index: -1;
-  } */
 }
 
 @layer components {
-  .text-glow-gold {
-    text-shadow: 0 0 8px hsl(var(--accent) / 0.7), 0 0 12px hsl(var(--accent) / 0.5);
+  .text-glow-accent { /* Gold glow */
+    text-shadow: 0 0 8px hsl(var(--accent) / 0.7), 0 0 12px hsl(var(--accent) / 0.5), 0 0 20px hsl(var(--accent) / 0.3);
   }
-  .card-glow-hover {
+  .text-glow-primary { /* Red glow */
+    text-shadow: 0 0 8px hsl(var(--primary) / 0.7), 0 0 12px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  .card-glow-hover-accent {
     @apply transition-all duration-300 ease-in-out;
   }
-  .card-glow-hover:hover {
-    box-shadow: 0 0 15px 0px hsl(var(--accent) / 0.3), 0 0 25px 0px hsl(var(--accent) / 0.2);
+  .card-glow-hover-accent:hover {
+    box-shadow: 0 0 15px 0px hsl(var(--accent) / 0.4), 0 0 25px 0px hsl(var(--accent) / 0.3);
     transform: translateY(-2px);
+    border-color: hsl(var(--accent) / 0.7);
+  }
+  .card-glow-hover-primary {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  .card-glow-hover-primary:hover {
+    box-shadow: 0 0 15px 0px hsl(var(--primary) / 0.4), 0 0 25px 0px hsl(var(--primary) / 0.3);
+    transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.7);
+  }
+
+  /* NEXUS inspired animated background elements container */
+  .nexus-bg-animations {
+    @apply fixed inset-0 z-0 pointer-events-none;
+  }
+  .nexus-bg-animations > div {
+    @apply absolute;
   }
 }
+
+/* Add the orbit animation here if needed globally, or define in tailwind.config.ts */

@@ -11,7 +11,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'], // Consider a more stylized font if available for headlines
+        headline: ['Inter', 'sans-serif'], // Using Inter for consistency
         code: ['monospace'],
       },
       colors: {
@@ -88,26 +88,56 @@ export default {
             height: '0',
           },
         },
-        'subtle-pulse': {
+        'subtle-pulse': { // Adjusted for more visibility
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.85', transform: 'scale(1.02)' },
+          '50%': { opacity: '0.75', transform: 'scale(1.05)' },
         },
-        'glow': {
-          '0%, 100%': { boxShadow: '0 0 5px hsl(var(--accent))' },
-          '50%': { boxShadow: '0 0 15px hsl(var(--accent))' },
-        }
+        'glow': { // Can be used for text or borders
+          '0%, 100%': { filter: 'brightness(1)', opacity: '0.8' },
+          '50%': { filter: 'brightness(1.5)', opacity: '1' },
+        },
+        'orbit': { // NEXUS inspired orbit
+          'from': { transform: 'rotate(0deg) translateX(120px) rotate(0deg)' },
+          'to': { transform: 'rotate(360deg) translateX(120px) rotate(-360deg)' },
+        },
+        'fadeIn': { // Simple fade-in
+          'from': { opacity: '0' },
+          'to': { opacity: '1' },
+        },
+        'fadeInUp': {
+          'from': { opacity: '0', transform: 'translateY(20px)' },
+          'to': { opacity: '1', transform: 'translateY(0)' },
+        },
+         'background-pan': { // For animated gradient background
+          '0%': { 'background-position': '0% 50%' },
+          '50%': { 'background-position': '100% 50%' },
+          '100%': { 'background-position': '0% 50%' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'subtle-pulse': 'subtle-pulse 2s ease-in-out infinite',
-        'glow': 'glow 2.5s ease-in-out infinite alternate',
+        'subtle-pulse': 'subtle-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
+        'orbit': 'orbit 20s linear infinite',
+        'fadeIn': 'fadeIn 1s ease-out forwards',
+        'fadeInUp': 'fadeInUp 0.8s ease-out forwards',
+        'background-pan': 'background-pan 15s ease infinite',
       },
-      boxShadow: {
-        'gold-glow-sm': '0 0 8px 0px hsl(var(--accent) / 0.5)',
-        'gold-glow-md': '0 0 15px 2px hsl(var(--accent) / 0.6)',
-        'card-deep': '0 10px 25px -5px hsl(var(--background) / 0.5), 0 8px 10px -6px hsl(var(--background) / 0.7)',
-      }
+      boxShadow: { // Enhanced shadows for dark theme
+        'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',
+        'accent-glow-md': '0 0 20px 3px hsl(var(--accent) / 0.7)',
+        'primary-glow-sm': '0 0 10px 1px hsl(var(--primary) / 0.6)',
+        'primary-glow-md': '0 0 20px 3px hsl(var(--primary) / 0.7)',
+        'card-deep': '0 10px 30px -5px hsl(var(--background) / 0.6), 0 8px 15px -8px hsl(var(--background) / 0.8)',
+      },
+      backgroundImage: { // For gradients
+        'nexus-gradient-main': 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--secondary) / 0.3) 50%, hsl(var(--background)) 100%)',
+        'nexus-gradient-hero': 'radial-gradient(ellipse at bottom, hsl(var(--primary)/0.3) 0%, transparent 60%)',
+      },
+       backgroundSize: { // For background-pan animation
+        '200%': '200% 200%',
+      },
     },
   },
   plugins: [require('tailwindcss-animate')],
