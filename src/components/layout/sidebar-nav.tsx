@@ -10,6 +10,7 @@ import {
   Box,
   Trophy,
   PanelLeft,
+  Rocket, // Added Rocket icon
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/app/setup", label: "Setup Simulation", icon: Rocket }, // New item
   { href: "/app/mentor", label: "AI Mentor", icon: MessageSquare },
   { href: "/app/strategy", label: "Strategy", icon: Lightbulb },
   { href: "/app/simulation", label: "Simulation", icon: Box },
@@ -43,7 +45,7 @@ export function SidebarNav() {
         
         return (
           <SidebarMenuItem key={item.label}>
-             <Tooltip>
+            <Tooltip>
               <TooltipTrigger asChild>
                 <SidebarMenuButton
                   asChild
@@ -61,7 +63,7 @@ export function SidebarNav() {
                   </Link>
                 </SidebarMenuButton>
               </TooltipTrigger>
-              {state === "collapsed" && !isMobile && (
+              {(state === "collapsed" || isMobile) && ( // Ensure tooltip shows on mobile if collapsed, though typically sidebar is expanded or off-canvas on mobile
                 <TooltipContent side="right" className="bg-popover text-popover-foreground">
                   {item.label}
                 </TooltipContent>
