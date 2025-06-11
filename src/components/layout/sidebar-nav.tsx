@@ -9,7 +9,6 @@ import {
   Lightbulb,
   Box,
   Trophy,
-  PanelLeft,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -19,7 +18,6 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 
@@ -45,23 +43,21 @@ export function SidebarNav() {
           <SidebarMenuItem key={item.label}>
              <Tooltip>
               <TooltipTrigger asChild>
-                <Link href={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    variant="default"
-                    size="default"
-                    className={cn(
-                      "w-full justify-start",
-                       isActive && "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90"
-                    )}
-                    isActive={isActive}
-                  >
-                    <a>
-                      <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground")} />
-                      <span className={cn(state === "collapsed" && !isMobile && "hidden")}>{item.label}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </Link>
+                <SidebarMenuButton
+                  asChild
+                  variant="default"
+                  size="default"
+                  className={cn(
+                    "w-full justify-start",
+                      isActive && "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90"
+                  )}
+                  isActive={isActive}
+                >
+                  <Link href={item.href}>
+                    <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground")} />
+                    <span className={cn(state === "collapsed" && !isMobile && "hidden")}>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
               </TooltipTrigger>
               {state === "collapsed" && !isMobile && (
                 <TooltipContent side="right" className="bg-popover text-popover-foreground">
