@@ -80,8 +80,8 @@ export interface DigitalTwinState {
   keyEvents: string[];
   missions: Mission[];
   rewards: Reward[];
-  initialGoals?: string[]; // From AI prompt
-  suggestedChallenges?: string[]; // From AI prompt from the setup flow
+  initialGoals: string[]; // From AI prompt, now guaranteed to be string[]
+  suggestedChallenges: string[]; // From AI prompt from the setup flow
   isInitialized: boolean; // Flag to check if simulation has been set up
 
   // Historical data for charts
@@ -128,7 +128,7 @@ export interface AIInitialConditions {
     startingCash?: number | string; // Can be string
     estimatedInitialMonthlyBurnRate?: number | string; // Can be string
   };
-  initialGoals?: string[];
+  initialGoals?: string[] | string; // AI might return a single string or an array
   companyName?: string; // AI might suggest a name
 }
 
