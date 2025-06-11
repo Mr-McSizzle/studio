@@ -237,9 +237,8 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           if (['idea', 'prototype', 'mvp', 'growth', 'mature'].includes(aiProductStageRaw)) {
             finalProductStage = aiProductStageRaw as DigitalTwinState['product']['stage'];
           } else if (aiProductStageRaw === 'concept') {
-            finalProductStage = 'idea'; // Map 'concept' to 'idea'
+            finalProductStage = 'idea'; 
           }
-          // Add other potential mappings from AI output to valid enum values here if needed
         }
 
 
@@ -265,6 +264,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             name: parsedConditions.productService?.name || `${userStartupName} Product`,
             stage: finalProductStage,
             pricePerUser: initialPricePerUser,
+            developmentProgress: parsedConditions.productService?.initialDevelopmentStage === finalProductStage ? 0 : (parsedConditions.productService?.initialDevelopmentStage === 'concept' ? 0 : initialBaseState.product.developmentProgress), // Reset progress if stage changes or is concept
           },
           financials: {
             ...initialBaseState.financials,
@@ -323,13 +323,24 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         const currentState = get();
         if (!currentState.isInitialized || currentState.financials.cashOnHand <= 0) return;
 
+        let currentProductStageForAI = currentState.product.stage;
+        const validStages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
+        if (!validStages.includes(currentProductStageForAI)) {
+            if (String(currentProductStageForAI).toLowerCase() === 'concept') {
+                currentProductStageForAI = 'idea';
+            } else {
+                console.warn(`Invalid product stage "${currentProductStageForAI}" detected before AI call. Defaulting to "idea".`);
+                currentProductStageForAI = 'idea';
+            }
+        }
+
         const simulateMonthInput: SimulateMonthInput = {
           currentSimulationMonth: currentState.simulationMonth,
           companyName: currentState.companyName,
           financials: {
             cashOnHand: currentState.financials.cashOnHand,
-            currentRevenue: currentState.financials.revenue, // Revenue from the month that just ended
-            currentExpenses: currentState.financials.expenses, // Expenses from the month that just ended
+            currentRevenue: currentState.financials.revenue, 
+            currentExpenses: currentState.financials.expenses, 
             currencyCode: currentState.financials.currencyCode,
             currencySymbol: currentState.financials.currencySymbol,
           },
@@ -338,7 +349,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             churnRate: currentState.userMetrics.churnRate,
           },
           product: {
-            stage: currentState.product.stage,
+            stage: currentProductStageForAI, // Use the sanitized stage
             developmentProgress: currentState.product.developmentProgress,
             pricePerUser: currentState.product.pricePerUser,
           },
@@ -358,10 +369,8 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           const aiOutput: SimulateMonthOutput = await simulateMonthFlow(simulateMonthInput);
 
           set(state => {
-            // Create a mutable copy for updates
-            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); // Deep clone
+            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); 
             
-            // Re-attach mission functions after JSON stringify/parse
             newState.missions = exampleMissions.map(exampleMission => {
                 const persistedMission = state.missions.find(pm => pm.id === exampleMission.id);
                 return {
@@ -371,7 +380,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             });
 
 
-            newState.simulationMonth = aiOutput.simulatedMonthNumber; // Use AI's returned month
+            newState.simulationMonth = aiOutput.simulatedMonthNumber; 
             
             newState.financials.revenue = aiOutput.calculatedRevenue;
             newState.financials.expenses = aiOutput.calculatedExpenses;
@@ -381,15 +390,14 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
 
             newState.userMetrics.activeUsers = aiOutput.updatedActiveUsers;
             newState.userMetrics.newUserAcquisitionRate = aiOutput.newUserAcquisition;
-            newState.userMetrics.monthlyRecurringRevenue = aiOutput.updatedActiveUsers * newState.product.pricePerUser; // Recalculate based on new users and price
+            newState.userMetrics.monthlyRecurringRevenue = aiOutput.updatedActiveUsers * newState.product.pricePerUser; 
 
             newState.product.developmentProgress += aiOutput.productDevelopmentDelta;
             if (aiOutput.newProductStage) {
               newState.product.stage = aiOutput.newProductStage;
-              newState.product.developmentProgress = 0; // Reset progress on stage change
+              newState.product.developmentProgress = 0; 
               newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage!`);
             } else if (newState.product.developmentProgress >= 100 && newState.product.stage !== 'mature') {
-                // Fallback if AI didn't explicitly change stage but progress hit 100%
                 const stages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
                 const currentStageIndex = stages.indexOf(newState.product.stage);
                 if (currentStageIndex < stages.length - 1) {
@@ -409,7 +417,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
 
 
             newState.startupScore = Math.max(0, Math.min(100, newState.startupScore + aiOutput.startupScoreAdjustment));
-            if (newState.financials.cashOnHand <= 0 && state.financials.cashOnHand > 0) { // Check previous state's cash
+            if (newState.financials.cashOnHand <= 0 && state.financials.cashOnHand > 0) { 
                 newState.keyEvents.push(`Critical: Ran out of cash! Simulation unstable.`);
             }
 
@@ -421,13 +429,12 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             newState.historicalUserGrowth.push(newUserGrowthData);
             if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
             
-            const originalMissionsFromState = newState.missions; // These now have functions
+            const originalMissionsFromState = newState.missions; 
             const updatedMissions = originalMissionsFromState.map(mission => {
               let missionCopy = {...mission};
               if (!missionCopy.isCompleted && missionCopy.criteria && typeof missionCopy.criteria === 'function' && missionCopy.criteria(newState)) {
                 if (missionCopy.onComplete && typeof missionCopy.onComplete === 'function') {
-                  const stateAfterMissionCompletion = missionCopy.onComplete(newState); // Pass the most current newState
-                  // Apply changes from mission completion directly to newState
+                  const stateAfterMissionCompletion = missionCopy.onComplete(newState); 
                   newState.startupScore = stateAfterMissionCompletion.startupScore;
                   newState.financials.cashOnHand = stateAfterMissionCompletion.financials.cashOnHand;
                   newState.rewards = stateAfterMissionCompletion.rewards.map(r => ({...r})); 
@@ -448,7 +455,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             ...state,
             keyEvents: [...state.keyEvents, `Error: AI simulation for month ${state.simulationMonth + 1} failed. Please try again.`]
           }));
-          // Optionally, re-throw or handle more gracefully if the dashboard needs to show a specific error state.
         }
       },
 
@@ -497,19 +503,30 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
              mergedState.financials.currencySymbol = getCurrencySymbol(mergedState.financials.currencyCode);
         }
         
-        // Ensure product.pricePerUser exists
         if (!mergedState.product || typeof mergedState.product.pricePerUser !== 'number') {
             mergedState.product = {
-                ...initialBaseState.product, // Start with defaults
-                ...(mergedState.product || {}), // Apply any persisted product details
+                ...initialBaseState.product, 
+                ...(mergedState.product || {}), 
                 pricePerUser: (mergedState.product && typeof mergedState.product.pricePerUser === 'number') ? mergedState.product.pricePerUser : initialBaseState.product.pricePerUser,
             };
         }
 
+        if (mergedState.product) {
+            const validStages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
+            if (!validStages.includes(mergedState.product.stage)) {
+                if (String(mergedState.product.stage).toLowerCase() === 'concept') {
+                    mergedState.product.stage = 'idea';
+                } else {
+                    console.warn(`Invalid product stage "${mergedState.product.stage}" during merge. Defaulting to "idea".`);
+                    mergedState.product.stage = 'idea';
+                }
+            }
+        } else { // If mergedState.product is somehow undefined
+             mergedState.product = { ...initialBaseState.product };
+        }
 
         return mergedState as DigitalTwinState;
       },
     }
   )
 );
-
