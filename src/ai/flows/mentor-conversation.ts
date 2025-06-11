@@ -16,7 +16,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { aiAccountantTool } from '@/ai/tools/accountant-tool';
-import type { AccountantToolInput } from '@/types/simulation'; // Corrected import
+import type { AccountantToolInput } from '@/types/simulation'; 
 
 const MentorConversationInputSchema = z.object({
   userInput: z
@@ -55,13 +55,23 @@ export async function mentorConversation(input: MentorConversationInput): Promis
   return mentorConversationFlow(input);
 }
 
+// Define a schema for the prompt's input, including the processed history
+const PromptInputSchemaWithProcessedHistory = MentorConversationInputSchema.extend({
+  conversationHistory: z.array(z.object({
+    role: z.enum(['user', 'assistant', 'tool_response']),
+    content: z.string(),
+    isUser: z.boolean().optional(),
+    isAssistant: z.boolean().optional(),
+    isToolResponse: z.boolean().optional(),
+  })).optional(),
+});
+
+
 const prompt = ai.definePrompt({
   name: 'hiveMindConversationPrompt',
   tools: [aiAccountantTool],
   input: {
-    schema: MentorConversationInputSchema.extend({ 
-      // processedConversationHistory is for prompt display, not direct AI input schema
-    }),
+    schema: PromptInputSchemaWithProcessedHistory,
   },
   output: { 
     schema: MentorConversationOutputSchema,
@@ -108,11 +118,11 @@ Ensure the 'suggestedNextAction' (if provided) has 'page' and 'label'.
   {{#if conversationHistory}}
   Conversation History (most recent first):
   {{#each conversationHistory}}
-  {{#if (eq role "user")}}
+  {{#if isUser}}
   Founder: {{{content}}}
-  {{else if (eq role "assistant")}}
+  {{else if isAssistant}}
   Hive Mind: {{{content}}}
-  {{else if (eq role "tool_response")}}
+  {{else if isToolResponse}}
   Tool Response (for Hive Mind's use): {{{content}}}
   {{/if}}
   {{/each}}
@@ -131,7 +141,10 @@ const mentorConversationFlow = ai.defineFlow(
     const processedHistoryForPrompt = input.conversationHistory?.map(msg => ({
       role: msg.role,
       content: msg.content,
-    })).reverse();
+      isUser: msg.role === 'user',
+      isAssistant: msg.role === 'assistant',
+      isToolResponse: msg.role === 'tool_response',
+    })).reverse(); // Ensure most recent is first for the prompt display
 
     const flowInputForPrompt = {
       userInput: input.userInput,
@@ -163,3 +176,4 @@ const mentorConversationFlow = ai.defineFlow(
     };
   }
 );
+
