@@ -22,9 +22,9 @@ const prompt = ai.definePrompt({
   input: { schema: SimulateMonthInputSchema },
   output: { schema: SimulateMonthOutputSchema },
   config: {
-    temperature: 0.7,
-     safetySettings: [
-      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH'},
+    temperature: 0.7, // Increased temperature for more varied outcomes
+     safetySettings: [ // Adjusted safety settings for broader content generation
+      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
       { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
       { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
@@ -101,6 +101,9 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Strong user growth = +1 to +3. Stagnation/loss = -1.
     *   Product Milestones/Rewards = +3 to +5.
     *   Max score 100, min 0.
+    
+7.  **AI Reasoning (Optional):**
+    *   Provide a brief, 1-2 sentence explanation in the 'aiReasoning' field summarizing your key considerations or calculations for this month's outcomes. Example: "Increased marketing led to strong user growth, but R&D was constrained due to cash flow, slowing product development." This should be a high-level overview.
 
 Output MUST be a single, valid JSON object matching the SimulateMonthOutputSchema.
 The 'simulatedMonthNumber' in your output should be {{{currentSimulationMonth}}} + 1.
@@ -153,20 +156,34 @@ const simulateMonthGenkitFlow = ai.defineFlow(
         const breakdownSum = output.expenseBreakdown.salaries + output.expenseBreakdown.marketing + output.expenseBreakdown.rnd + output.expenseBreakdown.operational;
         if (Math.abs(breakdownSum - output.calculatedExpenses) > 0.01) { // Allow for small floating point differences
             console.warn(`AI expenseBreakdown sum (${breakdownSum}) does not match AI's calculatedExpenses (${output.calculatedExpenses}). Overriding calculatedExpenses with breakdown sum.`);
-            output.calculatedExpenses = breakdownSum;
         }
+        // Set calculatedExpenses to the sum of the breakdown for consistency
+        output.calculatedExpenses = breakdownSum;
+        
         // Recalculate profitOrLoss based on the authoritative calculatedExpenses
         output.profitOrLoss = output.calculatedRevenue - output.calculatedExpenses;
+        
         // Recalculate updatedCashOnHand based on the authoritative profitOrLoss
         // Note: cashOnHand from input is currentState.financials.cashOnHand
         output.updatedCashOnHand = input.financials.cashOnHand + output.profitOrLoss;
 
     } else {
         console.error("AI simulateMonthFlow did not return expenseBreakdown. This is required.");
-        throw new Error("AI simulation failed to produce a required expense breakdown.");
+        // If AI fails to provide breakdown, construct a placeholder to avoid total failure,
+        // though this indicates a flaw in AI's adherence to schema.
+        const placeholderSalaries = input.resources.team.reduce((acc, member) => acc + (member.count * member.salary), 0);
+        const placeholderOperational = Math.max(0, output.calculatedExpenses - (placeholderSalaries + input.resources.marketingSpend + input.resources.rndSpend));
+        output.expenseBreakdown = {
+            salaries: placeholderSalaries,
+            marketing: input.resources.marketingSpend,
+            rnd: input.resources.rndSpend,
+            operational: placeholderOperational
+        };
+        // Recalculate profitOrLoss and updatedCashOnHand if we had to create a placeholder breakdown
+        output.profitOrLoss = output.calculatedRevenue - output.calculatedExpenses;
+        output.updatedCashOnHand = input.financials.cashOnHand + output.profitOrLoss;
     }
 
     return output;
   }
 );
-

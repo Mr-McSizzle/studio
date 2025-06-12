@@ -97,6 +97,7 @@ export interface DigitalTwinState {
   initialGoals: string[];
   suggestedChallenges: string[];
   isInitialized: boolean;
+  currentAiReasoning: string | null; // Added for AI "thought process"
 
   historicalRevenue: RevenueDataPoint[];
   historicalUserGrowth: UserDataPoint[];
@@ -224,5 +225,6 @@ export const SimulateMonthOutputSchema = z.object({
   keyEventsGenerated: z.array(z.string()).length(2).describe("An array of exactly two significant, plausible events (positive, negative, or neutral) that occurred during the month. These events can include notable achievements or milestones. Each event is a short descriptive string. E.g., ['Unexpected server outage caused downtime.', 'Positive review in a major tech blog.']"),
   rewardsGranted: z.array(RewardSchema).optional().describe("List of rewards granted this month if a significant milestone was achieved. These rewards should be thematic to the achievement."),
   startupScoreAdjustment: z.number().int().describe("An integer representing the change to the startup score based on this month's performance, achievements, and rewards."),
+  aiReasoning: z.string().optional().describe("A brief, 1-2 sentence explanation from the AI about its key considerations or calculations for this month's simulation outcomes."),
 });
 export type SimulateMonthOutput = z.infer<typeof SimulateMonthOutputSchema>;

@@ -4,11 +4,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, TrendingDown, PiggyBank } from "lucide-react";
+import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, TrendingDown, PiggyBank, Brain, Loader2 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function DashboardPage() {
     startupScore,
     keyEvents,
     isInitialized,
+    currentAiReasoning, // Get AI reasoning
     historicalRevenue,
     historicalUserGrowth,
     historicalBurnRate,
@@ -91,9 +93,10 @@ export default function DashboardPage() {
             onClick={handleAdvanceMonth} 
             className="bg-accent hover:bg-accent/90 text-accent-foreground" 
             size="lg"
-            disabled={!isInitialized || financials.cashOnHand <= 0}
+            disabled={!isInitialized || financials.cashOnHand <= 0 || (currentAiReasoning || "").includes("simulating month...")}
           >
-              Simulate Next Month <ChevronsRight className="ml-2 h-5 w-5"/>
+              { (currentAiReasoning || "").includes("simulating month...") ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ChevronsRight className="mr-2 h-5 w-5"/> }
+              { (currentAiReasoning || "").includes("simulating month...") ? "Simulating..." : "Simulate Next Month" }
           </Button>
           <Button onClick={handleReset} variant="outline" size="lg" title="Reset Simulation">
               <RefreshCcw className="h-5 w-5"/>
@@ -175,6 +178,28 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <Card className="shadow-lg md:col-span-2">
+          <CardHeader>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <Brain className="h-6 w-6 text-primary"/> Hive Mind: Simulation Log
+            </CardTitle>
+            <CardDescription>AI's real-time notes on the simulation process.</CardDescription>
+          </CardHeader>
+          <CardContent className="min-h-[60px]">
+            {currentAiReasoning && currentAiReasoning.includes("simulating month...") ? (
+                <div className="flex items-center gap-3 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <p className="text-sm">{currentAiReasoning}</p>
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentAiReasoning || "AI log is empty."}</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-8">
         <PerformanceChart title="Simulated Monthly Revenue" description={`Tracking revenue trends in ${currencySymbol} (${financials.currencyCode})`} dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
@@ -190,14 +215,17 @@ export default function DashboardPage() {
       <Card className="mt-8 shadow-lg">
         <CardHeader>
           <CardTitle>Key Simulation Events</CardTitle>
+           <CardDescription>Chronological log of major occurrences in your simulation.</CardDescription>
         </CardHeader>
         <CardContent>
           {isInitialized && keyEvents.length > 0 ? (
-            <ul className="max-h-48 overflow-y-auto text-sm space-y-1 text-muted-foreground">
-              {keyEvents.slice().reverse().map((event, index) => (
-                <li key={index} className="border-b border-border/50 pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0">{event}</li>
-              ))}
-            </ul>
+            <ScrollArea className="h-48">
+              <ul className="text-sm space-y-1 text-muted-foreground">
+                {keyEvents.slice().reverse().map((event, index) => (
+                  <li key={index} className="border-b border-border/50 pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0">{event}</li>
+                ))}
+              </ul>
+            </ScrollArea>
           ) : (
             <p className="text-sm text-muted-foreground">{isInitialized ? "No key events recorded yet." : "Initialize simulation to see events."}</p>
           )}
