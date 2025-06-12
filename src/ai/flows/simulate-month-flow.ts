@@ -71,6 +71,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
 2.  **Financial Calculations:**
     *   Calculated Revenue = Updated Active Users * Price Per User.
     *   Expense Breakdown & Total Expenses:
+        *   Provide a detailed 'expenseBreakdown' with 'salaries', 'marketing', 'rnd', and 'operational' costs.
         *   'expenseBreakdown.salaries': Sum of (count * salary) for all team members.
         *   'expenseBreakdown.marketing': Current {{{resources.marketingSpend}}}.
         *   'expenseBreakdown.rnd': Current {{{resources.rndSpend}}}.
@@ -147,21 +148,23 @@ const simulateMonthGenkitFlow = ai.defineFlow(
         console.warn(`AI returned month ${output.simulatedMonthNumber}, expected ${targetSimulatedMonth}. Proceeding with AI's month.`);
     }
 
-    // Validate that expenseBreakdown sum matches calculatedExpenses
+    // Make expenseBreakdown authoritative
     if (output.expenseBreakdown) {
         const breakdownSum = output.expenseBreakdown.salaries + output.expenseBreakdown.marketing + output.expenseBreakdown.rnd + output.expenseBreakdown.operational;
         if (Math.abs(breakdownSum - output.calculatedExpenses) > 0.01) { // Allow for small floating point differences
-            console.warn(`AI expenseBreakdown sum (${breakdownSum}) does not match calculatedExpenses (${output.calculatedExpenses}). Adjusting calculatedExpenses to match breakdown.`);
-            // It's safer to trust the sum of components if a breakdown is provided.
-            // However, the prompt now strongly instructs the AI to make them match.
-            // If this warning appears often, the AI prompt needs further refinement.
+            console.warn(`AI expenseBreakdown sum (${breakdownSum}) does not match AI's calculatedExpenses (${output.calculatedExpenses}). Overriding calculatedExpenses with breakdown sum.`);
+            output.calculatedExpenses = breakdownSum;
         }
-    } else {
-        console.error("AI simulateMonthFlow did not return expenseBreakdown.");
-        // Potentially throw error or provide a default breakdown if critical
-        throw new Error("AI simulation failed to produce expense breakdown.");
-    }
+        // Recalculate profitOrLoss based on the authoritative calculatedExpenses
+        output.profitOrLoss = output.calculatedRevenue - output.calculatedExpenses;
+        // Recalculate updatedCashOnHand based on the authoritative profitOrLoss
+        // Note: cashOnHand from input is currentState.financials.cashOnHand
+        output.updatedCashOnHand = input.financials.cashOnHand + output.profitOrLoss;
 
+    } else {
+        console.error("AI simulateMonthFlow did not return expenseBreakdown. This is required.");
+        throw new Error("AI simulation failed to produce a required expense breakdown.");
+    }
 
     return output;
   }

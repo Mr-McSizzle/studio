@@ -55,7 +55,7 @@ Based on this comprehensive description, generate:
         - rndSpend: Suggest a realistic initial monthly R&D spend based on budget and currency.
     - Product/Service: 
         - name: A suitable name for the product/service.
-        - initialDevelopmentStage: (e.g., idea, prototype, mvp).
+        - initialDevelopmentStage: (e.g., idea, prototype, mvp). This should map to 'idea', 'prototype', 'mvp', 'growth', or 'mature'.
         - pricePerUser: Suggest an initial monthly price per user/customer, appropriate for the currency.
     - Financials: 
         - startingCash: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
