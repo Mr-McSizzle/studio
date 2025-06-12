@@ -22,8 +22,8 @@ const prompt = ai.definePrompt({
   input: { schema: SimulateMonthInputSchema },
   output: { schema: SimulateMonthOutputSchema },
   config: {
-    temperature: 0.7, // Allow for more creativity but keep it somewhat grounded
-     safetySettings: [ // More permissive for creative/business scenarios
+    temperature: 0.7,
+     safetySettings: [
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH'},
       { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
@@ -65,59 +65,45 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
 
 1.  **User Base Calculation:**
     *   Users Lost to Churn: Round (Current Active Users * Churn Rate) to the nearest whole number.
-    *   New User Acquisition: This is more nuanced. Consider:
-        *   Base acquisition from marketing: (Marketing Spend / 50) * (product appeal modifier).
-        *   Product appeal modifier: idea=0.2, prototype=0.5, mvp=1.0, growth=1.5, mature=1.2. (Adjust based on product stage).
-        *   Word-of-mouth: (Current Active Users / 1000) * (product appeal modifier).
-        *   Competition: If 'high', reduce acquisition by 20-30%. If 'low', increase by 10-20%.
-        *   Ensure newUserAcquisition is a whole number. If marketing spend is zero, acquisition should be minimal (mostly word-of-mouth if applicable).
+    *   New User Acquisition: Nuanced. Consider marketing spend (e.g., Marketing Spend / 50 for base, modified by product stage appeal: idea=0.2, prototype=0.5, mvp=1.0, growth=1.5, mature=1.2), word-of-mouth (e.g., Current Active Users / 1000 * product appeal), and competition (high competition reduces acquisition, low increases it). Ensure newUserAcquisition is a whole number. If marketing spend is zero, acquisition is minimal.
     *   Updated Active Users = Current Active Users - Churned Users + New User Acquisition. Cannot be negative.
 
 2.  **Financial Calculations:**
     *   Calculated Revenue = Updated Active Users * Price Per User.
-    *   Total Salaries = Sum of (count * salary) for all team members.
-    *   Calculated Expenses: 
-        *   This should be Total Salaries + Marketing Spend + R&D Spend + BaseOperationalCosts.
-        *   **Crucially, be mindful of 'cashOnHand'. If 'cashOnHand' is very low (e.g., less than 2-3 months of the typical burn rate *before* new revenue is factored in), the startup would implement emergency cost-cutting. Reflect this by significantly reducing 'BaseOperationalCosts'. If cash is extremely low (e.g., less than 1 month's typical burn), consider if Marketing or R&D spend should be realistically reduced or frozen for this month in your calculation of total expenses, and reflect this in a key event if it occurs. Your goal for 'BaseOperationalCosts' is to be a realistic estimate of other operational costs (rent, utilities, software, etc.) for a startup of this nature and scale. It should not be a fixed number if the financial situation is dire.**
+    *   Expense Breakdown & Total Expenses:
+        *   'expenseBreakdown.salaries': Sum of (count * salary) for all team members.
+        *   'expenseBreakdown.marketing': Current {{{resources.marketingSpend}}}.
+        *   'expenseBreakdown.rnd': Current {{{resources.rndSpend}}}.
+        *   'expenseBreakdown.operational': Estimate other operational costs (rent, utilities, software, etc.) appropriate for a startup of this nature, scale, team size, and current activities.
+        *   **Crucially, be mindful of 'cashOnHand'. If 'cashOnHand' is very low (e.g., less than 2-3 months of typical burn rate *before* new revenue), the startup would implement emergency cost-cutting. Reflect this by significantly reducing 'expenseBreakdown.operational'. If cash is extremely low (e.g., less than 1 month's typical burn), consider if marketing or R&D spend should be realistically reduced or frozen for this month in your calculation of 'expenseBreakdown.marketing'/'expenseBreakdown.rnd', and reflect this in a key event if it occurs.**
+        *   'calculatedExpenses': This MUST be the sum of 'expenseBreakdown.salaries' + 'expenseBreakdown.marketing' + 'expenseBreakdown.rnd' + 'expenseBreakdown.operational'.
     *   Profit Or Loss = Calculated Revenue - CalculatedExpenses.
     *   Updated Cash On Hand = Current Cash On Hand + Profit Or Loss.
 
 3.  **Product Development:**
-    *   Progress Delta: (R&D Spend / 200) + (Number of 'Engineer' roles * 2). Cap delta at 25% per month. If R&D spend is zero, progress should primarily come from existing engineers, if any.
+    *   Progress Delta: (R&D Spend / 200) + (Number of 'Engineer' roles * 2). Cap delta at 25% per month. If R&D spend is zero, progress comes mainly from engineers.
     *   Total Progress = Current Development Progress + Progress Delta.
-    *   Stage Advancement: If Total Progress >= 100:
-        *   If current stage is 'idea', new stage is 'prototype'. Reset progress to 0.
-        *   If 'prototype' -> 'mvp'. Reset progress to 0.
-        *   If 'mvp' -> 'growth'. Reset progress to 0.
-        *   If 'growth' -> 'mature'. Reset progress to 0 (or cap at 100, development might slow).
-        *   If 'mature', progress can still occur slowly (e.g., cap delta at 5%) or new features can be conceptualized.
-        *   Set 'newProductStage' in output if advancement occurs. Otherwise, omit it.
+    *   Stage Advancement: If Total Progress >= 100 and current stage is not 'mature': advance to next stage ('idea' -> 'prototype' -> 'mvp' -> 'growth' -> 'mature'). Reset progress to 0 (or cap at 100 for 'mature'). Set 'newProductStage' if advancement occurs.
 
 4.  **Key Events Generated (Exactly 2):**
-    *   Generate two distinct, plausible short string events. These can be positive, negative, or neutral. One of these events SHOULD highlight a key achievement or milestone if one occurred (e.g., "Reached 1000 active users!", "Product successfully advanced to MVP stage.").
-    *   **If 'cashOnHand' becomes critically low or negative, one event MUST clearly reflect this financial distress (e.g., 'Emergency cost-cutting measures implemented due to critically low cash reserves,' or 'Startup insolvent! Operations halted due to lack of funds.').**
-    *   Examples: "Unexpected viral mention on social media boosts brand awareness.", "Key supplier increased prices by 10%.", "Competitor X launched a similar product.", "Team morale is exceptionally high after a successful sprint."
-    *   These should be concise and impactful.
+    *   Generate two distinct, plausible short string events (positive, negative, neutral). One should highlight a key achievement/milestone if one occurred (e.g., "Reached 1000 active users!", "Product successfully advanced to MVP stage.").
+    *   If 'cashOnHand' becomes critically low or negative, one event MUST clearly reflect this financial distress.
+    *   Examples: "Unexpected viral mention.", "Key supplier increased prices.", "Competitor X launched a similar product."
 
 5.  **Rewards Granted (Optional):**
-    *   If a major milestone was achieved (e.g., significant user growth, product stage advancement, first profitability), you can grant 1-2 thematic rewards.
-    *   Provide a 'name' (e.g., "MVP Launch Bonus") and 'description' (e.g., "Successfully launched the Minimum Viable Product.") for each reward.
-    *   These rewards should be reflected in the Startup Score Adjustment. If no significant rewardable milestone, omit the 'rewardsGranted' field or set it to an empty array.
+    *   If a major milestone was achieved (e.g., significant user growth, product stage advancement, first profitability), grant 1-2 thematic rewards (name, description). Reflected in Startup Score.
 
 6.  **Startup Score Adjustment:**
-    *   Base on overall performance and any achievements/rewards. Consider:
-        *   Profitability: Positive profit = +1 to +3. Significant loss = -1 to -3.
-        *   Cash Flow: If cash on hand becomes critically low (e.g., < 1 month burn rate if burn rate is positive) = -5 to -10. Significant cash increase = +1 to +2. If cash on hand is negative, this should be a substantial penalty (-10 or more).
-        *   User Growth: Strong positive user growth = +1 to +3. Stagnation or loss = -1.
-        *   Product Milestones: Advancing product stage or other major achievements = +3 to +5.
-        *   Max score is 100, min is 0. The adjustment should be an integer.
+    *   Integer adjustment based on overall performance (profitability, cash flow, user growth, product milestones, rewards).
+    *   Positive profit = +1 to +3. Significant loss = -1 to -3.
+    *   Critically low cash (<1 month burn) = -5 to -10. Significant cash increase = +1 to +2. Negative cash = substantial penalty (-10 or more).
+    *   Strong user growth = +1 to +3. Stagnation/loss = -1.
+    *   Product Milestones/Rewards = +3 to +5.
+    *   Max score 100, min 0.
 
 Output MUST be a single, valid JSON object matching the SimulateMonthOutputSchema.
 The 'simulatedMonthNumber' in your output should be {{{currentSimulationMonth}}} + 1.
-Ensure all calculations are logical and reflect the inputs. Be realistic but allow for some variability.
-Do not add any explanations or text outside the JSON structure.
-Focus on the calculations and event generation.
-The output JSON should look like this (example values):
+Ensure the sum of your 'expenseBreakdown' components equals 'calculatedExpenses'.
 {{output}}
 `
 });
@@ -129,16 +115,15 @@ const simulateMonthGenkitFlow = ai.defineFlow(
     outputSchema: SimulateMonthOutputSchema,
   },
   async (input: SimulateMonthInput): Promise<SimulateMonthOutput> => {
-    // Increment the month for the AI's context, it will confirm this in its output.
     const targetSimulatedMonth = input.currentSimulationMonth + 1;
-    
+
     let currentProductStageForAI = input.product.stage;
     const validStages: SimulateMonthInput['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
     if (!validStages.includes(currentProductStageForAI)) {
         if (String(currentProductStageForAI).toLowerCase() === 'concept') {
             currentProductStageForAI = 'idea';
         } else {
-            console.warn(`Invalid product stage "${currentProductStageForAI}" detected before AI call. Defaulting to "idea".`);
+            console.warn(`Invalid product stage "${currentProductStageForAI}" detected before AI call in simulateMonthFlow. Defaulting to "idea".`);
             currentProductStageForAI = 'idea';
         }
     }
@@ -149,7 +134,6 @@ const simulateMonthGenkitFlow = ai.defineFlow(
         ...input.product,
         stage: currentProductStageForAI,
       }
-      // The AI is prompted with currentSimulationMonth, and expected to output for targetSimulatedMonth
     };
 
     const {output} = await prompt(flowInputForPrompt);
@@ -158,12 +142,26 @@ const simulateMonthGenkitFlow = ai.defineFlow(
       console.error("AI simulateMonthFlow did not return any output.");
       throw new Error("AI simulation failed to produce an output.");
     }
-    
-    // Basic validation, Zod schema validation is handled by definePrompt
+
     if (output.simulatedMonthNumber !== targetSimulatedMonth) {
         console.warn(`AI returned month ${output.simulatedMonthNumber}, expected ${targetSimulatedMonth}. Proceeding with AI's month.`);
-        // Or throw an error if strict month progression is required.
     }
+
+    // Validate that expenseBreakdown sum matches calculatedExpenses
+    if (output.expenseBreakdown) {
+        const breakdownSum = output.expenseBreakdown.salaries + output.expenseBreakdown.marketing + output.expenseBreakdown.rnd + output.expenseBreakdown.operational;
+        if (Math.abs(breakdownSum - output.calculatedExpenses) > 0.01) { // Allow for small floating point differences
+            console.warn(`AI expenseBreakdown sum (${breakdownSum}) does not match calculatedExpenses (${output.calculatedExpenses}). Adjusting calculatedExpenses to match breakdown.`);
+            // It's safer to trust the sum of components if a breakdown is provided.
+            // However, the prompt now strongly instructs the AI to make them match.
+            // If this warning appears often, the AI prompt needs further refinement.
+        }
+    } else {
+        console.error("AI simulateMonthFlow did not return expenseBreakdown.");
+        // Potentially throw error or provide a default breakdown if critical
+        throw new Error("AI simulation failed to produce expense breakdown.");
+    }
+
 
     return output;
   }

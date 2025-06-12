@@ -3,9 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
+import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle } from "lucide-react";
+import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, TrendingDown, PiggyBank } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -21,11 +22,14 @@ export default function DashboardPage() {
     isInitialized,
     historicalRevenue,
     historicalUserGrowth,
+    historicalBurnRate,
+    historicalNetProfitLoss,
+    historicalExpenseBreakdown,
     advanceMonth,
     resetSimulation,
   } = useSimulationStore();
 
-  const currencySymbol = financials.currencySymbol || "$"; // Fallback symbol
+  const currencySymbol = financials.currencySymbol || "$"; 
 
   useEffect(() => {
     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
@@ -145,14 +149,14 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Cash on Hand
             </CardTitle>
-            <TrendingUp className="h-5 w-5 text-accent" />
+            <PiggyBank className="h-5 w-5 text-accent" />
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${financials.cashOnHand < 0 && isInitialized ? 'text-destructive' : 'text-foreground'}`}>
                {isInitialized ? `${currencySymbol}${financials.cashOnHand.toLocaleString()}` : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              Burn Rate: {isInitialized ? `${currencySymbol}${financials.burnRate.toLocaleString()}/month` : "N/A"}
+              Monthly Burn: {isInitialized ? `${currencySymbol}${financials.burnRate.toLocaleString()}` : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -175,6 +179,12 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-8">
         <PerformanceChart title="Simulated Monthly Revenue" description={`Tracking revenue trends in ${currencySymbol} (${financials.currencyCode})`} dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
         <PerformanceChart title="Simulated User Growth" description="Tracking user acquisition in your digital twin." dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
+        <PerformanceChart title="Monthly Burn Rate" description={`Cash burned per month in ${currencySymbol}`} dataKey="value" data={isInitialized ? historicalBurnRate : []} />
+        <PerformanceChart title="Monthly Net Profit/Loss" description={`Net financial result per month in ${currencySymbol}`} dataKey="value" data={isInitialized ? historicalNetProfitLoss : []} />
+      </div>
+      
+      <div className="mt-8">
+         <ExpenseBreakdownChart data={isInitialized ? historicalExpenseBreakdown : []} currencySymbol={currencySymbol} />
       </div>
       
       <Card className="mt-8 shadow-lg">

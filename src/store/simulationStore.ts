@@ -1,14 +1,14 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, TeamMember, SimulateMonthInput, SimulateMonthOutput } from '@/types/simulation';
+import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint } from '@/types/simulation';
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
-import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow'; // Import the AI flow
+import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
 
 const MOCK_PRICE_PER_USER_PER_MONTH_DEFAULT = 10; 
 const MOCK_SALARY_PER_FOUNDER = 0;
 const MOCK_SALARY_PER_EMPLOYEE = 4000; 
-const MOCK_OTHER_OPERATIONAL_COSTS = 1500; // Fallback if AI doesn't provide comprehensive burn rate
+const MOCK_OTHER_OPERATIONAL_COSTS = 1500; 
 const DEFAULT_ENGINEER_SALARY = 5000;
 const DEFAULT_MARKETING_SPEND = 500;
 const DEFAULT_RND_SPEND = 500;
@@ -20,12 +20,12 @@ const getCurrencySymbol = (code?: string): string => {
   return map[code.toUpperCase()] || code;
 };
 
-const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges'> = {
+const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
     revenue: 0,
-    expenses: MOCK_OTHER_OPERATIONAL_COSTS + DEFAULT_MARKETING_SPEND + DEFAULT_RND_SPEND, // Initial estimate before AI
+    expenses: MOCK_OTHER_OPERATIONAL_COSTS + DEFAULT_MARKETING_SPEND + DEFAULT_RND_SPEND,
     profit: -(MOCK_OTHER_OPERATIONAL_COSTS + DEFAULT_MARKETING_SPEND + DEFAULT_RND_SPEND),
     burnRate: MOCK_OTHER_OPERATIONAL_COSTS + DEFAULT_MARKETING_SPEND + DEFAULT_RND_SPEND,
     cashOnHand: 0,
@@ -71,6 +71,9 @@ const getInitialState = (): DigitalTwinState => ({
   suggestedChallenges: [],
   historicalRevenue: [],
   historicalUserGrowth: [],
+  historicalBurnRate: [],
+  historicalNetProfitLoss: [],
+  historicalExpenseBreakdown: [],
 });
 
 interface SimulationActions {
@@ -105,8 +108,8 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           console.error("Failed to parse AI initialConditions JSON:", e);
           set(state => ({
             ...state,
-            keyEvents: [...state.keyEvents, "Error: Failed to parse initial conditions from AI. Using defaults."],
-            isInitialized: false,
+            keyEvents: [...state.keyEvents, `Error: AI failed to provide valid initial conditions JSON. Details: ${e instanceof Error ? e.message : String(e)}. Using defaults.`],
+            isInitialized: false, // Explicitly set to false or handle reset to defaults
           }));
           return;
         }
@@ -147,12 +150,12 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
 
         const aiEstimatedBurnRate = parseMonetaryValue(parsedConditions.financials?.estimatedInitialMonthlyBurnRate);
 
-        if (aiEstimatedBurnRate > 0) { // Prioritize AI's comprehensive burn rate
+        if (aiEstimatedBurnRate > 0) { 
           finalInitialBurnRate = aiEstimatedBurnRate;
-          finalInitialExpenses = aiEstimatedBurnRate; // Assuming revenue is 0 at month 0 for burn rate calculation
-        } else { // Fallback: calculate from components
+          finalInitialExpenses = aiEstimatedBurnRate; 
+        } else { 
           finalInitialExpenses = initialSalaries + initialMarketingSpend + initialRndSpend + MOCK_OTHER_OPERATIONAL_COSTS;
-          finalInitialBurnRate = finalInitialExpenses > 0 ? finalInitialExpenses : 0; // Assuming revenue is 0
+          finalInitialBurnRate = finalInitialExpenses > 0 ? finalInitialExpenses : MOCK_OTHER_OPERATIONAL_COSTS; 
         }
 
         const rawGoals = parsedConditions.initialGoals;
@@ -161,8 +164,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           processedInitialGoals = rawGoals.filter((g): g is string => typeof g === 'string');
         } else if (typeof rawGoals === 'string' && rawGoals.trim() !== '') {
           processedInitialGoals = [rawGoals];
-        } else {
-          processedInitialGoals = [];
         }
         
         let processedSuggestedChallenges: string[] = [];
@@ -173,12 +174,10 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
                     processedSuggestedChallenges = parsedChallenges.filter((c): c is string => typeof c === 'string');
                 } else if (typeof parsedChallenges === 'string') {
                     processedSuggestedChallenges = [parsedChallenges];
-                } else {
-                  processedSuggestedChallenges = [];
                 }
             } catch (e) {
                 console.error("Failed to parse AI suggestedChallenges JSON:", e);
-                processedSuggestedChallenges = [];
+                processedSuggestedChallenges = ["AI suggested challenges were malformed."];
             }
         }
         
@@ -193,7 +192,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             finalProductStage = 'idea'; 
           } else {
             console.warn(`Unrecognized product stage from AI: "${aiProductStageRaw}". Defaulting to "idea".`);
-            finalProductStage = 'idea';
           }
         }
 
@@ -205,8 +203,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             ...initialBaseState.market,
             targetMarketDescription: userTargetMarket || parsedConditions.market?.targetMarketDescription || "Not specified",
             marketSize: parseMonetaryValue(parsedConditions.market?.estimatedSize) || initialBaseState.market.marketSize,
-            // marketGrowthRate: parseMonetaryValue(parsedConditions.market?.growthRate), // Not currently used
-            // keySegments: typeof parsedConditions.market?.keySegments === 'string' ? [parsedConditions.market.keySegments] : (Array.isArray(parsedConditions.market?.keySegments) ? parsedConditions.market.keySegments.filter(s => typeof s === 'string') : undefined), // Not currently used
           },
           resources: {
             ...initialBaseState.resources,
@@ -227,7 +223,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             cashOnHand: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudgetNum,
             fundingRaised: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudgetNum,
             expenses: finalInitialExpenses,
-            profit: 0 - finalInitialExpenses, // Revenue is 0 at month 0
+            profit: 0 - finalInitialExpenses,
             burnRate: finalInitialBurnRate,
             currencyCode: finalCurrencyCode,
             currencySymbol: finalCurrencySymbol,
@@ -238,6 +234,9 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           rewards: [],
           historicalRevenue: [],
           historicalUserGrowth: [],
+          historicalBurnRate: [{ month: "M0", value: finalInitialBurnRate, desktop: finalInitialBurnRate }],
+          historicalNetProfitLoss: [{ month: "M0", value: (0 - finalInitialExpenses), desktop: (0 - finalInitialExpenses) }],
+          historicalExpenseBreakdown: [{ month: "M0", salaries: initialSalaries, marketing: initialMarketingSpend, rnd: initialRndSpend, operational: MOCK_OTHER_OPERATIONAL_COSTS }],
           isInitialized: true,
           simulationMonth: 0,
           startupScore: 10,
@@ -332,13 +331,15 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             newState.financials.expenses = aiOutput.calculatedExpenses;
             newState.financials.profit = aiOutput.profitOrLoss;
             newState.financials.cashOnHand = aiOutput.updatedCashOnHand;
-            newState.financials.burnRate = aiOutput.calculatedExpenses > aiOutput.calculatedRevenue ? aiOutput.calculatedExpenses - aiOutput.calculatedRevenue : 0;
+            
+            const currentBurnRate = Math.max(0, aiOutput.calculatedExpenses - aiOutput.calculatedRevenue);
+            newState.financials.burnRate = currentBurnRate;
 
             newState.userMetrics.activeUsers = aiOutput.updatedActiveUsers;
             newState.userMetrics.newUserAcquisitionRate = aiOutput.newUserAcquisition;
             newState.userMetrics.monthlyRecurringRevenue = aiOutput.updatedActiveUsers * newState.product.pricePerUser; 
 
-            newState.product.developmentProgress = state.product.developmentProgress + aiOutput.productDevelopmentDelta; // Add delta to original progress
+            newState.product.developmentProgress = state.product.developmentProgress + aiOutput.productDevelopmentDelta;
             
             if (aiOutput.newProductStage && aiOutput.newProductStage !== newState.product.stage) {
               newState.product.stage = aiOutput.newProductStage;
@@ -349,11 +350,11 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
                 const currentStageIndex = stages.indexOf(newState.product.stage);
                 if (currentStageIndex < stages.length - 1) {
                   newState.product.stage = stages[currentStageIndex + 1];
-                  newState.product.developmentProgress = newState.product.developmentProgress % 100; // Carry over excess progress
+                  newState.product.developmentProgress = newState.product.developmentProgress % 100;
                   newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage! (Progress Milestone)`);
                 } else {
                     newState.product.stage = 'mature';
-                    newState.product.developmentProgress = 100; // Cap at 100 for mature
+                    newState.product.developmentProgress = 100;
                     newState.keyEvents.push(`Product reached maturity! (Progress Milestone)`);
                 }
             }
@@ -361,7 +362,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
 
 
             aiOutput.keyEventsGenerated.forEach(event => newState.keyEvents.push(event));
-            newState.keyEvents.push(`Month ${newState.simulationMonth} (AI Sim): Revenue ${newState.financials.currencySymbol}${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}`);
+            newState.keyEvents.push(`Month ${newState.simulationMonth} (AI Sim): Revenue ${newState.financials.currencySymbol}${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, Burn ${newState.financials.currencySymbol}${currentBurnRate.toLocaleString()}`);
 
 
             newState.startupScore = Math.max(0, Math.min(100, newState.startupScore + aiOutput.startupScoreAdjustment));
@@ -377,6 +378,34 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             newState.historicalUserGrowth.push(newUserGrowthData);
             if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
             
+            const newBurnRateData: HistoricalDataPoint = { month: `M${newState.simulationMonth}`, value: currentBurnRate, desktop: currentBurnRate };
+            newState.historicalBurnRate.push(newBurnRateData);
+            if (newState.historicalBurnRate.length > 12) newState.historicalBurnRate.shift();
+
+            const newNetProfitLossData: HistoricalDataPoint = { month: `M${newState.simulationMonth}`, value: newState.financials.profit, desktop: newState.financials.profit };
+            newState.historicalNetProfitLoss.push(newNetProfitLossData);
+            if (newState.historicalNetProfitLoss.length > 12) newState.historicalNetProfitLoss.shift();
+            
+            if (aiOutput.expenseBreakdown) {
+                const newExpenseBreakdownData: ExpenseBreakdownDataPoint = { month: `M${newState.simulationMonth}`, ...aiOutput.expenseBreakdown };
+                newState.historicalExpenseBreakdown.push(newExpenseBreakdownData);
+                if (newState.historicalExpenseBreakdown.length > 12) newState.historicalExpenseBreakdown.shift();
+            } else {
+                console.warn("AI did not provide expense breakdown for month " + newState.simulationMonth);
+                 // Add a placeholder if AI fails to provide breakdown
+                const placeholderSalaries = newState.resources.team.reduce((acc, member) => acc + (member.count * member.salary), 0);
+                const placeholderOperational = Math.max(0, newState.financials.expenses - (placeholderSalaries + newState.resources.marketingSpend + newState.resources.rndSpend));
+                const placeholderBreakdown: ExpenseBreakdownDataPoint = {
+                    month: `M${newState.simulationMonth}`,
+                    salaries: placeholderSalaries,
+                    marketing: newState.resources.marketingSpend,
+                    rnd: newState.resources.rndSpend,
+                    operational: placeholderOperational
+                };
+                newState.historicalExpenseBreakdown.push(placeholderBreakdown);
+                if (newState.historicalExpenseBreakdown.length > 12) newState.historicalExpenseBreakdown.shift();
+            }
+
             if (aiOutput.rewardsGranted && aiOutput.rewardsGranted.length > 0) {
               const newRewards: Reward[] = aiOutput.rewardsGranted.map(rewardBase => ({
                 ...rewardBase,
@@ -394,7 +423,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           console.error("Error during AI month simulation:", error);
           set(state => ({
             ...state,
-            keyEvents: [...state.keyEvents, `Error: AI simulation for month ${state.simulationMonth + 1} failed. Please try again.`]
+            keyEvents: [...state.keyEvents, `Error: AI simulation for month ${state.simulationMonth + 1} failed. ${error instanceof Error ? error.message : String(error)}`]
           }));
         }
       },
@@ -411,12 +440,14 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
       storage: createJSONStorage(() => localStorage),
       merge: (persistedStateUnknown, currentState) => {
         let mergedState = { ...currentState, ...(persistedStateUnknown as object) as Partial<DigitalTwinState> };
-        const persistedState = persistedStateUnknown as Partial<DigitalTwinState>;
         
         mergedState.initialGoals = Array.isArray(mergedState.initialGoals) ? mergedState.initialGoals : [];
         mergedState.suggestedChallenges = Array.isArray(mergedState.suggestedChallenges) ? mergedState.suggestedChallenges : [];
         mergedState.historicalRevenue = Array.isArray(mergedState.historicalRevenue) ? mergedState.historicalRevenue : [];
         mergedState.historicalUserGrowth = Array.isArray(mergedState.historicalUserGrowth) ? mergedState.historicalUserGrowth : [];
+        mergedState.historicalBurnRate = Array.isArray(mergedState.historicalBurnRate) ? mergedState.historicalBurnRate : [];
+        mergedState.historicalNetProfitLoss = Array.isArray(mergedState.historicalNetProfitLoss) ? mergedState.historicalNetProfitLoss : [];
+        mergedState.historicalExpenseBreakdown = Array.isArray(mergedState.historicalExpenseBreakdown) ? mergedState.historicalExpenseBreakdown : [];
         mergedState.keyEvents = Array.isArray(mergedState.keyEvents) ? mergedState.keyEvents : ["Simulation state rehydrated."];
         mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : [];
 

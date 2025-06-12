@@ -53,12 +53,13 @@ export interface MarketConditions {
   keySegments?: string[]; // From AI prompt
 }
 
-// For chart data
-export interface MonthlyDataPoint {
-  month: string; // e.g., "M1", "M2" or "Jan", "Feb"
+// Generic data point for simple charts
+export interface HistoricalDataPoint {
+  month: string; // e.g., "M1", "M2"
   value: number;
-  desktop?: number; // for recharts compatibility if needed
+  desktop?: number; // for recharts compatibility
 }
+
 export interface RevenueDataPoint {
   month: string;
   revenue: number;
@@ -69,6 +70,17 @@ export interface UserDataPoint {
   users: number;
   desktop?: number;
 }
+
+export interface ExpenseBreakdown {
+  salaries: number;
+  marketing: number;
+  rnd: number;
+  operational: number; // Other costs
+}
+
+export type ExpenseBreakdownDataPoint = ExpenseBreakdown & {
+  month: string; // e.g., "M1", "M2"
+};
 
 
 export interface DigitalTwinState {
@@ -88,6 +100,9 @@ export interface DigitalTwinState {
 
   historicalRevenue: RevenueDataPoint[];
   historicalUserGrowth: UserDataPoint[];
+  historicalBurnRate: HistoricalDataPoint[];
+  historicalNetProfitLoss: HistoricalDataPoint[];
+  historicalExpenseBreakdown: ExpenseBreakdownDataPoint[];
 }
 
 export const RewardSchema = z.object({
@@ -180,7 +195,7 @@ export const SimulateMonthInputSchema = z.object({
   userMetrics: SimulateMonthUserMetricsInputSchema.describe("Current user metrics."),
   product: SimulateMonthProductInputSchema.describe("Current product state."),
   resources: SimulateMonthResourcesInputSchema.describe("Current resource allocation."),
-  market: z.object({ // Simplified market input for this flow for now
+  market: z.object({
     competitionLevel: z.enum(['low', 'moderate', 'high']),
     targetMarketDescription: z.string(),
   }).describe("Current market conditions."),
@@ -188,11 +203,18 @@ export const SimulateMonthInputSchema = z.object({
 });
 export type SimulateMonthInput = z.infer<typeof SimulateMonthInputSchema>;
 
+const ExpenseBreakdownSchema = z.object({
+  salaries: z.number().describe("Total salaries expense for the month."),
+  marketing: z.number().describe("Total marketing spend for the month."),
+  rnd: z.number().describe("Total R&D spend for the month."),
+  operational: z.number().describe("Other operational costs for the month (rent, utilities, software, etc.)."),
+});
 
 export const SimulateMonthOutputSchema = z.object({
   simulatedMonthNumber: z.number().describe("The month number that was just simulated (should be currentSimulationMonth + 1)."),
   calculatedRevenue: z.number().describe("Total revenue generated in this simulated month."),
-  calculatedExpenses: z.number().describe("Total expenses incurred in this simulated month."),
+  calculatedExpenses: z.number().describe("Total expenses incurred in this simulated month. This MUST be the sum of the components in expenseBreakdown."),
+  expenseBreakdown: ExpenseBreakdownSchema.describe("A breakdown of the total calculated expenses into key categories."),
   profitOrLoss: z.number().describe("Net profit or loss for this month (Revenue - Expenses)."),
   updatedCashOnHand: z.number().describe("Cash on hand at the end of this simulated month."),
   updatedActiveUsers: z.number().describe("Total active users at the end of this simulated month."),
