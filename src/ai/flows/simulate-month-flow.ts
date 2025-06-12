@@ -70,18 +70,20 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
         *   Product appeal modifier: idea=0.2, prototype=0.5, mvp=1.0, growth=1.5, mature=1.2. (Adjust based on product stage).
         *   Word-of-mouth: (Current Active Users / 1000) * (product appeal modifier).
         *   Competition: If 'high', reduce acquisition by 20-30%. If 'low', increase by 10-20%.
-        *   Ensure newUserAcquisition is a whole number.
+        *   Ensure newUserAcquisition is a whole number. If marketing spend is zero, acquisition should be minimal (mostly word-of-mouth if applicable).
     *   Updated Active Users = Current Active Users - Churned Users + New User Acquisition. Cannot be negative.
 
 2.  **Financial Calculations:**
     *   Calculated Revenue = Updated Active Users * Price Per User.
     *   Total Salaries = Sum of (count * salary) for all team members.
-    *   Calculated Expenses = Total Salaries + Marketing Spend + R&D Spend + BaseOperationalCosts (assume BaseOperationalCosts = 1500 {{{financials.currencyCode}}} for this simulation, unless cash is very low, then try to reduce it slightly if plausible).
+    *   Calculated Expenses: 
+        *   This should be Total Salaries + Marketing Spend + R&D Spend + BaseOperationalCosts.
+        *   **Crucially, be mindful of 'cashOnHand'. If 'cashOnHand' is very low (e.g., less than 2-3 months of the typical burn rate *before* new revenue is factored in), the startup would implement emergency cost-cutting. Reflect this by significantly reducing 'BaseOperationalCosts'. If cash is extremely low (e.g., less than 1 month's typical burn), consider if Marketing or R&D spend should be realistically reduced or frozen for this month in your calculation of total expenses, and reflect this in a key event if it occurs. Your goal for 'BaseOperationalCosts' is to be a realistic estimate of other operational costs (rent, utilities, software, etc.) for a startup of this nature and scale. It should not be a fixed number if the financial situation is dire.**
     *   Profit Or Loss = Calculated Revenue - CalculatedExpenses.
     *   Updated Cash On Hand = Current Cash On Hand + Profit Or Loss.
 
 3.  **Product Development:**
-    *   Progress Delta: (R&D Spend / 200) + (Number of 'Engineer' roles * 2). Cap delta at 25% per month. Example: If R&D is 1000 and 2 engineers, progress = (1000/200) + (2*2) = 5 + 4 = 9%.
+    *   Progress Delta: (R&D Spend / 200) + (Number of 'Engineer' roles * 2). Cap delta at 25% per month. If R&D spend is zero, progress should primarily come from existing engineers, if any.
     *   Total Progress = Current Development Progress + Progress Delta.
     *   Stage Advancement: If Total Progress >= 100:
         *   If current stage is 'idea', new stage is 'prototype'. Reset progress to 0.
@@ -93,6 +95,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
 
 4.  **Key Events Generated (Exactly 2):**
     *   Generate two distinct, plausible short string events. These can be positive, negative, or neutral. One of these events SHOULD highlight a key achievement or milestone if one occurred (e.g., "Reached 1000 active users!", "Product successfully advanced to MVP stage.").
+    *   **If 'cashOnHand' becomes critically low or negative, one event MUST clearly reflect this financial distress (e.g., 'Emergency cost-cutting measures implemented due to critically low cash reserves,' or 'Startup insolvent! Operations halted due to lack of funds.').**
     *   Examples: "Unexpected viral mention on social media boosts brand awareness.", "Key supplier increased prices by 10%.", "Competitor X launched a similar product.", "Team morale is exceptionally high after a successful sprint."
     *   These should be concise and impactful.
 
@@ -104,7 +107,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
 6.  **Startup Score Adjustment:**
     *   Base on overall performance and any achievements/rewards. Consider:
         *   Profitability: Positive profit = +1 to +3. Significant loss = -1 to -3.
-        *   Cash Flow: If cash on hand becomes critically low (e.g., < 1 month burn rate if burn rate is positive) = -2 to -5. Significant cash increase = +1 to +2.
+        *   Cash Flow: If cash on hand becomes critically low (e.g., < 1 month burn rate if burn rate is positive) = -5 to -10. Significant cash increase = +1 to +2. If cash on hand is negative, this should be a substantial penalty (-10 or more).
         *   User Growth: Strong positive user growth = +1 to +3. Stagnation or loss = -1.
         *   Product Milestones: Advancing product stage or other major achievements = +3 to +5.
         *   Max score is 100, min is 0. The adjustment should be an integer.
