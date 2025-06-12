@@ -80,14 +80,29 @@ export default function SetupSimulationPage() {
       router.push("/app/dashboard");
     } catch (err) {
       console.error("Error initializing startup simulation:", err);
-      let errorMessage = "Failed to initialize simulation. The AI might be unavailable or returned an unexpected response. Please try again.";
+      let userFriendlyMessage = "Failed to initialize simulation. The AI might be unavailable or returned an unexpected response. Please try again.";
+      
       if (err instanceof Error) {
-        errorMessage = err.message;
+        const errorMessageLower = err.message.toLowerCase();
+        if (errorMessageLower.includes("503") || 
+            errorMessageLower.includes("service unavailable") ||
+            errorMessageLower.includes("googlegenerativeai error") ||
+            errorMessageLower.includes("visibility check was unavailable") ||
+            errorMessageLower.includes("resource has been exhausted") ||
+            errorMessageLower.includes("model_error") ||
+            errorMessageLower.includes("api key not valid")) {
+          userFriendlyMessage = `The AI simulation service is temporarily unavailable or experiencing high load. This could be due to a 503 error, resource exhaustion, or an API key issue. Please try again shortly or check your AI service configuration. Details: ${err.message}`;
+        } else {
+          userFriendlyMessage = `Failed to initialize simulation. Details: ${err.message}`;
+        }
+      } else {
+        userFriendlyMessage = `An unknown error occurred during simulation initialization. Please try again.`;
       }
-      setError(errorMessage);
+      
+      setError(userFriendlyMessage);
       toast({
-        title: "Error",
-        description: errorMessage,
+        title: "Error Initializing Simulation",
+        description: userFriendlyMessage,
         variant: "destructive",
       });
     } finally {
