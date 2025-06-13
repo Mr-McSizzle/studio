@@ -65,7 +65,13 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
 
 1.  **User Base Calculation:**
     *   Users Lost to Churn: Round (Current Active Users * Churn Rate) to the nearest whole number.
-    *   New User Acquisition: Nuanced. Consider marketing spend (e.g., Marketing Spend / 50 for base, modified by product stage appeal: idea=0.2, prototype=0.5, mvp=1.0, growth=1.5, mature=1.2), word-of-mouth (e.g., Current Active Users / 1000 * product appeal), and competition (high competition reduces acquisition, low increases it). Ensure newUserAcquisition is a whole number. If marketing spend is zero, acquisition is minimal.
+    *   New User Acquisition: Nuanced.
+        *   Base acquisition: Consider marketing spend (e.g., Marketing Spend / 50, adjusted for currency purchasing power if details known).
+        *   Product appeal: Modify by product stage (idea=0.2, prototype=0.5, mvp=1.0, growth=1.5, mature=1.2).
+        *   Word-of-mouth: e.g., Current Active Users / 1000 * product appeal.
+        *   Price Impact: A higher 'product.pricePerUser' relative to perceived value or competitor pricing (which you must infer) can negatively impact new user acquisition. A lower price might positively impact it. Modulate acquisition slightly based on this.
+        *   Competition: High competition reduces acquisition, low increases it.
+        *   Ensure 'newUserAcquisition' is a whole number. If marketing spend is zero, acquisition should be minimal, relying mostly on word-of-mouth.
     *   Updated Active Users = Current Active Users - Churned Users + New User Acquisition. Cannot be negative.
 
 2.  **Financial Calculations:**
@@ -101,7 +107,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Strong user growth = +1 to +3. Stagnation/loss = -1.
     *   Product Milestones/Rewards = +3 to +5.
     *   Max score 100, min 0.
-    
+
 7.  **AI Reasoning (Optional):**
     *   Provide a brief, 1-2 sentence explanation in the 'aiReasoning' field summarizing your key considerations or calculations for this month's outcomes. Example: "Increased marketing led to strong user growth, but R&D was constrained due to cash flow, slowing product development." This should be a high-level overview.
 
@@ -140,7 +146,7 @@ const simulateMonthGenkitFlow = ai.defineFlow(
       }
     };
 
-    const {output} = await prompt(flowInputForPrompt);
+    let {output} = await prompt(flowInputForPrompt);
 
     if (!output) {
       console.error("AI simulateMonthFlow did not return any output.");
@@ -151,7 +157,7 @@ const simulateMonthGenkitFlow = ai.defineFlow(
         console.warn(`AI returned month ${output.simulatedMonthNumber}, expected ${targetSimulatedMonth}. Proceeding with AI's month.`);
     }
 
-    // Make expenseBreakdown authoritative
+    // Make expenseBreakdown authoritative and ensure consistency
     if (output.expenseBreakdown) {
         const breakdownSum = output.expenseBreakdown.salaries + output.expenseBreakdown.marketing + output.expenseBreakdown.rnd + output.expenseBreakdown.operational;
         if (Math.abs(breakdownSum - output.calculatedExpenses) > 0.01) { // Allow for small floating point differences
@@ -159,10 +165,10 @@ const simulateMonthGenkitFlow = ai.defineFlow(
         }
         // Set calculatedExpenses to the sum of the breakdown for consistency
         output.calculatedExpenses = breakdownSum;
-        
+
         // Recalculate profitOrLoss based on the authoritative calculatedExpenses
         output.profitOrLoss = output.calculatedRevenue - output.calculatedExpenses;
-        
+
         // Recalculate updatedCashOnHand based on the authoritative profitOrLoss
         // Note: cashOnHand from input is currentState.financials.cashOnHand
         output.updatedCashOnHand = input.financials.cashOnHand + output.profitOrLoss;
@@ -180,6 +186,7 @@ const simulateMonthGenkitFlow = ai.defineFlow(
             operational: placeholderOperational
         };
         // Recalculate profitOrLoss and updatedCashOnHand if we had to create a placeholder breakdown
+        // Total expenses remains whatever AI said or what we could piece together
         output.profitOrLoss = output.calculatedRevenue - output.calculatedExpenses;
         output.updatedCashOnHand = input.financials.cashOnHand + output.profitOrLoss;
     }

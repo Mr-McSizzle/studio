@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { SlidersHorizontal, Info, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle, Activity } from "lucide-react";
+import { SlidersHorizontal, Info, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle, Activity, Tag } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const DEFAULT_ENGINEER_SALARY = 5000;
@@ -65,9 +65,11 @@ export default function SimulationPage() {
     isInitialized,
     resources,
     financials,
+    product,
     simulationMonth,
     setMarketingSpend,
     setRndSpend,
+    setPricePerUser,
     adjustTeamMemberCount,
   } = useSimulationStore();
 
@@ -75,6 +77,8 @@ export default function SimulationPage() {
 
   const [localMarketingSpend, setLocalMarketingSpend] = useState(resources.marketingSpend);
   const [localRndSpend, setLocalRndSpend] = useState(resources.rndSpend);
+  const [localPricePerUser, setLocalPricePerUser] = useState(product.pricePerUser);
+
 
   useEffect(() => {
      if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
@@ -86,11 +90,13 @@ export default function SimulationPage() {
     if (isInitialized) {
       setLocalMarketingSpend(resources.marketingSpend);
       setLocalRndSpend(resources.rndSpend);
+      setLocalPricePerUser(product.pricePerUser);
     } else {
       setLocalMarketingSpend(0);
       setLocalRndSpend(0);
+      setLocalPricePerUser(0);
     }
-  }, [resources.marketingSpend, resources.rndSpend, isInitialized]);
+  }, [resources.marketingSpend, resources.rndSpend, product.pricePerUser, isInitialized]);
 
   const handleMarketingSpendChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
@@ -107,6 +113,14 @@ export default function SimulationPage() {
   };
   const applyRndSpend = () => {
     if(isInitialized) setRndSpend(localRndSpend);
+  };
+
+  const handlePricePerUserChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setLocalPricePerUser(isNaN(value) ? 0 : value);
+  };
+  const applyPricePerUser = () => {
+    if(isInitialized) setPricePerUser(localPricePerUser);
   };
 
 
@@ -145,7 +159,7 @@ export default function SimulationPage() {
           </AlertDescription>
         </Alert>
       )}
-      
+
        {financials.cashOnHand <= 0 && isInitialized && (
          <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
@@ -182,6 +196,26 @@ export default function SimulationPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
+                <Label htmlFor="price-per-user" className="flex items-center gap-2"><Tag className="h-4 w-4"/>Monthly Price Per User ({currencySymbol})</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="price-per-user"
+                    type="number"
+                    value={localPricePerUser}
+                    onChange={handlePricePerUserChange}
+                    onBlur={applyPricePerUser}
+                    min="0"
+                    step="0.01" // For currencies with decimals
+                    disabled={!isInitialized || financials.cashOnHand <= 0}
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? product.pricePerUser.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "N/A"}</p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
                 <Label htmlFor="marketing-spend" className="flex items-center gap-2"><DollarSign className="h-4 w-4"/>Monthly Marketing Spend ({currencySymbol})</Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -216,7 +250,7 @@ export default function SimulationPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? resources.rndSpend.toLocaleString() : "N/A"}</p>
               </div>
-              
+
               <Separator />
 
               <div className="space-y-4">
@@ -270,5 +304,3 @@ export default function SimulationPage() {
     </div>
   );
 }
-
-    
