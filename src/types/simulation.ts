@@ -330,6 +330,24 @@ export const AnalyzeCustomScenarioOutputSchema = z.object({
 });
 export type AnalyzeCustomScenarioOutput = z.infer<typeof AnalyzeCustomScenarioOutputSchema>;
 
+// Suggest Scenarios Flow Schemas
+export const SuggestScenariosInputSchema = z.object({
+  simulationStateJSON: z.string().describe("The full current DigitalTwinState of the simulation, serialized as a JSON string."),
+});
+export type SuggestScenariosInput = z.infer<typeof SuggestScenariosInputSchema>;
+
+export const SuggestedScenarioSchema = z.object({
+  id: z.string().describe("A unique identifier for the scenario suggestion (e.g., 'market_downturn_q1')."),
+  label: z.string().describe("A short, user-friendly label for the scenario (e.g., 'Sudden Market Downturn')."),
+  description: z.string().describe("The detailed description of the suggested what-if scenario."),
+});
+export type SuggestedScenario = z.infer<typeof SuggestedScenarioSchema>;
+
+export const SuggestScenariosOutputSchema = z.object({
+  suggestedScenarios: z.array(SuggestedScenarioSchema).min(2).max(4).describe("An array of 2 to 4 plausible and insightful 'what-if' scenarios tailored to the current simulation state."),
+});
+export type SuggestScenariosOutput = z.infer<typeof SuggestScenariosOutputSchema>;
+
 
 // DEPRECATED AccountantTool Schemas - Replaced by AlexTheAccountantTool
 export const AccountantToolInputZodSchema = z.object({}).optional();

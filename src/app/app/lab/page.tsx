@@ -10,21 +10,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase } from "lucide-react";
+import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { analyzeCustomScenario, type AnalyzeCustomScenarioInput } from "@/ai/flows/analyze-custom-scenario-flow";
+import { suggestScenarios, type SuggestScenariosInput, type SuggestedScenario } from "@/ai/flows/suggest-scenarios-flow";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-interface PredefinedScenario {
+interface PredefinedScenarioOption {
   id: string;
   label: string;
   description: string;
 }
 
-const predefinedScenarios: PredefinedScenario[] = [
+const predefinedScenarioOptions: PredefinedScenarioOption[] = [
   { id: "eco_downturn", label: "Economic Downturn", description: "A moderate economic downturn begins, reducing overall consumer spending and business investment by 15-20% for the next 3-6 months. Investor confidence also wanes." },
   { id: "viral_growth", label: "Viral Growth Spike", description: "Your product unexpectedly goes viral, leading to a 300% surge in organic user interest and sign-ups over the next month. Your current infrastructure and support systems are heavily strained." },
   { id: "competitor_disruption", label: "Competitor Disruption", description: "A major, well-funded competitor launches a very similar product with a 25% lower price point and a large marketing budget." },
@@ -54,10 +55,14 @@ export default function InnovationLabPage() {
 
   const [isLoadingSandboxSim, setIsLoadingSandboxSim] = useState(false);
 
-  // Local state for sandbox decision levers
   const [sandboxMarketingSpend, setSandboxLocalMarketingSpend] = useState(0);
   const [sandboxRndSpend, setSandboxLocalRndSpend] = useState(0);
   const [sandboxPricePerUser, setSandboxLocalPricePerUser] = useState(0);
+
+  const [aiSuggestedScenarios, setAiSuggestedScenarios] = useState<SuggestedScenario[] | null>(null);
+  const [isLoadingAiSuggestions, setIsLoadingAiSuggestions] = useState(false);
+  const [aiSuggestionsError, setAiSuggestionsError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -65,7 +70,6 @@ export default function InnovationLabPage() {
     }
   }, [isAuthenticated, router]);
 
-  // Sync local sandbox lever states when sandboxState changes
   useEffect(() => {
     if (simState.isSandboxing && simState.sandboxState) {
       setSandboxLocalMarketingSpend(simState.sandboxState.resources.marketingSpend);
@@ -79,17 +83,43 @@ export default function InnovationLabPage() {
     if (customScenarioDescription.trim()) {
       return customScenarioDescription;
     }
-    const selectedScenario = predefinedScenarios.find(s => s.id === selectedPredefinedScenarioId);
+    const selectedScenario = predefinedScenarioOptions.find(s => s.id === selectedPredefinedScenarioId);
     return selectedScenario?.description || "";
   }, [customScenarioDescription, selectedPredefinedScenarioId]);
 
   const handlePredefinedScenarioChange = (scenarioId: string) => {
     setSelectedPredefinedScenarioId(scenarioId);
+    setCustomScenarioDescription(""); // Clear custom if predefined is selected
+  };
+
+  const handleCustomScenarioChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setCustomScenarioDescription(e.target.value);
+    if (e.target.value.trim() && selectedPredefinedScenarioId) {
+      setSelectedPredefinedScenarioId(undefined); // Clear predefined if custom is typed
+    }
+  };
+
+  const getSerializableSimulationState = () => {
+    return {
+        simulationMonth: simState.simulationMonth,
+        companyName: simState.companyName,
+        financials: simState.financials,
+        userMetrics: simState.userMetrics,
+        product: simState.product,
+        resources: simState.resources,
+        market: simState.market,
+        startupScore: simState.startupScore,
+        keyEvents: simState.keyEvents.slice(-5),
+        rewards: simState.rewards, 
+        initialGoals: simState.initialGoals,
+        suggestedChallenges: simState.suggestedChallenges,
+        isInitialized: simState.isInitialized,
+      };
   };
 
   const processScenarioAnalysis = async (type: 'qualitative' | 'quantitative_forecast') => {
     if (!activeScenarioDescription.trim()) {
-      toast({ title: "Scenario Required", description: "Please describe a scenario or select a pre-defined one.", variant: "destructive" });
+      toast({ title: "Scenario Required", description: "Please describe a scenario, select a pre-defined one, or generate AI suggestions.", variant: "destructive" });
       return;
     }
     if (!simState.isInitialized) {
@@ -108,24 +138,8 @@ export default function InnovationLabPage() {
     }
 
     try {
-      const serializableState = {
-        simulationMonth: simState.simulationMonth,
-        companyName: simState.companyName,
-        financials: simState.financials,
-        userMetrics: simState.userMetrics,
-        product: simState.product,
-        resources: simState.resources,
-        market: simState.market,
-        startupScore: simState.startupScore,
-        keyEvents: simState.keyEvents.slice(-5),
-        rewards: simState.rewards, 
-        initialGoals: simState.initialGoals,
-        suggestedChallenges: simState.suggestedChallenges,
-        isInitialized: simState.isInitialized,
-      };
-
       const input: AnalyzeCustomScenarioInput = {
-        simulationStateJSON: JSON.stringify(serializableState),
+        simulationStateJSON: JSON.stringify(getSerializableSimulationState()),
         customScenarioDescription: scenarioToAnalyze,
       };
       const result = await analyzeCustomScenario(input);
@@ -155,6 +169,37 @@ export default function InnovationLabPage() {
     await simState.simulateMonthInSandbox();
     setIsLoadingSandboxSim(false);
     toast({ title: "Sandbox Month Simulated", description: `Results for Sandbox Month ${simState.sandboxRelativeMonth} are in.` });
+  };
+
+  const handleGenerateAiScenarios = async () => {
+    if (!simState.isInitialized) {
+        toast({ title: "Simulation Not Ready", description: "Please initialize your simulation to get AI scenario suggestions.", variant: "destructive"});
+        return;
+    }
+    setIsLoadingAiSuggestions(true);
+    setAiSuggestedScenarios(null);
+    setAiSuggestionsError(null);
+    try {
+        const input: SuggestScenariosInput = {
+            simulationStateJSON: JSON.stringify(getSerializableSimulationState()),
+        };
+        const result = await suggestScenarios(input);
+        setAiSuggestedScenarios(result.suggestedScenarios);
+        toast({ title: "AI Scenario Ideas Generated!", description: "Check the suggestions below."});
+    } catch (err) {
+        console.error("Error generating AI scenario suggestions:", err);
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+        setAiSuggestionsError(`Failed to get AI suggestions: ${errorMessage}`);
+        toast({ title: "Suggestion Error", description: `Could not get AI suggestions. ${errorMessage}`, variant: "destructive"});
+    } finally {
+        setIsLoadingAiSuggestions(false);
+    }
+  };
+
+  const handleSelectAiSuggestedScenario = (scenario: SuggestedScenario) => {
+    setCustomScenarioDescription(scenario.description);
+    setSelectedPredefinedScenarioId(undefined); // Clear predefined selection
+    setAiSuggestedScenarios(null); // Clear suggestions after one is chosen
   };
 
 
@@ -219,14 +264,13 @@ export default function InnovationLabPage() {
       
       <Separator />
 
-      {/* Decision Lever Sandbox Section */}
       <Card className="shadow-xl border-primary/30" id="sandbox-section">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-xl text-primary">
             <PackageOpen className="h-7 w-7" /> Decision Lever Sandbox
           </CardTitle>
           <CardDescription>
-            Test decisions in an isolated environment. Changes here DO NOT affect your main simulation unless explicitly applied (future feature).
+            Test decisions in an isolated environment. Changes here DO NOT affect your main simulation.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -268,7 +312,7 @@ export default function InnovationLabPage() {
                         <Label className="text-xs font-medium">Team Composition (Sandbox)</Label>
                         <p className="text-xs text-muted-foreground">Adjust your team for this experiment. Changes impact monthly salary costs.</p>
                     </div>
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                         <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Engineers ({getSandboxTeamMemberCount("Engineer")}) - Salary: {sandboxCurrencySymbol}{DEFAULT_ENGINEER_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
                              <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", -1)} disabled={getSandboxTeamMemberCount("Engineer") === 0}><MinusCircle className="h-4 w-4"/></Button>
@@ -333,41 +377,81 @@ export default function InnovationLabPage() {
 
       <Separator />
 
-      {/* What-if Scenario Analysis Section */}
       <Card className="shadow-lg" id="what-if-section">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-xl text-accent">
             <Sparkles className="h-7 w-7" /> AI Strategic "What-If" Analysis
           </CardTitle>
           <CardDescription>
-            Select a pre-defined scenario or describe your own hypothetical situation. The AI will provide a qualitative or quantitative forecast based on your main simulation's current state.
+            Select a pre-defined scenario, generate AI ideas, or describe your own hypothetical situation. The AI will provide analysis based on your main simulation's current state.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <Label htmlFor="predefined-scenario" className="text-base font-medium flex items-center gap-2">
-              <ListChecks className="h-5 w-5 text-muted-foreground"/> Select Pre-defined Scenario (Optional):
-            </Label>
-            <Select
-              value={selectedPredefinedScenarioId}
-              onValueChange={handlePredefinedScenarioChange}
-              disabled={!simState.isInitialized || isLoadingAnalysis || simState.isSandboxing}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+             <div>
+                <Label htmlFor="predefined-scenario" className="text-base font-medium flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-muted-foreground"/> Select Pre-defined Scenario:
+                </Label>
+                <Select
+                value={selectedPredefinedScenarioId}
+                onValueChange={handlePredefinedScenarioChange}
+                disabled={!simState.isInitialized || isLoadingAnalysis || simState.isSandboxing || isLoadingAiSuggestions}
+                >
+                <SelectTrigger id="predefined-scenario" className="mt-2">
+                    <SelectValue placeholder="Choose a scenario..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {predefinedScenarioOptions.map(scenario => (
+                    <SelectItem key={scenario.id} value={scenario.id}>
+                        {scenario.label}
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+                </Select>
+                {selectedPredefinedScenarioId && (
+                    <p className="text-xs text-muted-foreground mt-1.5 pl-1">Selected: {predefinedScenarioOptions.find(s => s.id === selectedPredefinedScenarioId)?.description}</p>
+                )}
+            </div>
+            <Button 
+                onClick={handleGenerateAiScenarios} 
+                variant="outline"
+                className="w-full md:w-auto"
+                disabled={!simState.isInitialized || isLoadingAiSuggestions || simState.isSandboxing || isLoadingAnalysis}
             >
-              <SelectTrigger id="predefined-scenario" className="mt-2">
-                <SelectValue placeholder="Choose a scenario..." />
-              </SelectTrigger>
-              <SelectContent>
-                {predefinedScenarios.map(scenario => (
-                  <SelectItem key={scenario.id} value={scenario.id}>
-                    {scenario.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-             {selectedPredefinedScenarioId && (
-                <p className="text-xs text-muted-foreground mt-1.5 pl-1">Selected scenario: {predefinedScenarios.find(s => s.id === selectedPredefinedScenarioId)?.description}</p>
-            )}
+                {isLoadingAiSuggestions ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lightbulb className="mr-2 h-4 w-4"/>}
+                Get AI Scenario Ideas
+            </Button>
           </div>
+          {aiSuggestionsError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Suggestion Error</AlertTitle>
+              <AlertDescription>{aiSuggestionsError}</AlertDescription>
+            </Alert>
+          )}
+          {aiSuggestedScenarios && aiSuggestedScenarios.length > 0 && (
+            <Card className="bg-muted/50 p-4">
+              <CardDescription className="mb-2 text-sm">Click an AI-suggested scenario to use it:</CardDescription>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {aiSuggestedScenarios.map(scenario => (
+                  <Button
+                    key={scenario.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSelectAiSuggestedScenario(scenario)}
+                    className="text-left justify-start h-auto py-2"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2 text-accent shrink-0"/>
+                    <div>
+                        <p className="font-medium">{scenario.label}</p>
+                        <p className="text-xs text-muted-foreground whitespace-normal">{scenario.description.substring(0,70)}...</p>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </Card>
+          )}
+
            <div>
             <Label htmlFor="custom-scenario-description" className="text-base font-medium flex items-center gap-2">
              <Edit3 className="h-5 w-5 text-muted-foreground"/> Or Describe Your Custom Scenario:
@@ -375,22 +459,17 @@ export default function InnovationLabPage() {
             <Textarea
               id="custom-scenario-description"
               value={customScenarioDescription}
-              onChange={(e) => {
-                setCustomScenarioDescription(e.target.value);
-                if (e.target.value.trim() && selectedPredefinedScenarioId) {
-                  setSelectedPredefinedScenarioId(undefined);
-                }
-              }}
+              onChange={handleCustomScenarioChange}
               placeholder="e.g., What if our main supplier increases costs by 25% next quarter? (This will override pre-defined selection)"
               rows={3}
               className="mt-2"
-              disabled={!simState.isInitialized || isLoadingAnalysis || simState.isSandboxing}
+              disabled={!simState.isInitialized || isLoadingAnalysis || simState.isSandboxing || isLoadingAiSuggestions}
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button 
               onClick={() => processScenarioAnalysis('qualitative')} 
-              disabled={!simState.isInitialized || isLoadingAnalysis || !activeScenarioDescription.trim() || simState.isSandboxing}
+              disabled={!simState.isInitialized || isLoadingAnalysis || !activeScenarioDescription.trim() || simState.isSandboxing || isLoadingAiSuggestions}
               className="bg-secondary hover:bg-secondary/90 text-secondary-foreground flex-1"
             >
               {isLoadingAnalysis && analysisType === 'qualitative' ? (
@@ -399,7 +478,7 @@ export default function InnovationLabPage() {
             </Button>
             <Button 
               onClick={() => processScenarioAnalysis('quantitative_forecast')} 
-              disabled={!simState.isInitialized || isLoadingAnalysis || !activeScenarioDescription.trim() || simState.isSandboxing}
+              disabled={!simState.isInitialized || isLoadingAnalysis || !activeScenarioDescription.trim() || simState.isSandboxing || isLoadingAiSuggestions}
               className="bg-accent hover:bg-accent/90 text-accent-foreground flex-1"
             >
               {isLoadingAnalysis && analysisType === 'quantitative_forecast' ? (
@@ -416,14 +495,6 @@ export default function InnovationLabPage() {
            )}
         </CardContent>
       </Card>
-
-      {analysisError && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Scenario Analysis Error</AlertTitle>
-          <AlertDescription>{analysisError}</AlertDescription>
-        </Alert>
-      )}
 
       {analysisResult && !isLoadingAnalysis && (
         <Card className="shadow-xl border-accent/50">
