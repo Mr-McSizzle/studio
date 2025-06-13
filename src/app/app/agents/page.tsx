@@ -6,136 +6,10 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { AgentCard } from "@/components/agents/agent-card";
-import type { AIAgentProfile } from "@/types/simulation";
-import {
-  Brain,
-  Calculator,
-  Megaphone,
-  MessageCircle,
-  Users2,
-  Globe2,
-  Lightbulb,
-  FlaskConical,
-  Users,
-} from "lucide-react";
+import { agentsList } from "@/lib/agentsData"; // Import from shared location
+import { Users, Lightbulb } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-
-const agentsList: AIAgentProfile[] = [
-  {
-    id: "eve-hive-mind",
-    name: "EVE, the Hive Mind",
-    shortName: "EVE",
-    title: "AI Queen Hive Mind Assistant",
-    icon: Brain,
-    iconColorClass: "text-primary-foreground",
-    gradientFromClass: "from-primary",
-    gradientToClass: "to-red-400", 
-    description: "Your central AI strategist. EVE coordinates the specialized AI agents, synthesizes insights, and provides personalized guidance throughout your ForgeSim journey.",
-    specialties: ["Strategic Coordination", "Personalized Guidance", "Insight Synthesis", "Simulation Navigation"],
-    actionText: "Consult EVE",
-    actionLink: "/app/mentor?focus=eve-hive-mind",
-  },
-  {
-    id: "alex-accountant",
-    name: "Alex, the Accountant",
-    shortName: "Alex",
-    title: "AI Financial Strategist",
-    icon: Calculator,
-    iconColorClass: "text-accent-foreground",
-    gradientFromClass: "from-accent",
-    gradientToClass: "to-yellow-400",
-    description: "Alex manages all things financial: budget allocation, cash flow analysis, financial planning, and profitability assessments.",
-    specialties: ["Budgeting & Forecasting", "Cash Flow Management", "Runway Calculation", "Financial Planning"],
-    actionText: "Ask Alex for Financials",
-    actionLink: "/app/mentor?focus=alex-accountant",
-  },
-  {
-    id: "maya-marketing-guru",
-    name: "Maya, the Marketing Guru",
-    shortName: "Maya",
-    title: "AI Go-To-Market Expert",
-    icon: Megaphone,
-    iconColorClass: "text-primary-foreground",
-    gradientFromClass: "from-pink-500",
-    gradientToClass: "to-purple-500",
-    description: "Maya crafts your go-to-market strategy, advises on brand building, and helps design effective marketing campaigns.",
-    specialties: ["Go-To-Market Strategy", "Brand Building", "Campaign Design", "Market Positioning"],
-    actionText: "Discuss Marketing with Maya",
-    actionLink: "/app/mentor?focus=maya-marketing-guru",
-  },
-  {
-    id: "ty-social-media",
-    name: "Ty, the Social Media Strategist",
-    shortName: "Ty",
-    title: "AI Digital Engagement Lead",
-    icon: MessageCircle,
-    iconColorClass: "text-primary-foreground",
-    gradientFromClass: "from-blue-500",
-    gradientToClass: "to-sky-400",
-    description: "Ty specializes in organic and paid social media strategies, drafting mockup campaigns, and analyzing virality potential.",
-    specialties: ["Social Media Strategy (Organic & Paid)", "Campaign Mockups", "Virality Prediction", "Community Engagement"],
-    actionText: "Plan Social Strategy with Ty",
-    actionLink: "/app/mentor?focus=ty-social-media",
-  },
-  {
-    id: "zara-focus-group",
-    name: "Zara, the Focus Group Leader",
-    shortName: "Zara",
-    title: "AI Customer Insights Specialist",
-    icon: Users2,
-    iconColorClass: "text-primary-foreground",
-    gradientFromClass: "from-green-500",
-    gradientToClass: "to-teal-400",
-    description: "Zara simulates customer feedback on your products, features, branding, and marketing messages, providing valuable market validation.",
-    specialties: ["Simulated Customer Feedback", "Product Validation", "Brand Perception Analysis", "Concept Testing"],
-    actionText: "Get Feedback from Zara",
-    actionLink: "/app/mentor?focus=zara-focus-group",
-  },
-  {
-    id: "leo-expansion-expert",
-    name: "Leo, the Expansion Expert",
-    shortName: "Leo",
-    title: "AI Growth & Scaling Advisor",
-    icon: Globe2,
-    iconColorClass: "text-primary-foreground",
-    gradientFromClass: "from-indigo-500",
-    gradientToClass: "to-purple-600",
-    description: "Leo provides advice on scaling operations, entering new markets (including international), forming partnerships, and managing associated risks.",
-    specialties: ["Market Expansion Strategy", "Operational Scaling", "Internationalization", "Partnership Development", "Risk Assessment"],
-    actionText: "Explore Expansion with Leo",
-    actionLink: "/app/mentor?focus=leo-expansion-expert",
-  },
-  {
-    id: "the-advisor",
-    name: "The Advisor",
-    shortName: "Advisor",
-    title: "AI Industry & Competitive Analyst",
-    icon: Lightbulb,
-    iconColorClass: "text-accent-foreground",
-    gradientFromClass: "from-gray-600",
-    gradientToClass: "to-gray-400",
-    description: "The Advisor offers strategic insights on industry best practices, competitive analysis, and overall market positioning to keep you ahead.",
-    specialties: ["Industry Best Practices", "Competitive Analysis", "Market Positioning", "Strategic Trend Spotting"],
-    actionText: "Seek Industry Advice",
-    actionLink: "/app/mentor?focus=the-advisor",
-  },
-  {
-    id: "brand-lab",
-    name: "Brand Lab",
-    shortName: "BrandLab",
-    title: "AI Branding & Concept Reviewer",
-    icon: FlaskConical,
-    iconColorClass: "text-primary-foreground",
-    gradientFromClass: "from-orange-500",
-    gradientToClass: "to-amber-400",
-    description: "The Brand Lab analyzes your branding concepts, product descriptions, and visual identity elements against target audience and market trends.",
-    specialties: ["Branding Concept Feedback", "Product Description Analysis", "Visual Identity Review", "Market Trend Alignment"],
-    actionText: "Test Branding Concepts",
-    actionLink: "/app/mentor?focus=brand-lab",
-  },
-];
-
 
 export default function AIAgentsPage() {
   const router = useRouter();
@@ -166,7 +40,7 @@ export default function AIAgentsPage() {
                 Meet Your AI Agent Team
                 </h1>
                 <p className="text-muted-foreground">
-                Leverage specialized AI expertise to guide your startup's journey in ForgeSim.
+                Leverage specialized AI expertise to guide your startup's journey in ForgeSim. Click on an agent to start a focused conversation.
                 </p>
             </div>
         </div>
@@ -184,7 +58,7 @@ export default function AIAgentsPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 xl:gap-8">
-        {agentsList.map((agent) => (
+        {agentsList.filter(agent => agent.id !== 'eve-hive-mind').map((agent) => ( // Exclude EVE from this list as she has her own main chat
           <AgentCard key={agent.id} agent={agent} />
         ))}
       </div>

@@ -14,21 +14,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore";
 import { useSimulationStore } from "@/store/simulationStore";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // Removed useSearchParams
 
-const agentFocusPrompts: Record<string, {name: string, promptStart: string}> = {
-  'eve-hive-mind': { name: "EVE", promptStart: "EVE, I have a general strategic question: "},
-  'alex-accountant': { name: "Alex the Accountant", promptStart: "EVE, I'd like to consult Alex the Accountant regarding my finances. My question is about "},
-  'maya-marketing-guru': { name: "Maya the Marketing Guru", promptStart: "EVE, I'd like to ask Maya the Marketing Guru about marketing strategy. Specifically, "},
-  'ty-social-media': { name: "Ty the Social Media Strategist", promptStart: "EVE, let's talk to Ty the Social Media Strategist about social media plans for "},
-  'zara-focus-group': { name: "Zara, our Focus Group Leader", promptStart: "EVE, I need some customer feedback insights from Zara, our Focus Group Leader, on "},
-  'leo-expansion-expert': { name: "Leo the Expansion Expert", promptStart: "EVE, I'm considering expansion and would like Leo the Expansion Expert's input on "},
-  'the-advisor': { name: "The Advisor", promptStart: "EVE, I'd like to seek advice from The Advisor on industry best practices concerning "},
-  'brand-lab': { name: "the Brand Lab", promptStart: "EVE, I have a branding concept I'd like the Brand Lab to review. It's about "},
-};
+interface ChatInterfaceProps {
+  focusedAgentId?: string;
+  focusedAgentName?: string;
+}
 
-
-export function ChatInterface() {
+export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +39,6 @@ export function ChatInterface() {
   }));
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -55,28 +47,26 @@ export function ChatInterface() {
   }, [messages]);
   
   useEffect(() => {
-    const focusAgentId = searchParams.get('focus');
-
     if (messages.length === 0) { // Only set initial greeting if chat is empty
-      const initialGreetingText = getInitialGreeting();
+      let initialMessageText: string;
+      if (focusedAgentId && focusedAgentName) {
+        initialMessageText = `EVE: Hello! I see you're looking to chat with ${focusedAgentName}. I can help facilitate that. What specific questions do you have for ${focusedAgentName} regarding their expertise?`;
+        setUserInput(`My question for ${focusedAgentName} is about `);
+      } else {
+        initialMessageText = getInitialGreeting();
+      }
+      
       const initialMessage: ChatMessageType = {
-        id: "initial-eve-greeting",
+        id: "initial-eve-greeting-" + (focusedAgentId || "general"),
         role: "assistant",
-        content: initialGreetingText,
+        content: initialMessageText,
         timestamp: new Date(),
       };
       setMessages([initialMessage]);
-      setGuidance(initialGreetingText);
-    }
-    
-    if (focusAgentId && agentFocusPrompts[focusAgentId] && messages.length <= 1 && !userInput) {
-      const agentInfo = agentFocusPrompts[focusAgentId];
-      setUserInput(agentInfo.promptStart);
-      // Clear the 'focus' query parameter from URL without reloading
-      router.replace(pathname, { scroll: false }); 
+      setGuidance(initialMessageText);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, messages.length]); // React to focus param changes or if messages reset
+  }, [focusedAgentId, focusedAgentName, messages.length, getInitialGreeting, setGuidance]);
 
 
   const handleSubmit = async (e: FormEvent) => {
@@ -125,7 +115,7 @@ export function ChatInterface() {
           targetMarketDescription: simState.market.targetMarketDescription,
           competitionLevel: simState.market.competitionLevel,
         } : undefined,
-        currentSimulationPage: pathname,
+        currentSimulationPage: pathname, // This will be /app/agents/[agentId] or /app/mentor
         isSimulationInitialized: simState.isInitialized,
       };
       
@@ -160,8 +150,12 @@ export function ChatInterface() {
     }
   };
 
+  const placeholderText = focusedAgentName 
+    ? `Ask EVE about ${focusedAgentName}'s domain...`
+    : "Ask EVE, your AI Hive Mind...";
+
   return (
-    <div className="flex flex-col h-[calc(100vh-16rem)] max-h-[600px] bg-card shadow-lg rounded-lg">
+    <div className="flex flex-col h-[calc(100vh-20rem)] max-h-[700px] bg-card shadow-lg rounded-lg">
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-2">
           {messages.map((msg) => (
@@ -193,7 +187,7 @@ export function ChatInterface() {
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ask EVE, your AI Hive Mind..."
+          placeholder={placeholderText}
           className="flex-grow"
           disabled={isLoading}
           aria-label="User input for EVE AI assistant"
@@ -210,5 +204,3 @@ export function ChatInterface() {
     </div>
   );
 }
-
-   
