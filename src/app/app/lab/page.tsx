@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { analyzeCustomScenario, type AnalyzeCustomScenarioInput } from "@/ai/flows/analyze-custom-scenario-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +34,8 @@ const predefinedScenarios: PredefinedScenario[] = [
 ];
 
 const DEFAULT_ENGINEER_SALARY_SANDBOX = 5000;
+const DEFAULT_MARKETER_SALARY_SANDBOX = 4500;
+const DEFAULT_SALESPERSON_SALARY_SANDBOX = 4000;
 
 
 export default function InnovationLabPage() {
@@ -116,7 +118,7 @@ export default function InnovationLabPage() {
         market: simState.market,
         startupScore: simState.startupScore,
         keyEvents: simState.keyEvents.slice(-5),
-        rewards: simState.rewards, // Potentially large, consider omitting or summarizing
+        rewards: simState.rewards, 
         initialGoals: simState.initialGoals,
         suggestedChallenges: simState.suggestedChallenges,
         isInitialized: simState.isInitialized,
@@ -261,11 +263,30 @@ export default function InnovationLabPage() {
                       <Label htmlFor="sandbox-price" className="text-xs">Price Per User ({sandboxCurrencySymbol})</Label>
                       <Input id="sandbox-price" type="number" value={sandboxPricePerUser} onChange={(e) => setSandboxLocalPricePerUser(parseFloat(e.target.value) || 0)} onBlur={() => simState.setSandboxPricePerUser(sandboxPricePerUser)} />
                     </div>
+                    <Separator />
+                    <div className="space-y-1">
+                        <Label className="text-xs font-medium">Team Composition (Sandbox)</Label>
+                        <p className="text-xs text-muted-foreground">Adjust your team for this experiment. Changes impact monthly salary costs.</p>
+                    </div>
                     <div className="space-y-2">
-                        <Label className="text-xs">Engineers ({getSandboxTeamMemberCount("Engineer")})</Label>
+                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Engineers ({getSandboxTeamMemberCount("Engineer")}) - Salary: {sandboxCurrencySymbol}{DEFAULT_ENGINEER_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", -1)} disabled={getSandboxTeamMemberCount("Engineer") === 0}><MinusCircle/></Button>
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", 1, DEFAULT_ENGINEER_SALARY_SANDBOX)}><PlusCircle/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", -1)} disabled={getSandboxTeamMemberCount("Engineer") === 0}><MinusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", 1, DEFAULT_ENGINEER_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
+                        </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Marketers ({getSandboxTeamMemberCount("Marketer")}) - Salary: {sandboxCurrencySymbol}{DEFAULT_MARKETER_SALARY_SANDBOX}/mo</Label>
+                        <div className="flex items-center gap-2">
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Marketer", -1)} disabled={getSandboxTeamMemberCount("Marketer") === 0}><MinusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Marketer", 1, DEFAULT_MARKETER_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
+                        </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Salespersons ({getSandboxTeamMemberCount("Salesperson")}) - Salary: {sandboxCurrencySymbol}{DEFAULT_SALESPERSON_SALARY_SANDBOX}/mo</Label>
+                        <div className="flex items-center gap-2">
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Salesperson", -1)} disabled={getSandboxTeamMemberCount("Salesperson") === 0}><MinusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Salesperson", 1, DEFAULT_SALESPERSON_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
                         </div>
                     </div>
                   </CardContent>
@@ -424,5 +445,4 @@ export default function InnovationLabPage() {
   );
 }
     
-
     
