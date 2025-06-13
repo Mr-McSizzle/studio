@@ -11,8 +11,13 @@ import '@/ai/flows/simulate-month-flow.ts';
 import '@/ai/tools/alex-the-accountant-tool.ts'; 
 import '@/ai/tools/maya-the-marketing-guru-tool.ts';
 import '@/ai/tools/leo-the-expansion-expert-tool.ts';
-import '@/ai/tools/ty-the-social-media-strategist-tool.ts'; // New
-import '@/ai/tools/zara-the-focus-group-leader-tool.ts';   // New
+import '@/ai/tools/ty-the-social-media-strategist-tool.ts'; 
+import '@/ai/tools/zara-the-focus-group-leader-tool.ts';   
+import '@/ai/tools/the-advisor-tool.ts'; // New
+import '@/ai/tools/brand-lab-tool.ts'; // New
+
 // aiOperationsManagerTool is removed to align with new PRD
+
+    
 
     

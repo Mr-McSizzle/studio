@@ -214,6 +214,34 @@ export const LeoTheExpansionExpertToolOutputSchema = z.object({
 });
 export type LeoTheExpansionExpertToolOutput = z.infer<typeof LeoTheExpansionExpertToolOutputSchema>;
 
+// The Advisor Tool
+export const TheAdvisorToolInputSchema = z.object({
+    query: z.string().describe("The user's specific query about industry best practices, competitive landscape, or strategic positioning."),
+    currentIndustry: z.string().optional().describe("The startup's industry or niche."),
+    competitors: z.array(z.string()).optional().describe("A list of known competitors."),
+    startupStage: z.string().optional().describe("The current stage of the startup (e.g., Idea, Pre-launch, Growth)."),
+});
+export type TheAdvisorToolInput = z.infer<typeof TheAdvisorToolInputSchema>;
+
+export const TheAdvisorToolOutputSchema = z.object({
+    advice: z.string().describe("Strategic advice from The Advisor, covering best practices, competitive insights, or strategic positioning recommendations."),
+});
+export type TheAdvisorToolOutput = z.infer<typeof TheAdvisorToolOutputSchema>;
+
+// Brand Lab Tool
+export const BrandLabToolInputSchema = z.object({
+    productDescription: z.string().describe("A description of the product or service being analyzed."),
+    brandingConcept: z.string().describe("The branding concept, slogan, or visual identity elements to be reviewed."),
+    targetAudience: z.string().optional().describe("The primary target audience for the brand."),
+    brandVoice: z.string().optional().describe("The desired brand voice or tone (e.g., 'innovative and disruptive', 'friendly and approachable')."),
+});
+export type BrandLabToolInput = z.infer<typeof BrandLabToolInputSchema>;
+
+export const BrandLabToolOutputSchema = z.object({
+    feedback: z.string().describe("Constructive feedback from the Brand Lab on the provided branding concept, its alignment with the product and target audience, and suggestions for improvement."),
+});
+export type BrandLabToolOutput = z.infer<typeof BrandLabToolOutputSchema>;
+
 
 // Schemas for the AI-driven simulation month advancement
 const SimulateMonthFinancialsInputSchema = z.object({
@@ -290,4 +318,6 @@ export const AccountantToolInputZodSchema = z.object({}).optional();
 export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;
 export const AccountantToolOutputZodSchema = z.object({}).optional();
 export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>;
+    
+
     

@@ -6,7 +6,7 @@
  * EVE engages in natural language conversations to provide synthesized business advice, 
  * strategic guidance, and coordinates insights from a team of specialized AI expert agents:
  * Alex (Accountant), Maya (Marketing Guru), Ty (Social Media Strategist), 
- * Zara (Focus Group Leader), and Leo (Expansion Expert)
+ * Zara (Focus Group Leader), Leo (Expansion Expert), The Advisor, and Brand Lab
  * within the ForgeSim simulation.
  *
  * - mentorConversation - A function that handles the conversation with EVE.
@@ -21,6 +21,8 @@ import { mayaTheMarketingGuruTool } from '@/ai/tools/maya-the-marketing-guru-too
 import { leoTheExpansionExpertTool } from '@/ai/tools/leo-the-expansion-expert-tool';
 import { tyTheSocialMediaStrategistTool } from '@/ai/tools/ty-the-social-media-strategist-tool';
 import { zaraTheFocusGroupLeaderTool } from '@/ai/tools/zara-the-focus-group-leader-tool';
+import { theAdvisorTool } from '@/ai/tools/the-advisor-tool';
+import { brandLabTool } from '@/ai/tools/brand-lab-tool';
 
 import type { AlexTheAccountantToolInput } from '@/types/simulation'; 
 
@@ -95,7 +97,9 @@ const prompt = ai.definePrompt({
     mayaTheMarketingGuruTool, 
     leoTheExpansionExpertTool, 
     tyTheSocialMediaStrategistTool, 
-    zaraTheFocusGroupLeaderTool
+    zaraTheFocusGroupLeaderTool,
+    theAdvisorTool,
+    brandLabTool,
   ],
   input: {
     schema: PromptInputSchemaWithProcessedHistory,
@@ -105,18 +109,22 @@ const prompt = ai.definePrompt({
   },
   system: `You are EVE, the AI "Queen Hive Mind" for ForgeSim, a sophisticated business simulation platform. Your primary role is to act as a personalized strategic assistant and coordinator for the user (a startup founder).
 You interface with a team of specialized AI expert agents:
-- Alex, the Accountant (handles budget, cash flow, financial planning; use 'alexTheAccountantTool')
-- Maya, the Marketing Guru (advises on go-to-market, brand, campaigns; use 'mayaTheMarketingGuruTool')
-- Ty, the Social Media Strategist (guides on social strategies, campaign mockups, virality; use 'tyTheSocialMediaStrategistTool')
-- Zara, the Focus Group Leader (simulates customer feedback; use 'zaraTheFocusGroupLeaderTool')
-- Leo, the Expansion Expert (advises on scaling, new markets, partnerships; use 'leoTheExpansionExpertTool')
+- Alex, the Accountant: Handles budget, cash flow, financial planning. Use 'alexTheAccountantTool'.
+- Maya, the Marketing Guru: Advises on go-to-market, brand, campaigns. Use 'mayaTheMarketingGuruTool'.
+- Ty, the Social Media Strategist: Guides on social strategies, campaign mockups, virality. Use 'tyTheSocialMediaStrategistTool'.
+- Zara, the Focus Group Leader: Simulates customer feedback on products, features, branding. Use 'zaraTheFocusGroupLeaderTool'.
+- Leo, the Expansion Expert: Advises on scaling, new markets, partnerships. Use 'leoTheExpansionExpertTool'.
+- The Advisor: Provides industry best practices and competitive analysis. Use 'theAdvisorTool'.
+- Brand Lab: Offers feedback on branding concepts and product descriptions. Use 'brandLabTool'.
 
 When responding, synthesize information and insights as if you are actively consulting these agents. For example:
 - "Alex, our AI Accountant, after reviewing your numbers, suggests..."
 - "Maya, the Marketing Guru, believes focusing on content marketing for '{{#if product.name}}{{product.name}}{{else}}your product{{/if}}' could be beneficial because..."
 - "Ty, our Social Media Strategist, mocked up a campaign targeting '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}your audience{{/if}}'..."
 - "Zara ran a simulated focus group on your new feature, and the feedback suggests..."
-- "Leo, our Expansion Expert, notes that scaling to enter the '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}target market{{/if}}' market requires..."
+- "Leo, our Expansion Expert, notes that scaling to enter the '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}target market{{/if}}' requires..."
+- "The Advisor highlighted that in the '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}current market{{/if}}', a key best practice is..."
+- "The Brand Lab reviewed your concept for '{{#if product.name}}{{product.name}}{{else}}your product{{/if}}' and feels..."
 
 Your tone should be knowledgeable, insightful, supportive, proactive, and slightly futuristic, befitting an advanced AI coordinator. You are guiding them through the ForgeSim simulation.
 
@@ -136,11 +144,13 @@ Current simulation context (if available):
 
 Based on the user's query and the simulation context:
 1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents.
-   - If about detailed finances, budget, runway, or profit: Consult Alex. Pass key financials and any specific query.
-   - If about marketing, GTM, brand, campaigns: Consult Maya. Pass product/market context and marketing spend.
-   - If about social media, virality, online campaigns: Consult Ty. Pass product/brand info and target audience.
-   - If about customer feedback, product validation, concept testing: Consult Zara. Specify what to test and the target persona.
-   - If about scaling, new markets, partnerships, operational expansion: Consult Leo. Provide current scale and expansion goals.
+   - Finances, budget, runway, profit: Consult Alex. Pass key financials and query.
+   - Marketing, GTM, brand, campaigns: Consult Maya. Pass product/market context, marketing spend.
+   - Social media, virality, online campaigns: Consult Ty. Pass product/brand info, target audience.
+   - Customer feedback, product validation: Consult Zara. Specify item to test, target persona.
+   - Scaling, new markets, partnerships: Consult Leo. Provide current scale, expansion goals.
+   - Industry best practices, competitive analysis: Consult The Advisor. Provide industry, competitors.
+   - Branding concepts, product descriptions: Consult Brand Lab. Provide concept, product info.
 2. Proactively suggest a next logical step or page within ForgeSim if relevant.
    Navigation suggestions should be in 'suggestedNextAction'. Only provide if it's a clear, helpful next step.
 
@@ -204,14 +214,14 @@ const mentorConversationFlow = ai.defineFlow(
         // EVE will formulate Alex's 'query' field based on the main userInput and context.
     } : undefined;
 
-    // EVE will formulate the 'query' for Maya, Ty, Zara, and Leo based on the main `flowInputForPrompt` and `userInput`.
-    // We can pass relevant top-level context from `flowInputForPrompt` to specific tools if their schemas match.
     const toolContexts: Record<string, any> = {};
     if (alexToolInputContext) {
       toolContexts[alexTheAccountantTool.name] = alexToolInputContext;
     }
-    // For other tools, the LLM will pick from the main input based on their inputSchema.
-    // Example: if Maya's tool needs 'targetMarketDescription', the LLM can pick `flowInputForPrompt.market.targetMarketDescription`.
+    // For other tools (Maya, Ty, Zara, Leo, TheAdvisor, BrandLab), 
+    // the LLM will pick relevant fields from the main `flowInputForPrompt` based on their inputSchema.
+    // E.g., if Maya's tool needs 'targetMarketDescription', the LLM can pick `flowInputForPrompt.market.targetMarketDescription`.
+    // If TheAdvisorTool needs `currentIndustry`, EVE will need to infer this from the conversation or `market.targetMarketDescription`.
 
     const {output} = await prompt(flowInputForPrompt, {toolInput: toolContexts});
 
@@ -226,5 +236,7 @@ const mentorConversationFlow = ai.defineFlow(
     };
   }
 );
+
+    
 
     

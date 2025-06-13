@@ -12,6 +12,7 @@ import {
   PanelLeft,
   Rocket,
   User as UserIcon, 
+  Beaker, // New Icon for Lab
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/app/mentor", label: "Hive Mind Assistant", icon: MessageSquare },
   { href: "/app/simulation", label: "Decision Controls", icon: Box },
   { href: "/app/strategy", label: "Strategy & Analytics", icon: Lightbulb },
+  { href: "/app/lab", label: "Innovation Lab", icon: Beaker }, // New Lab Page
   { href: "/app/gamification", label: "Milestones & Score", icon: Trophy },
   { href: "/app/profile", label: "Founder Profile", icon: UserIcon },
 ];
@@ -121,3 +123,5 @@ export function SidebarToggleButton() {
     </Button>
   );
 }
+
+    
