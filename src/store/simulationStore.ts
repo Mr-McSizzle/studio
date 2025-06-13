@@ -105,16 +105,26 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
       initializeSimulation: (aiOutput, userStartupName, userTargetMarket, userBudget, userCurrencyCode) => {
         let parsedConditions: AIInitialConditions = {};
         try {
+          if (!aiOutput || !aiOutput.initialConditions || typeof aiOutput.initialConditions !== 'string') {
+            throw new Error("AI output for initialConditions is missing or not a string.");
+          }
           parsedConditions = JSON.parse(aiOutput.initialConditions);
         } catch (e) {
-          console.error("Failed to parse AI initialConditions JSON:", e);
+          console.error("Failed to parse AI initialConditions JSON. This is a critical error for simulation setup.");
+          const errorDetails = e instanceof Error ? e.message : String(e);
+          console.error("Error details:", errorDetails);
+          console.error("Problematic AI JSON string was:", aiOutput.initialConditions); // Log the string
+
+          const errorMessage = `AI returned malformed data for initial setup. Details: ${errorDetails}. Cannot initialize simulation.`;
           set(state => ({
             ...state,
-            keyEvents: [...state.keyEvents, `Error: AI failed to provide valid initial conditions JSON. Details: ${e instanceof Error ? e.message : String(e)}. Using defaults.`],
+            keyEvents: [...state.keyEvents, errorMessage],
             isInitialized: false,
-            currentAiReasoning: "Error during initialization: AI provided malformed startup data.",
+            currentAiReasoning: "Fatal Error: AI provided unusable data for startup initialization. Please try setting up again.",
           }));
-          return;
+          // Re-throw the error so it's caught by the handleSubmit on the setup page
+          // and the user sees the error there, preventing a redirect to a broken dashboard.
+          throw new Error(errorMessage);
         }
 
         const finalCurrencyCode = (parsedConditions.financials?.currencyCode || userCurrencyCode || "USD").toUpperCase();
