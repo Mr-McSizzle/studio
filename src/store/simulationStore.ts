@@ -20,7 +20,7 @@ const getCurrencySymbol = (code?: string): string => {
   return map[code.toUpperCase()] || code;
 };
 
-const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning'> = {
+const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -75,6 +75,9 @@ const getInitialState = (): DigitalTwinState => ({
   historicalNetProfitLoss: [],
   historicalExpenseBreakdown: [],
   currentAiReasoning: "AI log awaiting initialization.",
+  sandboxState: null,
+  isSandboxing: false,
+  sandboxRelativeMonth: 0,
 });
 
 interface SimulationActions {
@@ -85,6 +88,14 @@ interface SimulationActions {
   setRndSpend: (amount: number) => void;
   setPricePerUser: (price: number) => void;
   adjustTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => void;
+  // Sandbox actions
+  startSandboxExperiment: () => void;
+  setSandboxMarketingSpend: (amount: number) => void;
+  setSandboxRndSpend: (amount: number) => void;
+  setSandboxPricePerUser: (price: number) => void;
+  adjustSandboxTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => void;
+  simulateMonthInSandbox: () => Promise<void>;
+  discardSandboxExperiment: () => void;
 }
 
 const parseMonetaryValue = (value: string | number | undefined): number => {
@@ -113,7 +124,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           console.error("Failed to parse AI initialConditions JSON. This is a critical error for simulation setup.");
           const errorDetails = e instanceof Error ? e.message : String(e);
           console.error("Error details:", errorDetails);
-          console.error("Problematic AI JSON string was:", aiOutput.initialConditions); // Log the string
+          console.error("Problematic AI JSON string was:", aiOutput.initialConditions); 
 
           const errorMessage = `AI returned malformed data for initial setup. Details: ${errorDetails}. Cannot initialize simulation.`;
           set(state => ({
@@ -122,8 +133,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             isInitialized: false,
             currentAiReasoning: "Fatal Error: AI provided unusable data for startup initialization. Please try setting up again.",
           }));
-          // Re-throw the error so it's caught by the handleSubmit on the setup page
-          // and the user sees the error there, preventing a redirect to a broken dashboard.
           throw new Error(errorMessage);
         }
 
@@ -177,7 +186,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         } else {
           const calculatedOperationalFallback = MOCK_OTHER_OPERATIONAL_COSTS_FALLBACK;
           finalInitialExpenses = initialSalaries + initialMarketingSpend + initialRndSpend + calculatedOperationalFallback;
-          finalInitialBurnRate = finalInitialExpenses > 0 ? finalInitialExpenses : calculatedOperationalFallback; // Burn rate is expenses if revenue is 0
+          finalInitialBurnRate = finalInitialExpenses > 0 ? finalInitialExpenses : calculatedOperationalFallback; 
           initialExpenseBreakdownM0 = {
             salaries: initialSalaries,
             marketing: initialMarketingSpend,
@@ -253,7 +262,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             cashOnHand: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudgetNum,
             fundingRaised: parseMonetaryValue(parsedConditions.financials?.startingCash) || initialBudgetNum,
             expenses: finalInitialExpenses,
-            profit: 0 - finalInitialExpenses, // Profit at M0 is negative expenses (assuming 0 revenue)
+            profit: 0 - finalInitialExpenses, 
             burnRate: finalInitialBurnRate,
             currencyCode: finalCurrencyCode,
             currencySymbol: finalCurrencySymbol,
@@ -271,6 +280,9 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           simulationMonth: 0,
           startupScore: 10,
           currentAiReasoning: "Digital twin initialized. Ready for first simulation month.",
+          sandboxState: null,
+          isSandboxing: false,
+          sandboxRelativeMonth: 0,
         }));
       },
 
@@ -297,7 +309,7 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         if (roleIndex > -1) {
           const newCount = Math.max(0, team[roleIndex].count + change);
            if (team[roleIndex].role.toLowerCase() === 'founder' && newCount === 0 && change < 0) {
-            return state; // Prevent removing the last founder
+            return state; 
           }
           team[roleIndex] = { ...team[roleIndex], count: newCount };
           if (newCount === 0 && team[roleIndex].role.toLowerCase() !== 'founder') {
@@ -334,8 +346,8 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           companyName: currentState.companyName,
           financials: {
             cashOnHand: currentState.financials.cashOnHand,
-            currentRevenue: currentState.financials.revenue, // Last month's revenue becomes current for AI context
-            currentExpenses: currentState.financials.expenses, // Last month's expenses for context
+            currentRevenue: currentState.financials.revenue, 
+            currentExpenses: currentState.financials.expenses, 
             currencyCode: currentState.financials.currencyCode,
             currencySymbol: currentState.financials.currencySymbol,
           },
@@ -364,24 +376,15 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
           const aiOutput: SimulateMonthOutput = await simulateMonthFlow(simulateMonthInput);
 
           set(state => {
-            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); // Deep clone
+            let newState: DigitalTwinState = JSON.parse(JSON.stringify(state)); 
 
             newState.simulationMonth = aiOutput.simulatedMonthNumber;
-
-            // Update state with AI's direct outputs (which are now internally consistent due to AI flow recalculations)
             newState.financials.revenue = aiOutput.calculatedRevenue;
             newState.financials.expenses = aiOutput.calculatedExpenses;
-
-            // CRUCIAL: Recalculate profit in the store based on these authoritative figures
             newState.financials.profit = newState.financials.revenue - newState.financials.expenses;
-
-            // Update cashOnHand based on THIS month's store-calculated profit/loss
             newState.financials.cashOnHand = state.financials.cashOnHand + newState.financials.profit;
-
-            // Recalculate burnRate based on THIS month's store figures
             const currentMonthBurnRate = Math.max(0, newState.financials.expenses - newState.financials.revenue);
             newState.financials.burnRate = currentMonthBurnRate;
-
 
             newState.userMetrics.activeUsers = aiOutput.updatedActiveUsers;
             newState.userMetrics.newUserAcquisitionRate = aiOutput.newUserAcquisition;
@@ -391,35 +394,31 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
 
             if (aiOutput.newProductStage && aiOutput.newProductStage !== newState.product.stage) {
               newState.product.stage = aiOutput.newProductStage;
-              newState.product.developmentProgress = 0; // Reset progress on new stage
+              newState.product.developmentProgress = 0; 
               newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage!`);
             } else if (newState.product.developmentProgress >= 100 && newState.product.stage !== 'mature') {
-                // Handle stage advancement if AI didn't explicitly set newProductStage but progress hit 100
                 const stagesList: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
                 const currentStageIndex = stagesList.indexOf(newState.product.stage);
                 if (currentStageIndex < stagesList.length - 1) {
                   newState.product.stage = stagesList[currentStageIndex + 1];
-                  newState.product.developmentProgress = newState.product.developmentProgress % 100; // Keep remainder
+                  newState.product.developmentProgress = newState.product.developmentProgress % 100; 
                   newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage! (Progress Milestone)`);
-                } else { // Reached 'mature'
+                } else { 
                     newState.product.stage = 'mature';
-                    newState.product.developmentProgress = 100; // Cap at 100 for mature
+                    newState.product.developmentProgress = 100; 
                     newState.keyEvents.push(`Product reached maturity! (Progress Milestone)`);
                 }
             }
             newState.product.developmentProgress = Math.min(100, Math.max(0,newState.product.developmentProgress));
 
-
             aiOutput.keyEventsGenerated.forEach(event => newState.keyEvents.push(event));
             newState.keyEvents.push(`Month ${newState.simulationMonth} (AI Sim): Revenue ${newState.financials.currencySymbol}${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, Burn ${newState.financials.currencySymbol}${currentMonthBurnRate.toLocaleString()}, Profit ${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}`);
 
-
             newState.startupScore = Math.max(0, Math.min(100, newState.startupScore + aiOutput.startupScoreAdjustment));
-            if (newState.financials.cashOnHand <= 0 && state.financials.cashOnHand > 0) { // Check if just ran out
+            if (newState.financials.cashOnHand <= 0 && state.financials.cashOnHand > 0) { 
                 newState.keyEvents.push(`Critical: Ran out of cash! Simulation unstable.`);
             }
 
-            // Update historical data
             const newRevenueData: RevenueDataPoint = { month: `M${newState.simulationMonth}`, revenue: newState.financials.revenue, desktop: newState.financials.revenue };
             newState.historicalRevenue.push(newRevenueData);
             if (newState.historicalRevenue.length > 12) newState.historicalRevenue.shift();
@@ -498,8 +497,232 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             ...getInitialState(),
             keyEvents: ["Simulation reset. Please initialize a new venture."],
             currentAiReasoning: "Simulation reset. AI log cleared.",
+            sandboxState: null,
+            isSandboxing: false,
+            sandboxRelativeMonth: 0,
         }));
-      }
+      },
+
+      // Sandbox actions
+      startSandboxExperiment: () => set(state => {
+        if (!state.isInitialized) return state;
+        const sandboxCopy = JSON.parse(JSON.stringify(state)) as DigitalTwinState;
+        // Reset historical data specifically for the sandbox copy for a clean slate
+        sandboxCopy.historicalRevenue = [];
+        sandboxCopy.historicalUserGrowth = [];
+        sandboxCopy.historicalBurnRate = [];
+        sandboxCopy.historicalNetProfitLoss = [];
+        sandboxCopy.historicalExpenseBreakdown = [];
+        sandboxCopy.keyEvents = [`Sandbox started from main sim month ${state.simulationMonth}.`];
+        sandboxCopy.rewards = []; // Sandbox doesn't typically earn persistent rewards
+        // The sandbox will simulate starting from *its* current state, so its simulationMonth acts as its internal clock
+        // We use sandboxRelativeMonth to track progress within the sandbox session itself.
+        return {
+          sandboxState: sandboxCopy,
+          isSandboxing: true,
+          sandboxRelativeMonth: 0, // Start sandbox month counter at 0
+          currentAiReasoning: `Sandbox experiment started. Copied state from main simulation month ${state.simulationMonth}.`,
+        };
+      }),
+
+      setSandboxMarketingSpend: (amount: number) => set(state => {
+        if (!state.isSandboxing || !state.sandboxState || amount < 0) return state;
+        return {
+          sandboxState: {
+            ...state.sandboxState,
+            resources: { ...state.sandboxState.resources, marketingSpend: amount },
+          },
+        };
+      }),
+      setSandboxRndSpend: (amount: number) => set(state => {
+        if (!state.isSandboxing || !state.sandboxState || amount < 0) return state;
+        return {
+          sandboxState: {
+            ...state.sandboxState,
+            resources: { ...state.sandboxState.resources, rndSpend: amount },
+          },
+        };
+      }),
+      setSandboxPricePerUser: (price: number) => set(state => {
+        if (!state.isSandboxing || !state.sandboxState || price < 0) return state;
+        return {
+          sandboxState: {
+            ...state.sandboxState,
+            product: { ...state.sandboxState.product, pricePerUser: price },
+          },
+        };
+      }),
+      adjustSandboxTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => set(state => {
+        if (!state.isSandboxing || !state.sandboxState) return state;
+        const team = state.sandboxState.resources.team.map(member => ({ ...member }));
+        const roleIndex = team.findIndex(member => member.role === roleToAdjust);
+
+        if (roleIndex > -1) {
+          const newCount = Math.max(0, team[roleIndex].count + change);
+          if (team[roleIndex].role.toLowerCase() === 'founder' && newCount === 0 && change < 0) return state;
+          team[roleIndex] = { ...team[roleIndex], count: newCount };
+          if (newCount === 0 && team[roleIndex].role.toLowerCase() !== 'founder') team.splice(roleIndex, 1);
+        } else if (change > 0) {
+          team.push({ role: roleToAdjust, count: change, salary: salaryPerMember || (roleToAdjust.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : DEFAULT_ENGINEER_SALARY) });
+        }
+        return {
+          sandboxState: {
+            ...state.sandboxState,
+            resources: { ...state.sandboxState.resources, team },
+          },
+        };
+      }),
+
+      simulateMonthInSandbox: async () => {
+        const currentFullState = get();
+        if (!currentFullState.isSandboxing || !currentFullState.sandboxState || currentFullState.sandboxState.financials.cashOnHand <= 0) {
+          set(state => ({ 
+            ...state, 
+            currentAiReasoning: state.sandboxState ? (state.sandboxState.currentAiReasoning + "\nCannot simulate sandbox month: Sandbox not active or out of cash.") : "Cannot simulate sandbox month."
+          }));
+          return;
+        }
+
+        set(state => ({
+          ...state,
+          sandboxState: state.sandboxState ? {
+            ...state.sandboxState,
+            currentAiReasoning: `Hive Mind is simulating sandbox month ${currentFullState.sandboxRelativeMonth + 1}...`,
+          } : null,
+        }));
+        
+        const sandbox = currentFullState.sandboxState;
+
+        let sandboxProductStageForAI = sandbox.product.stage;
+        const validStages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
+         if (!validStages.includes(sandboxProductStageForAI)) {
+            if (String(sandboxProductStageForAI).toLowerCase() === 'concept') {
+                sandboxProductStageForAI = 'idea';
+            } else {
+                sandboxProductStageForAI = 'idea';
+            }
+        }
+
+        const simulateMonthInput: SimulateMonthInput = {
+          currentSimulationMonth: currentFullState.sandboxRelativeMonth, // Use relative month for AI
+          companyName: sandbox.companyName,
+          financials: {
+            cashOnHand: sandbox.financials.cashOnHand,
+            currentRevenue: sandbox.financials.revenue,
+            currentExpenses: sandbox.financials.expenses,
+            currencyCode: sandbox.financials.currencyCode,
+            currencySymbol: sandbox.financials.currencySymbol,
+          },
+          userMetrics: {
+            activeUsers: sandbox.userMetrics.activeUsers,
+            churnRate: sandbox.userMetrics.churnRate,
+          },
+          product: {
+            stage: sandboxProductStageForAI,
+            developmentProgress: sandbox.product.developmentProgress,
+            pricePerUser: sandbox.product.pricePerUser,
+          },
+          resources: {
+            marketingSpend: sandbox.resources.marketingSpend,
+            rndSpend: sandbox.resources.rndSpend,
+            team: sandbox.resources.team,
+          },
+          market: {
+            competitionLevel: sandbox.market.competitionLevel,
+            targetMarketDescription: sandbox.market.targetMarketDescription,
+          },
+          currentStartupScore: sandbox.startupScore,
+        };
+
+        try {
+          const aiOutput: SimulateMonthOutput = await simulateMonthFlow(simulateMonthInput);
+
+          set(state => {
+            if (!state.isSandboxing || !state.sandboxState) return state;
+            const newSandboxState: DigitalTwinState = JSON.parse(JSON.stringify(state.sandboxState));
+
+            newSandboxState.simulationMonth = state.sandboxState.simulationMonth; // Main sim month doesn't change for sandbox
+            const simulatedSandboxMonthForDisplay = state.sandboxRelativeMonth + 1;
+
+            newSandboxState.financials.revenue = aiOutput.calculatedRevenue;
+            newSandboxState.financials.expenses = aiOutput.calculatedExpenses;
+            newSandboxState.financials.profit = newSandboxState.financials.revenue - newSandboxState.financials.expenses;
+            newSandboxState.financials.cashOnHand = state.sandboxState.financials.cashOnHand + newSandboxState.financials.profit;
+            const currentMonthBurnRate = Math.max(0, newSandboxState.financials.expenses - newSandboxState.financials.revenue);
+            newSandboxState.financials.burnRate = currentMonthBurnRate;
+
+            newSandboxState.userMetrics.activeUsers = aiOutput.updatedActiveUsers;
+            newSandboxState.userMetrics.newUserAcquisitionRate = aiOutput.newUserAcquisition;
+            newSandboxState.userMetrics.monthlyRecurringRevenue = aiOutput.updatedActiveUsers * newSandboxState.product.pricePerUser;
+
+            newSandboxState.product.developmentProgress = state.sandboxState.product.developmentProgress + aiOutput.productDevelopmentDelta;
+            if (aiOutput.newProductStage && aiOutput.newProductStage !== newSandboxState.product.stage) {
+              newSandboxState.product.stage = aiOutput.newProductStage;
+              newSandboxState.product.developmentProgress = 0;
+              newSandboxState.keyEvents.push(`(Sandbox) Product advanced to ${newSandboxState.product.stage} stage!`);
+            } else if (newSandboxState.product.developmentProgress >= 100 && newSandboxState.product.stage !== 'mature') {
+                 const stagesList: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
+                const currentStageIndex = stagesList.indexOf(newSandboxState.product.stage);
+                if (currentStageIndex < stagesList.length - 1) {
+                  newSandboxState.product.stage = stagesList[currentStageIndex + 1];
+                  newSandboxState.product.developmentProgress %= 100;
+                  newSandboxState.keyEvents.push(`(Sandbox) Product advanced to ${newSandboxState.product.stage} stage!`);
+                } else {
+                    newSandboxState.product.stage = 'mature';
+                    newSandboxState.product.developmentProgress = 100;
+                     newSandboxState.keyEvents.push(`(Sandbox) Product reached maturity!`);
+                }
+            }
+             newSandboxState.product.developmentProgress = Math.min(100, Math.max(0,newSandboxState.product.developmentProgress));
+
+
+            aiOutput.keyEventsGenerated.forEach(event => newSandboxState.keyEvents.push(`(Sandbox M${simulatedSandboxMonthForDisplay}) ${event}`));
+            newSandboxState.keyEvents.push(`(Sandbox M${simulatedSandboxMonthForDisplay} Sim): Revenue ${newSandboxState.financials.currencySymbol}${newSandboxState.financials.revenue.toLocaleString()}, Users ${newSandboxState.userMetrics.activeUsers.toLocaleString()}, Cash ${newSandboxState.financials.currencySymbol}${newSandboxState.financials.cashOnHand.toLocaleString()}`);
+            
+            newSandboxState.startupScore = Math.max(0, Math.min(100, newSandboxState.startupScore + aiOutput.startupScoreAdjustment));
+             if (newSandboxState.financials.cashOnHand <= 0 && state.sandboxState.financials.cashOnHand > 0) {
+                newSandboxState.keyEvents.push(`(Sandbox) Critical: Ran out of cash!`);
+            }
+
+            // Sandbox historical data - keep it lean for now, just key metrics
+            newSandboxState.historicalRevenue.push({ month: `SB M${simulatedSandboxMonthForDisplay}`, revenue: newSandboxState.financials.revenue, desktop: newSandboxState.financials.revenue });
+            newSandboxState.historicalUserGrowth.push({ month: `SB M${simulatedSandboxMonthForDisplay}`, users: newSandboxState.userMetrics.activeUsers, desktop: newSandboxState.userMetrics.activeUsers });
+             if (newSandboxState.historicalRevenue.length > 6) newSandboxState.historicalRevenue.shift(); // Shorter history for sandbox
+             if (newSandboxState.historicalUserGrowth.length > 6) newSandboxState.historicalUserGrowth.shift();
+
+
+            newSandboxState.currentAiReasoning = aiOutput.aiReasoning || `AI completed sandbox month ${simulatedSandboxMonthForDisplay}. Reasoning not provided.`;
+            
+            return { 
+                sandboxState: newSandboxState, 
+                sandboxRelativeMonth: simulatedSandboxMonthForDisplay, // Increment relative month
+                currentAiReasoning: state.currentAiReasoning + `\n[Sandbox M${simulatedSandboxMonthForDisplay}]: ${newSandboxState.currentAiReasoning}` // Append to main log for visibility
+            };
+          });
+        } catch (error) {
+            console.error("Error during AI sandbox month simulation:", error);
+             let userFriendlyMessage = `AI simulation for sandbox month failed.`;
+             if (error instanceof Error) userFriendlyMessage += ` Details: ${error.message}`;
+            set(state => ({
+                ...state,
+                sandboxState: state.sandboxState ? {
+                    ...state.sandboxState,
+                    keyEvents: [...state.sandboxState.keyEvents, userFriendlyMessage],
+                    currentAiReasoning: `Error in sandbox simulation: ${error instanceof Error ? error.message : "Unknown error"}`,
+                } : null,
+                 currentAiReasoning: state.currentAiReasoning + `\n[Sandbox Error]: ${error instanceof Error ? error.message : "Unknown error"}`
+            }));
+        }
+      },
+
+      discardSandboxExperiment: () => set(state => ({
+        sandboxState: null,
+        isSandboxing: false,
+        sandboxRelativeMonth: 0,
+        currentAiReasoning: state.currentAiReasoning + "\nSandbox experiment discarded.",
+      })),
+
+
     }),
     {
       name: 'simulation-storage',
@@ -507,7 +730,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
       merge: (persistedStateUnknown, currentState) => {
         let mergedState = { ...currentState, ...(persistedStateUnknown as object) as Partial<DigitalTwinState> };
 
-        // Ensure arrays are arrays
         mergedState.initialGoals = Array.isArray(mergedState.initialGoals) ? mergedState.initialGoals : [];
         mergedState.suggestedChallenges = Array.isArray(mergedState.suggestedChallenges) ? mergedState.suggestedChallenges : [];
         mergedState.historicalRevenue = Array.isArray(mergedState.historicalRevenue) ? mergedState.historicalRevenue : [];
@@ -518,19 +740,17 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
         mergedState.keyEvents = Array.isArray(mergedState.keyEvents) ? mergedState.keyEvents : ["Simulation state rehydrated."];
         mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : [];
 
-        // Ensure currencyCode and currencySymbol are always present
         if (!mergedState.financials || !mergedState.financials.currencyCode) {
             mergedState.financials = {
                 ...initialBaseState.financials,
-                ...(mergedState.financials || {}), // Spread potentially partial persisted financials
+                ...(mergedState.financials || {}), 
                 currencyCode: (mergedState.financials?.currencyCode || initialBaseState.financials.currencyCode),
                 currencySymbol: getCurrencySymbol(mergedState.financials?.currencyCode || initialBaseState.financials.currencyCode),
             };
-        } else if (!mergedState.financials.currencySymbol) { // If code exists but symbol is missing
+        } else if (!mergedState.financials.currencySymbol) { 
              mergedState.financials.currencySymbol = getCurrencySymbol(mergedState.financials.currencyCode);
         }
 
-        // Ensure product.pricePerUser is a number
         if (!mergedState.product || typeof mergedState.product.pricePerUser !== 'number') {
             mergedState.product = {
                 ...initialBaseState.product,
@@ -539,12 +759,11 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             };
         }
 
-        // Ensure product.stage is valid
         if (mergedState.product) {
             const validStages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
             let currentStage = mergedState.product.stage;
             if (!validStages.includes(currentStage)) {
-                if (String(currentStage).toLowerCase() === 'concept') { // Map 'concept' during rehydration too
+                if (String(currentStage).toLowerCase() === 'concept') { 
                     currentStage = 'idea';
                 } else {
                     console.warn(`Invalid product stage "${currentStage}" during merge. Defaulting to "idea".`);
@@ -553,12 +772,29 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
             }
             mergedState.product.stage = currentStage;
         } else {
-             mergedState.product = { ...initialBaseState.product }; // If no product object, set to default
+             mergedState.product = { ...initialBaseState.product }; 
         }
 
-        // Initialize currentAiReasoning if not present in persisted state
         if (typeof mergedState.currentAiReasoning === 'undefined') {
           mergedState.currentAiReasoning = "AI log rehydrated. Ready for simulation.";
+        }
+        // Sandbox state rehydration
+        if (typeof mergedState.isSandboxing === 'undefined') {
+            mergedState.isSandboxing = false;
+        }
+        if (typeof mergedState.sandboxState === 'undefined') {
+            mergedState.sandboxState = null;
+        }
+         if (typeof mergedState.sandboxRelativeMonth === 'undefined') {
+            mergedState.sandboxRelativeMonth = 0;
+        }
+        // If sandboxState exists, ensure its nested properties are also sensible
+        if (mergedState.sandboxState) {
+            // Minimal rehydration for sandbox state - it's mostly a direct copy
+            // but ensure its own keyEvents is an array if it exists.
+            mergedState.sandboxState.keyEvents = Array.isArray(mergedState.sandboxState.keyEvents) ? mergedState.sandboxState.keyEvents : [];
+            mergedState.sandboxState.historicalRevenue = Array.isArray(mergedState.sandboxState.historicalRevenue) ? mergedState.sandboxState.historicalRevenue : [];
+            mergedState.sandboxState.historicalUserGrowth = Array.isArray(mergedState.sandboxState.historicalUserGrowth) ? mergedState.sandboxState.historicalUserGrowth : [];
         }
 
 
@@ -567,3 +803,6 @@ export const useSimulationStore = create<DigitalTwinState & SimulationActions>()
     }
   )
 );
+
+
+    

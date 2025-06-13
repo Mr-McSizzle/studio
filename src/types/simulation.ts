@@ -97,13 +97,18 @@ export interface DigitalTwinState {
   initialGoals: string[];
   suggestedChallenges: string[];
   isInitialized: boolean;
-  currentAiReasoning: string | null; // Added for AI "thought process"
+  currentAiReasoning: string | null;
 
   historicalRevenue: RevenueDataPoint[];
   historicalUserGrowth: UserDataPoint[];
   historicalBurnRate: HistoricalDataPoint[];
   historicalNetProfitLoss: HistoricalDataPoint[];
   historicalExpenseBreakdown: ExpenseBreakdownDataPoint[];
+
+  // Sandbox specific state
+  sandboxState: DigitalTwinState | null; // Holds a copy of the state for sandboxing
+  isSandboxing: boolean; // Flag to indicate if a sandbox experiment is active
+  sandboxRelativeMonth: number; // Tracks months *within* the current sandbox session
 }
 
 export const RewardSchema = z.object({
@@ -274,7 +279,7 @@ const SimulateMonthResourcesInputSchema = z.object({
 });
 
 export const SimulateMonthInputSchema = z.object({
-  currentSimulationMonth: z.number().describe("The current month number of the simulation (e.g., month 1, month 2)."),
+  currentSimulationMonth: z.number().describe("The current month number of the simulation (e.g., month 1, month 2). For sandbox, this is the relative month *within* the sandbox."),
   companyName: z.string().describe("The name of the company being simulated."),
   financials: SimulateMonthFinancialsInputSchema.describe("Current financial state."),
   userMetrics: SimulateMonthUserMetricsInputSchema.describe("Current user metrics."),
@@ -331,6 +336,8 @@ export const AccountantToolInputZodSchema = z.object({}).optional();
 export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;
 export const AccountantToolOutputZodSchema = z.object({}).optional();
 export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>;
+    
+
     
 
     
