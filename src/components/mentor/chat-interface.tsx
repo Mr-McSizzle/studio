@@ -22,12 +22,15 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { setGuidance } = useAiMentorStore();
+  const { setGuidance, getInitialGreeting } = useAiMentorStore();
 
   const simState = useSimulationStore(state => ({
     isInitialized: state.isInitialized,
     simulationMonth: state.simulationMonth,
     financials: state.financials,
+    product: state.product,
+    resources: state.resources,
+    market: state.market,
   }));
   const pathname = usePathname();
 
@@ -39,17 +42,18 @@ export function ChatInterface() {
   
   useEffect(() => {
     if (messages.length === 0) {
-      const initialGreeting = `Greetings, Founder. I am your AI Queen Hive Mind for ForgeSim. Your current simulation currency is ${simState.financials.currencySymbol} (${simState.financials.currencyCode}). My role is to coordinate our team of specialized AI agents—Accountant, Marketing Guru, Operations Manager, and more—to provide you with synthesized insights and personalized guidance for your startup simulation. How can I direct our collective intelligence to assist you today, or would you like a suggestion for your next strategic move?`;
+      const initialGreetingText = getInitialGreeting();
       const initialMessage: ChatMessageType = {
-        id: "initial-hivemind-greeting",
+        id: "initial-eve-greeting",
         role: "assistant",
-        content: initialGreeting,
+        content: initialGreetingText,
         timestamp: new Date(),
       };
       setMessages([initialMessage]);
-      setGuidance(initialGreeting);
+      setGuidance(initialGreetingText);
     }
-  }, [setGuidance, messages.length, simState.financials.currencyCode, simState.financials.currencySymbol]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length]); // Removed getInitialGreeting, setGuidance from deps to avoid re-triggering if they change due to store re-renders
 
 
   const handleSubmit = async (e: FormEvent) => {
@@ -84,6 +88,20 @@ export function ChatInterface() {
           currencyCode: simState.financials.currencyCode,
           currencySymbol: simState.financials.currencySymbol,
         } : undefined,
+        product: simState.isInitialized ? {
+          name: simState.product.name,
+          stage: simState.product.stage,
+          pricePerUser: simState.product.pricePerUser
+        } : undefined,
+        resources: simState.isInitialized ? {
+          marketingSpend: simState.resources.marketingSpend,
+          team: simState.resources.team,
+          rndSpend: simState.resources.rndSpend,
+        } : undefined,
+        market: simState.isInitialized ? {
+          targetMarketDescription: simState.market.targetMarketDescription,
+          competitionLevel: simState.market.competitionLevel,
+        } : undefined,
         currentSimulationPage: pathname,
         isSimulationInitialized: simState.isInitialized,
       };
@@ -100,16 +118,16 @@ export function ChatInterface() {
       setGuidance(result.response, result.suggestedNextAction);
 
     } catch (error) {
-      console.error("Error getting Hive Mind response:", error);
+      console.error("Error getting EVE's response:", error);
       toast({
         title: "Error",
-        description: "Failed to get response from AI Hive Mind. Please try again.",
+        description: "Failed to get response from EVE. Please try again.",
         variant: "destructive",
       });
        const errorResponseMessage: ChatMessageType = {
         id: `error-${Date.now()}`,
         role: "system",
-        content: "Sorry, I encountered an error connecting to the Hive Mind. Please try your request again.",
+        content: "Sorry, I encountered an error connecting to EVE. Please try your request again.",
         timestamp: new Date(),
       };
       setMessages((prevMessages) => [...prevMessages, errorResponseMessage]);
@@ -129,7 +147,7 @@ export function ChatInterface() {
           {isLoading && (
              <div className="flex items-start gap-3 my-4 justify-start">
                 <Avatar className="h-8 w-8 border border-border">
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="AI Hive Mind Avatar" data-ai-hint="robot brain" />
+                    <AvatarImage src="https://placehold.co/40x40.png" alt="EVE AI Avatar" data-ai-hint="robot brain" />
                     <AvatarFallback>
                         <Brain className="h-5 w-5 text-muted-foreground" />
                     </AvatarFallback>
@@ -137,7 +155,7 @@ export function ChatInterface() {
                 <div className="max-w-[70%] rounded-lg p-3 shadow-md bg-card text-card-foreground">
                     <div className="flex items-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                        <span className="text-sm text-muted-foreground">Hive Mind is processing...</span>
+                        <span className="text-sm text-muted-foreground">EVE is processing...</span>
                     </div>
                 </div>
             </div>
@@ -152,10 +170,10 @@ export function ChatInterface() {
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ask your AI Hive Mind..."
+          placeholder="Ask EVE..."
           className="flex-grow"
           disabled={isLoading}
-          aria-label="User input for AI Hive Mind"
+          aria-label="User input for EVE AI assistant"
         />
         <Button type="submit" disabled={isLoading || !userInput.trim()} className="bg-accent hover:bg-accent/90 text-accent-foreground">
           {isLoading ? (
@@ -169,3 +187,5 @@ export function ChatInterface() {
     </div>
   );
 }
+
+   

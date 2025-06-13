@@ -143,51 +143,76 @@ export interface AIInitialConditions {
   companyName?: string;
 }
 
-export const AccountantToolInputZodSchema = z.object({
+// Alex the Accountant Tool
+export const AlexTheAccountantToolInputSchema = z.object({
   simulationMonth: z.number().optional().describe("The current month of the simulation."),
   cashOnHand: z.number().optional().describe("Current cash on hand for the startup."),
   burnRate: z.number().optional().describe("Current monthly burn rate."),
   monthlyRevenue: z.number().optional().describe("Current monthly revenue."),
   monthlyExpenses: z.number().optional().describe("Current monthly expenses."),
   currencySymbol: z.string().optional().describe("The currency symbol for financial figures (e.g., $)."),
+  query: z.string().optional().describe("A specific financial query for Alex if the context is not fully covered by standard fields, e.g., 'advice on budget allocation for Q2'.")
 });
-export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;
+export type AlexTheAccountantToolInput = z.infer<typeof AlexTheAccountantToolInputSchema>;
 
-export const AccountantToolOutputZodSchema = z.object({
-  summary: z.string().describe("A brief financial health check or insight from the AI accountant, using the provided currency symbol."),
+export const AlexTheAccountantToolOutputSchema = z.object({
+  summary: z.string().describe("A brief financial health check, insight, or response to a query from Alex the Accountant, using the provided currency symbol."),
 });
-export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>;
+export type AlexTheAccountantToolOutput = z.infer<typeof AlexTheAccountantToolOutputSchema>;
 
-// Schemas for new AI Expert Agent Tools
-export const MarketingGuruToolInputSchema = z.object({
-  query: z.string().describe("Specific question, topic, or context for the AI Marketing Guru to provide advice on (e.g., 'How to improve user acquisition?', 'Critique my current marketing spend given product stage X and target market Y'). The AI Hive Mind should synthesize relevant details from the conversation into this query."),
+// Maya the Marketing Guru Tool
+export const MayaTheMarketingGuruToolInputSchema = z.object({
+  query: z.string().describe("Specific question, topic, or context for Maya the Marketing Guru to provide advice on (e.g., 'How to improve user acquisition?', 'Critique my current marketing spend given product stage X and target market Y'). EVE should synthesize relevant details from the conversation into this query."),
+  currentMarketingSpend: z.number().optional().describe("Current monthly marketing spend for context."),
+  targetMarketDescription: z.string().optional().describe("Description of the target market."),
+  productStage: z.string().optional().describe("Current stage of the product (e.g., MVP, Growth).")
 });
-export type MarketingGuruToolInput = z.infer<typeof MarketingGuruToolInputSchema>;
+export type MayaTheMarketingGuruToolInput = z.infer<typeof MayaTheMarketingGuruToolInputSchema>;
 
-export const MarketingGuruToolOutputSchema = z.object({
-  advice: z.string().describe("Targeted marketing advice or strategy suggestions from the AI Marketing Guru."),
+export const MayaTheMarketingGuruToolOutputSchema = z.object({
+  advice: z.string().describe("Targeted marketing advice or strategy suggestions from Maya the Marketing Guru."),
 });
-export type MarketingGuruToolOutput = z.infer<typeof MarketingGuruToolOutputSchema>;
+export type MayaTheMarketingGuruToolOutput = z.infer<typeof MayaTheMarketingGuruToolOutputSchema>;
 
-export const OperationsManagerToolInputSchema = z.object({
-  query: z.string().describe("Specific question, topic, or context for the AI Operations Manager (e.g., 'Advice on scaling with current team?', 'How to optimize resource allocation for X users?'). The AI Hive Mind should synthesize relevant details from the conversation into this query."),
+// Ty the Social Media Strategist Tool
+export const TyTheSocialMediaStrategistToolInputSchema = z.object({
+  query: z.string().describe("Specific question or topic for Ty the Social Media Strategist, e.g., 'Suggest organic social media strategies for a B2B SaaS product', 'Predict virality for a campaign targeting Gen Z on TikTok for an eco-friendly brand.'"),
+  productName: z.string().optional().describe("Name of the product/service."),
+  targetAudience: z.string().optional().describe("Description of the target audience for social media."),
+  brandVoice: z.string().optional().describe("Brief description of the brand's voice/style (e.g., playful, professional, edgy).")
 });
-export type OperationsManagerToolInput = z.infer<typeof OperationsManagerToolInputSchema>;
+export type TyTheSocialMediaStrategistToolInput = z.infer<typeof TyTheSocialMediaStrategistToolInputSchema>;
 
-export const OperationsManagerToolOutputSchema = z.object({
-  advice: z.string().describe("Operational advice, suggestions on team structure, scaling, or process optimization from the AI Operations Manager."),
+export const TyTheSocialMediaStrategistToolOutputSchema = z.object({
+  advice: z.string().describe("Social media strategy advice, campaign mockups, or virality predictions from Ty."),
 });
-export type OperationsManagerToolOutput = z.infer<typeof OperationsManagerToolOutputSchema>;
+export type TyTheSocialMediaStrategistToolOutput = z.infer<typeof TyTheSocialMediaStrategistToolOutputSchema>;
 
-export const ExpansionExpertToolInputSchema = z.object({
-  query: z.string().describe("Specific question, topic, or context for the AI Expansion Expert (e.g., 'Feasibility of expanding to Z market?', 'Risks of international expansion with current product?'). The AI Hive Mind should synthesize relevant details from the conversation into this query."),
+// Zara the Focus Group Leader Tool
+export const ZaraTheFocusGroupLeaderToolInputSchema = z.object({
+  query: z.string().describe("Specific product, feature, branding concept, or marketing message to get simulated customer feedback on. E.g., 'How would early-adopter tech enthusiasts react to this new pricing model?' or 'Simulate focus group feedback on our new logo design for a luxury brand.'"),
+  itemToTest: z.string().describe("Clear description of the item/concept Zara should run a simulated focus group on."),
+  targetAudiencePersona: z.string().optional().describe("Detailed persona of the target customer for the focus group simulation.")
 });
-export type ExpansionExpertToolInput = z.infer<typeof ExpansionExpertToolInputSchema>;
+export type ZaraTheFocusGroupLeaderToolInput = z.infer<typeof ZaraTheFocusGroupLeaderToolInputSchema>;
 
-export const ExpansionExpertToolOutputSchema = z.object({
-  advice: z.string().describe("Advice on market expansion strategies, risk assessment for new markets, or internationalization from the AI Expansion Expert."),
+export const ZaraTheFocusGroupLeaderToolOutputSchema = z.object({
+  feedbackSummary: z.string().describe("A summary of simulated customer feedback, including positive points, concerns, and suggestions from Zara's focus group."),
 });
-export type ExpansionExpertToolOutput = z.infer<typeof ExpansionExpertToolOutputSchema>;
+export type ZaraTheFocusGroupLeaderToolOutput = z.infer<typeof ZaraTheFocusGroupLeaderToolOutputSchema>;
+
+// Leo the Expansion Expert Tool
+export const LeoTheExpansionExpertToolInputSchema = z.object({
+  query: z.string().describe("Specific question, topic, or context for Leo the Expansion Expert (e.g., 'Feasibility of expanding to Z market?', 'Risks of international expansion with current product?','Advice on scaling operations for 10x user growth.'). EVE should synthesize relevant details into this query."),
+  currentScale: z.string().optional().describe("Current operational scale or user base."),
+  targetExpansion: z.string().optional().describe("Desired expansion goal (e.g., new geography, new market segment, 10x growth).")
+});
+export type LeoTheExpansionExpertToolInput = z.infer<typeof LeoTheExpansionExpertToolInputSchema>;
+
+export const LeoTheExpansionExpertToolOutputSchema = z.object({
+  advice: z.string().describe("Advice on market expansion, scaling strategies, risk assessment for new markets, or internationalization from Leo the Expansion Expert."),
+});
+export type LeoTheExpansionExpertToolOutput = z.infer<typeof LeoTheExpansionExpertToolOutputSchema>;
 
 
 // Schemas for the AI-driven simulation month advancement
@@ -259,3 +284,5 @@ export const SimulateMonthOutputSchema = z.object({
   aiReasoning: z.string().optional().describe("A brief, 1-2 sentence explanation from the AI about its key considerations or calculations for this month's simulation outcomes."),
 });
 export type SimulateMonthOutput = z.infer<typeof SimulateMonthOutputSchema>;
+
+    
