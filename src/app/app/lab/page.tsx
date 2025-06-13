@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb } from "lucide-react";
+import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb, XCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { analyzeCustomScenario, type AnalyzeCustomScenarioInput } from "@/ai/flows/analyze-custom-scenario-flow";
 import { suggestScenarios, type SuggestScenariosInput, type SuggestedScenario } from "@/ai/flows/suggest-scenarios-flow";
@@ -38,6 +38,15 @@ const DEFAULT_ENGINEER_SALARY_SANDBOX = 5000;
 const DEFAULT_MARKETER_SALARY_SANDBOX = 4500;
 const DEFAULT_SALESPERSON_SALARY_SANDBOX = 4000;
 
+const MAX_ANALYSIS_RESULTS = 3;
+
+interface AnalyzedScenario {
+  id: string;
+  scenarioDescription: string;
+  analysisText: string;
+  analysisType: 'qualitative' | 'quantitative_forecast';
+}
+
 
 export default function InnovationLabPage() {
   const router = useRouter();
@@ -48,10 +57,10 @@ export default function InnovationLabPage() {
   const [customScenarioDescription, setCustomScenarioDescription] = useState("");
   const [selectedPredefinedScenarioId, setSelectedPredefinedScenarioId] = useState<string | undefined>(undefined);
   
-  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [analysisResults, setAnalysisResults] = useState<AnalyzedScenario[]>([]);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [analysisType, setAnalysisType] = useState<'qualitative' | 'quantitative_forecast' | null>(null);
+  const [currentAnalysisType, setCurrentAnalysisType] = useState<'qualitative' | 'quantitative_forecast' | null>(null);
 
   const [isLoadingSandboxSim, setIsLoadingSandboxSim] = useState(false);
 
@@ -89,31 +98,32 @@ export default function InnovationLabPage() {
 
   const handlePredefinedScenarioChange = (scenarioId: string) => {
     setSelectedPredefinedScenarioId(scenarioId);
-    setCustomScenarioDescription(""); // Clear custom if predefined is selected
+    setCustomScenarioDescription(""); 
   };
 
   const handleCustomScenarioChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setCustomScenarioDescription(e.target.value);
     if (e.target.value.trim() && selectedPredefinedScenarioId) {
-      setSelectedPredefinedScenarioId(undefined); // Clear predefined if custom is typed
+      setSelectedPredefinedScenarioId(undefined); 
     }
   };
 
   const getSerializableSimulationState = () => {
+    const stateToSerialize = simState.isSandboxing && simState.sandboxState ? simState.sandboxState : simState;
     return {
-        simulationMonth: simState.simulationMonth,
-        companyName: simState.companyName,
-        financials: simState.financials,
-        userMetrics: simState.userMetrics,
-        product: simState.product,
-        resources: simState.resources,
-        market: simState.market,
-        startupScore: simState.startupScore,
-        keyEvents: simState.keyEvents.slice(-5),
-        rewards: simState.rewards, 
-        initialGoals: simState.initialGoals,
-        suggestedChallenges: simState.suggestedChallenges,
-        isInitialized: simState.isInitialized,
+        simulationMonth: stateToSerialize.simulationMonth,
+        companyName: stateToSerialize.companyName,
+        financials: stateToSerialize.financials,
+        userMetrics: stateToSerialize.userMetrics,
+        product: stateToSerialize.product,
+        resources: stateToSerialize.resources,
+        market: stateToSerialize.market,
+        startupScore: stateToSerialize.startupScore,
+        keyEvents: stateToSerialize.keyEvents.slice(-5),
+        rewards: stateToSerialize.rewards, 
+        initialGoals: stateToSerialize.initialGoals,
+        suggestedChallenges: stateToSerialize.suggestedChallenges,
+        isInitialized: stateToSerialize.isInitialized,
       };
   };
 
@@ -122,15 +132,15 @@ export default function InnovationLabPage() {
       toast({ title: "Scenario Required", description: "Please describe a scenario, select a pre-defined one, or generate AI suggestions.", variant: "destructive" });
       return;
     }
-    if (!simState.isInitialized) {
+    const baseSimState = simState.isSandboxing && simState.sandboxState ? simState.sandboxState : simState;
+    if (!baseSimState.isInitialized) {
         toast({ title: "Simulation Not Ready", description: "Please initialize your simulation before analyzing scenarios.", variant: "destructive"});
         return;
     }
 
     setIsLoadingAnalysis(true);
-    setAnalysisResult(null);
     setAnalysisError(null);
-    setAnalysisType(type);
+    setCurrentAnalysisType(type);
 
     let scenarioToAnalyze = activeScenarioDescription;
     if (type === 'quantitative_forecast') {
@@ -143,7 +153,18 @@ export default function InnovationLabPage() {
         customScenarioDescription: scenarioToAnalyze,
       };
       const result = await analyzeCustomScenario(input);
-      setAnalysisResult(result.analysisText);
+      
+      setAnalysisResults(prevResults => {
+        const newResult: AnalyzedScenario = {
+          id: `analysis-${Date.now()}`,
+          scenarioDescription: activeScenarioDescription,
+          analysisText: result.analysisText,
+          analysisType: type,
+        };
+        const updatedResults = [newResult, ...prevResults];
+        return updatedResults.slice(0, MAX_ANALYSIS_RESULTS);
+      });
+
       toast({ title: `Scenario ${type === 'qualitative' ? 'Analysis' : 'Forecast'} Complete`, description: "AI insights are ready below."});
     } catch (err) {
       console.error(`Error analyzing custom scenario (${type}):`, err);
@@ -152,6 +173,7 @@ export default function InnovationLabPage() {
       toast({ title: `${type === 'qualitative' ? 'Analysis' : 'Forecast'} Error`, description: `Could not complete analysis. ${errorMessage}`, variant: "destructive"});
     } finally {
       setIsLoadingAnalysis(false);
+      setCurrentAnalysisType(null);
     }
   };
   
@@ -161,6 +183,7 @@ export default function InnovationLabPage() {
       return;
     }
     simState.startSandboxExperiment();
+    setAnalysisResults([]); // Clear analysis results when starting/discarding sandbox
     toast({ title: "Sandbox Mode Activated!", description: "Experiment with decisions without affecting your main simulation." });
   };
 
@@ -170,9 +193,17 @@ export default function InnovationLabPage() {
     setIsLoadingSandboxSim(false);
     toast({ title: "Sandbox Month Simulated", description: `Results for Sandbox Month ${simState.sandboxRelativeMonth} are in.` });
   };
+  
+  const handleDiscardSandbox = () => {
+    simState.discardSandboxExperiment();
+    setAnalysisResults([]); // Clear analysis results when starting/discarding sandbox
+    toast({ title: "Sandbox Discarded", description: "Returned to main simulation context." });
+  };
+
 
   const handleGenerateAiScenarios = async () => {
-    if (!simState.isInitialized) {
+    const baseSimState = simState.isSandboxing && simState.sandboxState ? simState.sandboxState : simState;
+    if (!baseSimState.isInitialized) {
         toast({ title: "Simulation Not Ready", description: "Please initialize your simulation to get AI scenario suggestions.", variant: "destructive"});
         return;
     }
@@ -198,8 +229,17 @@ export default function InnovationLabPage() {
 
   const handleSelectAiSuggestedScenario = (scenario: SuggestedScenario) => {
     setCustomScenarioDescription(scenario.description);
-    setSelectedPredefinedScenarioId(undefined); // Clear predefined selection
-    setAiSuggestedScenarios(null); // Clear suggestions after one is chosen
+    setSelectedPredefinedScenarioId(undefined); 
+    setAiSuggestedScenarios(null); 
+  };
+
+  const clearAllAnalyses = () => {
+    setAnalysisResults([]);
+    toast({ title: "Analyses Cleared", description: "Previous scenario analyses have been removed." });
+  };
+
+  const removeAnalysisResult = (idToRemove: string) => {
+    setAnalysisResults(prevResults => prevResults.filter(result => result.id !== idToRemove));
   };
 
 
@@ -212,8 +252,9 @@ export default function InnovationLabPage() {
     );
   }
 
-  const mainSimCurrencySymbol = simState.financials?.currencySymbol || "$";
-  const sandboxCurrencySymbol = simState.sandboxState?.financials?.currencySymbol || "$";
+  const currentContextState = simState.isSandboxing && simState.sandboxState ? simState.sandboxState : simState;
+  const currencySymbol = currentContextState.financials?.currencySymbol || "$";
+
 
   const getSandboxTeamMemberCount = (role: string): number => {
     if(!simState.isSandboxing || !simState.sandboxState) return 0;
@@ -249,16 +290,20 @@ export default function InnovationLabPage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-            <CardTitle className="flex items-center gap-3"><FileText className="h-6 w-6 text-primary"/>Main Simulation Snapshot</CardTitle>
-            <CardDescription>A brief overview of your active digital twin. Full details on the Dashboard.</CardDescription>
+            <CardTitle className="flex items-center gap-3"><FileText className="h-6 w-6 text-primary"/>
+              {simState.isSandboxing ? "Sandbox Simulation Snapshot" : "Main Simulation Snapshot"}
+            </CardTitle>
+            <CardDescription>
+              A brief overview of your {simState.isSandboxing ? "current sandbox experiment" : "active digital twin"}. Full details on the Dashboard.
+            </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
-            <div><strong>Company:</strong> <span className="text-muted-foreground">{simState.isInitialized ? simState.companyName : "N/A"}</span></div>
-            <div><strong>Month:</strong> <span className="text-muted-foreground">{simState.isInitialized ? simState.simulationMonth : "N/A"}</span></div>
-            <div><DollarSign className="inline h-4 w-4 mr-1"/><strong>Cash:</strong> <span className="text-muted-foreground">{simState.isInitialized ? `${mainSimCurrencySymbol}${simState.financials.cashOnHand.toLocaleString()}` : "N/A"}</span></div>
-            <div><Users className="inline h-4 w-4 mr-1"/><strong>Users:</strong> <span className="text-muted-foreground">{simState.isInitialized ? simState.userMetrics.activeUsers.toLocaleString() : "N/A"}</span></div>
-            <div><BarChart3 className="inline h-4 w-4 mr-1"/><strong>Score:</strong> <span className="text-muted-foreground">{simState.isInitialized ? simState.startupScore : "N/A"}/100</span></div>
-            <div><strong>Product Stage:</strong> <span className="text-muted-foreground">{simState.isInitialized ? simState.product.stage : "N/A"}</span></div>
+            <div><strong>Company:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? currentContextState.companyName : "N/A"}</span></div>
+            <div><strong>Month:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? (simState.isSandboxing ? `Sandbox M${simState.sandboxRelativeMonth} (Main M${simState.simulationMonth})` : `Main M${simState.simulationMonth}`) : "N/A"}</span></div>
+            <div><DollarSign className="inline h-4 w-4 mr-1"/><strong>Cash:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? `${currencySymbol}${currentContextState.financials.cashOnHand.toLocaleString()}` : "N/A"}</span></div>
+            <div><Users className="inline h-4 w-4 mr-1"/><strong>Users:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? currentContextState.userMetrics.activeUsers.toLocaleString() : "N/A"}</span></div>
+            <div><BarChart3 className="inline h-4 w-4 mr-1"/><strong>Score:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? currentContextState.startupScore : "N/A"}/100</span></div>
+            <div><strong>Product Stage:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? currentContextState.product.stage : "N/A"}</span></div>
         </CardContent>
       </Card>
       
@@ -284,8 +329,7 @@ export default function InnovationLabPage() {
                 <TestTube2 className="h-5 w-5 text-primary" />
                 <AlertTitle className="text-primary font-semibold">Sandbox Mode Active</AlertTitle>
                 <AlertDescription className="text-primary/90">
-                  You are currently experimenting in a sandboxed copy of your simulation.
-                  Sandbox Relative Month: {simState.sandboxRelativeMonth}
+                  You are currently experimenting. Sandbox Relative Month: {simState.sandboxRelativeMonth}
                 </AlertDescription>
               </Alert>
 
@@ -296,15 +340,15 @@ export default function InnovationLabPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                      <div>
-                      <Label htmlFor="sandbox-marketing-spend" className="text-xs">Marketing Spend ({sandboxCurrencySymbol})</Label>
+                      <Label htmlFor="sandbox-marketing-spend" className="text-xs">Marketing Spend ({currencySymbol})</Label>
                       <Input id="sandbox-marketing-spend" type="number" value={sandboxMarketingSpend} onChange={(e) => setSandboxLocalMarketingSpend(parseInt(e.target.value) || 0)} onBlur={() => simState.setSandboxMarketingSpend(sandboxMarketingSpend)} />
                     </div>
                     <div>
-                      <Label htmlFor="sandbox-rnd-spend" className="text-xs">R&D Spend ({sandboxCurrencySymbol})</Label>
+                      <Label htmlFor="sandbox-rnd-spend" className="text-xs">R&D Spend ({currencySymbol})</Label>
                       <Input id="sandbox-rnd-spend" type="number" value={sandboxRndSpend} onChange={(e) => setSandboxLocalRndSpend(parseInt(e.target.value) || 0)} onBlur={() => simState.setSandboxRndSpend(sandboxRndSpend)} />
                     </div>
                     <div>
-                      <Label htmlFor="sandbox-price" className="text-xs">Price Per User ({sandboxCurrencySymbol})</Label>
+                      <Label htmlFor="sandbox-price" className="text-xs">Price Per User ({currencySymbol})</Label>
                       <Input id="sandbox-price" type="number" value={sandboxPricePerUser} onChange={(e) => setSandboxLocalPricePerUser(parseFloat(e.target.value) || 0)} onBlur={() => simState.setSandboxPricePerUser(sandboxPricePerUser)} />
                     </div>
                     <Separator />
@@ -313,21 +357,21 @@ export default function InnovationLabPage() {
                         <p className="text-xs text-muted-foreground">Adjust your team for this experiment. Changes impact monthly salary costs.</p>
                     </div>
                      <div className="space-y-2">
-                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Engineers ({getSandboxTeamMemberCount("Engineer")}) - Salary: {sandboxCurrencySymbol}{DEFAULT_ENGINEER_SALARY_SANDBOX}/mo</Label>
+                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Engineers ({getSandboxTeamMemberCount("Engineer")}) - Salary: {currencySymbol}{DEFAULT_ENGINEER_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
                              <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", -1)} disabled={getSandboxTeamMemberCount("Engineer") === 0}><MinusCircle className="h-4 w-4"/></Button>
                              <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", 1, DEFAULT_ENGINEER_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
                         </div>
                     </div>
                      <div className="space-y-2">
-                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Marketers ({getSandboxTeamMemberCount("Marketer")}) - Salary: {sandboxCurrencySymbol}{DEFAULT_MARKETER_SALARY_SANDBOX}/mo</Label>
+                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Marketers ({getSandboxTeamMemberCount("Marketer")}) - Salary: {currencySymbol}{DEFAULT_MARKETER_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
                              <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Marketer", -1)} disabled={getSandboxTeamMemberCount("Marketer") === 0}><MinusCircle className="h-4 w-4"/></Button>
                              <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Marketer", 1, DEFAULT_MARKETER_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
                         </div>
                     </div>
                      <div className="space-y-2">
-                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Salespersons ({getSandboxTeamMemberCount("Salesperson")}) - Salary: {sandboxCurrencySymbol}{DEFAULT_SALESPERSON_SALARY_SANDBOX}/mo</Label>
+                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Salespersons ({getSandboxTeamMemberCount("Salesperson")}) - Salary: {currencySymbol}{DEFAULT_SALESPERSON_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
                              <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Salesperson", -1)} disabled={getSandboxTeamMemberCount("Salesperson") === 0}><MinusCircle className="h-4 w-4"/></Button>
                              <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Salesperson", 1, DEFAULT_SALESPERSON_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
@@ -341,10 +385,10 @@ export default function InnovationLabPage() {
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm">
                         <p><strong>Sandbox Month:</strong> {simState.sandboxRelativeMonth}</p>
-                        <p><strong>Cash:</strong> {sandboxCurrencySymbol}{simState.sandboxState?.financials.cashOnHand.toLocaleString()}</p>
+                        <p><strong>Cash:</strong> {currencySymbol}{simState.sandboxState?.financials.cashOnHand.toLocaleString()}</p>
                         <p><strong>Users:</strong> {simState.sandboxState?.userMetrics.activeUsers.toLocaleString()}</p>
-                        <p><strong>Revenue:</strong> {sandboxCurrencySymbol}{simState.sandboxState?.financials.revenue.toLocaleString()}</p>
-                        <p><strong>Burn Rate:</strong> {sandboxCurrencySymbol}{simState.sandboxState?.financials.burnRate.toLocaleString()}</p>
+                        <p><strong>Revenue:</strong> {currencySymbol}{simState.sandboxState?.financials.revenue.toLocaleString()}</p>
+                        <p><strong>Burn Rate:</strong> {currencySymbol}{simState.sandboxState?.financials.burnRate.toLocaleString()}</p>
                          <p className="text-xs text-muted-foreground mt-2">Scores and full history are tracked in the main simulation.</p>
                          <ScrollArea className="h-24 mt-2 border p-2 rounded-md text-xs">
                             <p className="font-semibold mb-1">Sandbox AI Log:</p>
@@ -359,7 +403,7 @@ export default function InnovationLabPage() {
                   {isLoadingSandboxSim ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Zap className="mr-2 h-5 w-5"/>}
                   Simulate 1 Month in Sandbox
                 </Button>
-                <Button onClick={simState.discardSandboxExperiment} variant="outline" className="flex-1">
+                <Button onClick={handleDiscardSandbox} variant="outline" className="flex-1">
                   <Trash2 className="mr-2 h-5 w-5"/> Discard Sandbox & Exit
                 </Button>
               </div>
@@ -383,7 +427,7 @@ export default function InnovationLabPage() {
             <Sparkles className="h-7 w-7" /> AI Strategic "What-If" Analysis
           </CardTitle>
           <CardDescription>
-            Select a pre-defined scenario, generate AI ideas, or describe your own hypothetical situation. The AI will provide analysis based on your main simulation's current state.
+            Select a pre-defined scenario, generate AI ideas, or describe your own hypothetical situation. The AI will provide analysis based on your {simState.isSandboxing ? "current SANDBOX" : "MAIN simulation's"} state.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -395,7 +439,7 @@ export default function InnovationLabPage() {
                 <Select
                 value={selectedPredefinedScenarioId}
                 onValueChange={handlePredefinedScenarioChange}
-                disabled={!simState.isInitialized || isLoadingAnalysis || simState.isSandboxing || isLoadingAiSuggestions}
+                disabled={!currentContextState.isInitialized || isLoadingAnalysis || isLoadingAiSuggestions}
                 >
                 <SelectTrigger id="predefined-scenario" className="mt-2">
                     <SelectValue placeholder="Choose a scenario..." />
@@ -416,7 +460,7 @@ export default function InnovationLabPage() {
                 onClick={handleGenerateAiScenarios} 
                 variant="outline"
                 className="w-full md:w-auto"
-                disabled={!simState.isInitialized || isLoadingAiSuggestions || simState.isSandboxing || isLoadingAnalysis}
+                disabled={!currentContextState.isInitialized || isLoadingAiSuggestions || isLoadingAnalysis}
             >
                 {isLoadingAiSuggestions ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lightbulb className="mr-2 h-4 w-4"/>}
                 Get AI Scenario Ideas
@@ -463,57 +507,83 @@ export default function InnovationLabPage() {
               placeholder="e.g., What if our main supplier increases costs by 25% next quarter? (This will override pre-defined selection)"
               rows={3}
               className="mt-2"
-              disabled={!simState.isInitialized || isLoadingAnalysis || simState.isSandboxing || isLoadingAiSuggestions}
+              disabled={!currentContextState.isInitialized || isLoadingAnalysis || isLoadingAiSuggestions}
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button 
               onClick={() => processScenarioAnalysis('qualitative')} 
-              disabled={!simState.isInitialized || isLoadingAnalysis || !activeScenarioDescription.trim() || simState.isSandboxing || isLoadingAiSuggestions}
+              disabled={!currentContextState.isInitialized || isLoadingAnalysis || !activeScenarioDescription.trim() || isLoadingAiSuggestions}
               className="bg-secondary hover:bg-secondary/90 text-secondary-foreground flex-1"
             >
-              {isLoadingAnalysis && analysisType === 'qualitative' ? (
+              {isLoadingAnalysis && currentAnalysisType === 'qualitative' ? (
                 <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing... </>
               ) : ( <> <Brain className="mr-2 h-4 w-4"/> Analyze Scenario (Qualitative)</> )}
             </Button>
             <Button 
               onClick={() => processScenarioAnalysis('quantitative_forecast')} 
-              disabled={!simState.isInitialized || isLoadingAnalysis || !activeScenarioDescription.trim() || simState.isSandboxing || isLoadingAiSuggestions}
+              disabled={!currentContextState.isInitialized || isLoadingAnalysis || !activeScenarioDescription.trim() || isLoadingAiSuggestions}
               className="bg-accent hover:bg-accent/90 text-accent-foreground flex-1"
             >
-              {isLoadingAnalysis && analysisType === 'quantitative_forecast' ? (
+              {isLoadingAnalysis && currentAnalysisType === 'quantitative_forecast' ? (
                 <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Forecasting... </>
               ) : ( <> <BarChart3 className="mr-2 h-4 w-4"/> Forecast Quantitative Impact</> )}
             </Button>
           </div>
-           {simState.isSandboxing && (
-            <Alert variant="default" className="bg-primary/10 border-primary/30">
-                <Info className="h-4 w-4"/>
-                <AlertTitle>Strategic Analysis Disabled</AlertTitle>
-                <AlertDescription>Strategic "What-If" analysis is based on your main simulation. Please discard the current sandbox experiment to use this feature.</AlertDescription>
-            </Alert>
-           )}
         </CardContent>
       </Card>
 
-      {analysisResult && !isLoadingAnalysis && (
-        <Card className="shadow-xl border-accent/50">
-          <CardHeader>
-            <CardTitle className="text-xl text-accent flex items-center gap-2">
-                <Beaker className="h-5 w-5"/>
-                AI Scenario {analysisType === 'quantitative_forecast' ? 'Quantitative Forecast' : 'Qualitative Analysis'}:
-            </CardTitle>
-            <CardDescription>Insights based on scenario: "{activeScenarioDescription.length > 100 ? activeScenarioDescription.substring(0,97) + "..." : activeScenarioDescription}"</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="max-h-[400px] pr-3">
-                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: analysisResult.replace(/\n\n/g, '<br /><br />').replace(/\n/g, '<br />') }}></div>
-            </ScrollArea>
-          </CardContent>
+      {analysisResults.length > 0 && (
+        <Card className="shadow-xl border-accent/30">
+            <CardHeader className="flex flex-row justify-between items-center">
+                <div>
+                    <CardTitle className="text-xl text-accent flex items-center gap-2">
+                        <Beaker className="h-5 w-5"/>
+                        Scenario Analysis History (Last {MAX_ANALYSIS_RESULTS})
+                    </CardTitle>
+                    <CardDescription>Compare outcomes from different 'what-if' explorations.</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={clearAllAnalyses} disabled={isLoadingAnalysis}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Clear All Analyses
+                </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {analysisResults.map((result) => (
+                    <Card key={result.id} className="shadow-md bg-card/70">
+                        <CardHeader className="pb-3 pt-4 flex flex-row justify-between items-start">
+                            <div>
+                                <CardTitle className="text-lg font-semibold text-primary">
+                                    {result.analysisType === 'qualitative' ? "Qualitative Analysis" : "Quantitative Forecast"}
+                                </CardTitle>
+                                <CardDescription className="text-xs mt-1">
+                                    Scenario: "{result.scenarioDescription.length > 100 ? result.scenarioDescription.substring(0,97) + "..." : result.scenarioDescription}"
+                                </CardDescription>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => removeAnalysisResult(result.id)} className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                                <XCircle className="h-4 w-4"/>
+                                <span className="sr-only">Remove this analysis</span>
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <ScrollArea className="max-h-[250px] pr-3 text-sm">
+                                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: result.analysisText.replace(/\n\n/g, '<br /><br />').replace(/\n/g, '<br />') }}></div>
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+                ))}
+            </CardContent>
         </Card>
+      )}
+      {analysisError && !isLoadingAnalysis && (
+         <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Last Analysis Failed</AlertTitle>
+          <AlertDescription>{analysisError}</AlertDescription>
+        </Alert>
       )}
     </div>
   );
 }
     
     
+        
