@@ -30,11 +30,11 @@ const agentsList: AIAgentProfile[] = [
     icon: Brain,
     iconColorClass: "text-primary-foreground",
     gradientFromClass: "from-primary",
-    gradientToClass: "to-red-400", // A slightly lighter red
+    gradientToClass: "to-red-400", 
     description: "Your central AI strategist. EVE coordinates the specialized AI agents, synthesizes insights, and provides personalized guidance throughout your ForgeSim journey.",
     specialties: ["Strategic Coordination", "Personalized Guidance", "Insight Synthesis", "Simulation Navigation"],
     actionText: "Consult EVE",
-    actionLink: "/app/mentor",
+    actionLink: "/app/mentor?focus=eve-hive-mind",
   },
   {
     id: "alex-accountant",
@@ -48,7 +48,7 @@ const agentsList: AIAgentProfile[] = [
     description: "Alex manages all things financial: budget allocation, cash flow analysis, financial planning, and profitability assessments.",
     specialties: ["Budgeting & Forecasting", "Cash Flow Management", "Runway Calculation", "Financial Planning"],
     actionText: "Ask Alex for Financials",
-    actionLink: "/app/mentor?focus=alex",
+    actionLink: "/app/mentor?focus=alex-accountant",
   },
   {
     id: "maya-marketing-guru",
@@ -62,7 +62,7 @@ const agentsList: AIAgentProfile[] = [
     description: "Maya crafts your go-to-market strategy, advises on brand building, and helps design effective marketing campaigns.",
     specialties: ["Go-To-Market Strategy", "Brand Building", "Campaign Design", "Market Positioning"],
     actionText: "Discuss Marketing with Maya",
-    actionLink: "/app/mentor?focus=maya",
+    actionLink: "/app/mentor?focus=maya-marketing-guru",
   },
   {
     id: "ty-social-media",
@@ -76,7 +76,7 @@ const agentsList: AIAgentProfile[] = [
     description: "Ty specializes in organic and paid social media strategies, drafting mockup campaigns, and analyzing virality potential.",
     specialties: ["Social Media Strategy (Organic & Paid)", "Campaign Mockups", "Virality Prediction", "Community Engagement"],
     actionText: "Plan Social Strategy with Ty",
-    actionLink: "/app/mentor?focus=ty",
+    actionLink: "/app/mentor?focus=ty-social-media",
   },
   {
     id: "zara-focus-group",
@@ -90,7 +90,7 @@ const agentsList: AIAgentProfile[] = [
     description: "Zara simulates customer feedback on your products, features, branding, and marketing messages, providing valuable market validation.",
     specialties: ["Simulated Customer Feedback", "Product Validation", "Brand Perception Analysis", "Concept Testing"],
     actionText: "Get Feedback from Zara",
-    actionLink: "/app/mentor?focus=zara",
+    actionLink: "/app/mentor?focus=zara-focus-group",
   },
   {
     id: "leo-expansion-expert",
@@ -104,7 +104,7 @@ const agentsList: AIAgentProfile[] = [
     description: "Leo provides advice on scaling operations, entering new markets (including international), forming partnerships, and managing associated risks.",
     specialties: ["Market Expansion Strategy", "Operational Scaling", "Internationalization", "Partnership Development", "Risk Assessment"],
     actionText: "Explore Expansion with Leo",
-    actionLink: "/app/mentor?focus=leo",
+    actionLink: "/app/mentor?focus=leo-expansion-expert",
   },
   {
     id: "the-advisor",
@@ -118,7 +118,7 @@ const agentsList: AIAgentProfile[] = [
     description: "The Advisor offers strategic insights on industry best practices, competitive analysis, and overall market positioning to keep you ahead.",
     specialties: ["Industry Best Practices", "Competitive Analysis", "Market Positioning", "Strategic Trend Spotting"],
     actionText: "Seek Industry Advice",
-    actionLink: "/app/mentor?focus=advisor",
+    actionLink: "/app/mentor?focus=the-advisor",
   },
   {
     id: "brand-lab",
@@ -132,7 +132,7 @@ const agentsList: AIAgentProfile[] = [
     description: "The Brand Lab analyzes your branding concepts, product descriptions, and visual identity elements against target audience and market trends.",
     specialties: ["Branding Concept Feedback", "Product Description Analysis", "Visual Identity Review", "Market Trend Alignment"],
     actionText: "Test Branding Concepts",
-    actionLink: "/app/mentor?focus=brandlab",
+    actionLink: "/app/mentor?focus=brand-lab",
   },
 ];
 

@@ -14,7 +14,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore";
 import { useSimulationStore } from "@/store/simulationStore";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+const agentFocusPrompts: Record<string, {name: string, promptStart: string}> = {
+  'eve-hive-mind': { name: "EVE", promptStart: "EVE, I have a general strategic question: "},
+  'alex-accountant': { name: "Alex the Accountant", promptStart: "EVE, I'd like to consult Alex the Accountant regarding my finances. My question is about "},
+  'maya-marketing-guru': { name: "Maya the Marketing Guru", promptStart: "EVE, I'd like to ask Maya the Marketing Guru about marketing strategy. Specifically, "},
+  'ty-social-media': { name: "Ty the Social Media Strategist", promptStart: "EVE, let's talk to Ty the Social Media Strategist about social media plans for "},
+  'zara-focus-group': { name: "Zara, our Focus Group Leader", promptStart: "EVE, I need some customer feedback insights from Zara, our Focus Group Leader, on "},
+  'leo-expansion-expert': { name: "Leo the Expansion Expert", promptStart: "EVE, I'm considering expansion and would like Leo the Expansion Expert's input on "},
+  'the-advisor': { name: "The Advisor", promptStart: "EVE, I'd like to seek advice from The Advisor on industry best practices concerning "},
+  'brand-lab': { name: "the Brand Lab", promptStart: "EVE, I have a branding concept I'd like the Brand Lab to review. It's about "},
+};
+
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
@@ -33,6 +45,8 @@ export function ChatInterface() {
     market: state.market,
   }));
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -41,7 +55,9 @@ export function ChatInterface() {
   }, [messages]);
   
   useEffect(() => {
-    if (messages.length === 0) {
+    const focusAgentId = searchParams.get('focus');
+
+    if (messages.length === 0) { // Only set initial greeting if chat is empty
       const initialGreetingText = getInitialGreeting();
       const initialMessage: ChatMessageType = {
         id: "initial-eve-greeting",
@@ -52,8 +68,15 @@ export function ChatInterface() {
       setMessages([initialMessage]);
       setGuidance(initialGreetingText);
     }
+    
+    if (focusAgentId && agentFocusPrompts[focusAgentId] && messages.length <= 1 && !userInput) {
+      const agentInfo = agentFocusPrompts[focusAgentId];
+      setUserInput(agentInfo.promptStart);
+      // Clear the 'focus' query parameter from URL without reloading
+      router.replace(pathname, { scroll: false }); 
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Removed getInitialGreeting, setGuidance from deps to avoid re-triggering if they change due to store re-renders
+  }, [searchParams, messages.length]); // React to focus param changes or if messages reset
 
 
   const handleSubmit = async (e: FormEvent) => {
@@ -170,7 +193,7 @@ export function ChatInterface() {
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ask EVE..."
+          placeholder="Ask EVE, your AI Hive Mind..."
           className="flex-grow"
           disabled={isLoading}
           aria-label="User input for EVE AI assistant"
