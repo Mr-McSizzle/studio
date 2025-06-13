@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -134,4 +135,64 @@
   }
 }
 
-/* Add the orbit animation here if needed globally, or define in tailwind.config.ts */
+
+@layer utilities {
+  @keyframes orbit-1 {
+    0% { transform: translate(50%, 50%) rotate(0deg) translateX(80px) rotate(0deg); } /* Adjusted for sm screens */
+    100% { transform: translate(50%, 50%) rotate(360deg) translateX(80px) rotate(-360deg); }
+  }
+  @keyframes orbit-2 {
+    0% { transform: translate(50%, 50%) rotate(0deg) translateX(120px) rotate(0deg); } /* Adjusted for sm screens */
+    100% { transform: translate(50%, 50%) rotate(-360deg) translateX(120px) rotate(360deg); }
+  }
+   @keyframes orbit-3 {
+    0% { transform: translate(50%, 50%) rotate(0deg) translateX(160px) rotate(0deg); } /* Adjusted for sm screens */
+    100% { transform: translate(50%, 50%) rotate(360deg) translateX(160px) rotate(-360deg); }
+  }
+
+  .animate-orbit-1 {
+    animation: orbit-1 10s linear infinite;
+    top: 50%;
+    left: 50%;
+    transform-origin: -30px -30px; /* Adjust based on element size and desired orbit center */
+  }
+  .animate-orbit-2 {
+    animation: orbit-2 15s linear infinite;
+    top: 50%;
+    left: 50%;
+    transform-origin: -50px -50px;
+  }
+  .animate-orbit-3 {
+    animation: orbit-3 20s linear infinite;
+    top: 50%;
+    left: 50%;
+    transform-origin: -70px -70px;
+  }
+
+  /* Responsive adjustments for orbit animations */
+  @screen sm {
+    @keyframes orbit-1-sm {
+      0% { transform: translate(50%, 50%) rotate(0deg) translateX(100px) rotate(0deg); }
+      100% { transform: translate(50%, 50%) rotate(360deg) translateX(100px) rotate(-360deg); }
+    }
+    @keyframes orbit-2-sm {
+      0% { transform: translate(50%, 50%) rotate(0deg) translateX(150px) rotate(0deg); }
+      100% { transform: translate(50%, 50%) rotate(-360deg) translateX(150px) rotate(360deg); }
+    }
+    @keyframes orbit-3-sm {
+      0% { transform: translate(50%, 50%) rotate(0deg) translateX(200px) rotate(0deg); }
+      100% { transform: translate(50%, 50%) rotate(360deg) translateX(200px) rotate(-360deg); }
+    }
+    .animate-orbit-1 {
+      animation-name: orbit-1-sm;
+    }
+    .animate-orbit-2 {
+      animation-name: orbit-2-sm;
+    }
+    .animate-orbit-3 {
+      animation-name: orbit-3-sm;
+    }
+  }
+}
+
+    

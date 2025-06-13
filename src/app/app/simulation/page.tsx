@@ -9,10 +9,55 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { SlidersHorizontal, Info, Construction, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle } from "lucide-react";
+import { SlidersHorizontal, Info, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle, Activity } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-const DEFAULT_ENGINEER_SALARY = 5000; 
+const DEFAULT_ENGINEER_SALARY = 5000;
+
+const ConceptualDigitalTwinVisual = () => {
+  return (
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-muted/30 rounded-md p-4 aspect-video">
+      {/* Background Grid/Pattern */}
+      <svg width="100%" height="100%" className="absolute inset-0 z-0 opacity-20">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+      </svg>
+
+      {/* Central Core - representing the business */}
+      <div className="relative z-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary/20 rounded-full flex items-center justify-center animate-subtle-pulse shadow-primary-glow-sm">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/40 rounded-full flex items-center justify-center ">
+          <Activity className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground opacity-75" />
+        </div>
+      </div>
+
+      {/* Orbiting Elements - representing data, market forces, etc. */}
+      {[
+        { size: 'w-8 h-8 sm:w-10 sm:h-10', orbitClass: 'animate-orbit-1', color: 'bg-accent/70', delay: '0s' },
+        { size: 'w-6 h-6 sm:w-8 sm:h-8', orbitClass: 'animate-orbit-2', color: 'bg-secondary/70', delay: '0.5s' },
+        { size: 'w-4 h-4 sm:w-6 sm:h-6', orbitClass: 'animate-orbit-3', color: 'bg-primary/60', delay: '1s' },
+      ].map((orbit, index) => (
+        <div
+          key={index}
+          className={`absolute z-0 ${orbit.size} ${orbit.color} rounded-full opacity-70 shadow-md ${orbit.orbitClass}`}
+          style={{ animationDelay: orbit.delay }}
+        />
+      ))}
+
+      {/* Connecting Lines (Conceptual) - could be more complex with SVG */}
+      <div className="absolute z-0 w-px h-1/3 bg-gradient-to-b from-transparent via-accent/50 to-primary/50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-[120%] rotate-45 opacity-50" />
+      <div className="absolute z-0 w-px h-1/3 bg-gradient-to-b from-transparent via-accent/50 to-primary/50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-[-20%] rotate-[-45deg] opacity-50" />
+      <div className="absolute z-0 h-px w-1/3 bg-gradient-to-r from-transparent via-accent/50 to-primary/50 top-1/2 left-1/2 -translate-y-1/2 -translate-x-[120%] rotate-[25deg] opacity-50" />
+       <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground z-20 bg-background/50 px-2 py-1 rounded">
+        Conceptual Digital Twin Visualization
+      </p>
+    </div>
+  );
+};
+
 
 export default function SimulationPage() {
   const router = useRouter();
@@ -120,20 +165,11 @@ export default function SimulationPage() {
                 <PackageOpen className="h-6 w-6 text-primary" /> Your Business Digital Twin
               </CardTitle>
               <CardDescription>
-                This space will dynamically render your simulated business environment in future updates. For now, make decisions below and see outcomes on your Dashboard after advancing months.
+                A conceptual visualization of your startup's simulated environment. True interactive 3D is a future goal.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="aspect-video bg-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-8">
-                <Construction className="h-16 w-16 mb-4 text-accent" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">Dynamic Visualization Under Development</h3>
-                <p className="text-center">
-                  Interactive visualizations of your digital twin's market, operations, and finances are being built.
-                </p>
-                <p className="text-xs text-center mt-1">
-                  Current key metrics are available on the Dashboard.
-                </p>
-              </div>
+              <ConceptualDigitalTwinVisual />
             </CardContent>
           </Card>
         </div>
@@ -234,3 +270,5 @@ export default function SimulationPage() {
     </div>
   );
 }
+
+    
