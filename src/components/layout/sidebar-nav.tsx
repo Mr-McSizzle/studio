@@ -12,7 +12,8 @@ import {
   PanelLeft,
   Rocket,
   User as UserIcon, 
-  Beaker, // New Icon for Lab
+  Beaker, 
+  Users, // New Icon for AI Agents
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -29,10 +30,11 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/setup", label: "Setup Simulation", icon: Rocket },
+  { href: "/app/agents", label: "AI Agent Team", icon: Users }, // New AI Agents Page
   { href: "/app/mentor", label: "Hive Mind Assistant", icon: MessageSquare },
   { href: "/app/simulation", label: "Decision Controls", icon: Box },
   { href: "/app/strategy", label: "Strategy & Analytics", icon: Lightbulb },
-  { href: "/app/lab", label: "Innovation Lab", icon: Beaker }, // New Lab Page
+  { href: "/app/lab", label: "Innovation Lab", icon: Beaker },
   { href: "/app/gamification", label: "Milestones & Score", icon: Trophy },
   { href: "/app/profile", label: "Founder Profile", icon: UserIcon },
 ];

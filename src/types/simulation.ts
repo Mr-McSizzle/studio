@@ -1,5 +1,14 @@
 
 import {z} from 'genkit';
+import type { LucideProps } from 'lucide-react';
+import type { ComponentType } from 'react';
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp: Date;
+}
 
 export interface FinancialMetrics {
   revenue: number;
@@ -147,6 +156,23 @@ export interface AIInitialConditions {
   initialGoals?: string[] | string;
   companyName?: string;
 }
+
+// AI Agent Profile
+export interface AIAgentProfile {
+  id: string;
+  name: string; // Full name, e.g., "Alex, the Accountant"
+  shortName: string; // e.g., "Alex"
+  title: string; // e.g., "AI Accountant"
+  icon: ComponentType<LucideProps>;
+  iconColorClass: string; // Tailwind class for icon color e.g. "text-primary", "text-accent"
+  gradientFromClass: string; // Tailwind class for button gradient e.g. "from-primary", "from-accent"
+  gradientToClass: string; // Tailwind class for button gradient e.g. "to-secondary", "to-yellow-400"
+  description: string;
+  specialties: string[];
+  actionText: string;
+  actionLink?: string; // e.g., "/app/mentor?focus=alex"
+}
+
 
 // Alex the Accountant Tool
 export const AlexTheAccountantToolInputSchema = z.object({
@@ -359,3 +385,4 @@ export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>
     
 
     
+
