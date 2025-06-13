@@ -313,6 +313,19 @@ export const SimulateMonthOutputSchema = z.object({
 });
 export type SimulateMonthOutput = z.infer<typeof SimulateMonthOutputSchema>;
 
+// Analyze Custom Scenario Flow Schemas
+export const AnalyzeCustomScenarioInputSchema = z.object({
+  simulationStateJSON: z.string().describe("The full current DigitalTwinState of the simulation, serialized as a JSON string."),
+  customScenarioDescription: z.string().describe("A user-defined 'what-if' scenario description (e.g., 'What if a major competitor launches a similar product with 20% lower pricing?')."),
+});
+export type AnalyzeCustomScenarioInput = z.infer<typeof AnalyzeCustomScenarioInputSchema>;
+
+export const AnalyzeCustomScenarioOutputSchema = z.object({
+  analysisText: z.string().describe("The AI's textual analysis of the custom scenario, outlining potential impacts, affected metrics, opportunities/risks, and strategic considerations."),
+});
+export type AnalyzeCustomScenarioOutput = z.infer<typeof AnalyzeCustomScenarioOutputSchema>;
+
+
 // DEPRECATED AccountantTool Schemas - Replaced by AlexTheAccountantTool
 export const AccountantToolInputZodSchema = z.object({}).optional();
 export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;

@@ -6,6 +6,7 @@ import '@/ai/flows/prompt-startup.ts';
 import '@/ai/flows/mentor-conversation.ts';
 import '@/ai/flows/strategy-recommendations.ts';
 import '@/ai/flows/simulate-month-flow.ts'; 
+import '@/ai/flows/analyze-custom-scenario-flow.ts'; // New flow for lab
 
 // Renamed and New AI Agent Tools
 import '@/ai/tools/alex-the-accountant-tool.ts'; 
