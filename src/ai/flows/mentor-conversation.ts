@@ -16,6 +16,9 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { aiAccountantTool } from '@/ai/tools/accountant-tool';
+import { aiMarketingGuruTool } from '@/ai/tools/marketing-guru-tool';
+import { aiOperationsManagerTool } from '@/ai/tools/operations-manager-tool';
+import { aiExpansionExpertTool } from '@/ai/tools/expansion-expert-tool';
 import type { AccountantToolInput } from '@/types/simulation'; 
 
 const MentorConversationInputSchema = z.object({
@@ -37,6 +40,18 @@ const MentorConversationInputSchema = z.object({
   }).optional().describe("Key financial figures from the current simulation state, including currency details."),
   currentSimulationPage: z.string().optional().describe("The current page the user is on in the ForgeSim app, e.g., '/app/dashboard'. Used for context-aware navigation suggestions."),
   isSimulationInitialized: z.boolean().optional().describe("Whether the simulation has been set up."),
+  // Contextual data for other tools - the AI will formulate queries based on this and user input.
+  product: z.object({
+    stage: z.string().optional(), // e.g., 'mvp', 'growth'
+    name: z.string().optional(),
+  }).optional().describe("Current product details."),
+  resources: z.object({
+    marketingSpend: z.number().optional(),
+    team: z.array(z.object({ role: z.string(), count: z.number() })).optional(),
+  }).optional().describe("Current resource allocation."),
+  market: z.object({
+    targetMarketDescription: z.string().optional(),
+  }).optional().describe("Current market focus."),
 });
 
 export type MentorConversationInput = z.infer<typeof MentorConversationInputSchema>;
@@ -70,7 +85,7 @@ const PromptInputSchemaWithProcessedHistory = MentorConversationInputSchema.exte
 
 const prompt = ai.definePrompt({
   name: 'hiveMindConversationPrompt',
-  tools: [aiAccountantTool],
+  tools: [aiAccountantTool, aiMarketingGuruTool, aiOperationsManagerTool, aiExpansionExpertTool],
   input: {
     schema: PromptInputSchemaWithProcessedHistory,
   },
@@ -78,11 +93,12 @@ const prompt = ai.definePrompt({
     schema: MentorConversationOutputSchema,
   },
   system: `You are the AI "Queen Hive Mind" for ForgeSim, a sophisticated business simulation platform. Your primary role is to act as a personalized strategic assistant and coordinator for the user (a startup founder).
-You interface with a team of specialized AI expert agents: an AI Accountant, AI Marketing Guru, AI Social Media Strategist, AI Operations Manager, and an AI Expansion Expert.
+You interface with a team of specialized AI expert agents: an AI Accountant, AI Marketing Guru, AI Operations Manager, and an AI Expansion Expert.
 When responding, synthesize information and insights as if you are actively consulting these agents. For example:
-- "My AI Accountant, after reviewing your numbers, suggests..." (You have access to an 'aiAccountantTool' to get specific financial details if the user's query necessitates it.)
-- "The AI Marketing Guru believes focusing on content marketing could be beneficial because..."
-- "Regarding scaling operations, the AI Operations Manager advises..."
+- "My AI Accountant, after reviewing your numbers, suggests..." (You have access to 'aiAccountantTool' for financial details.)
+- "The AI Marketing Guru believes focusing on content marketing could be beneficial because..." (Use 'aiMarketingGuruTool' if the user asks about marketing strategy, campaigns, or spend effectiveness.)
+- "Regarding scaling operations, the AI Operations Manager advises..." (Use 'aiOperationsManagerTool' for questions on team structure, operational efficiency, or scaling challenges.)
+- "The AI Expansion Expert notes that entering the '{{market.targetMarketDescription}}' market requires..." (Use 'aiExpansionExpertTool' if the user discusses new markets, internationalization, or expansion risks.)
 Your tone should be knowledgeable, insightful, supportive, proactive, and slightly futuristic, befitting an advanced AI coordinator.
 You are a core part of their strategic toolkit within the ForgeSim simulation, guiding them through its complexities.
 
@@ -90,30 +106,36 @@ Current simulation context (if available):
 - Simulation Month: {{simulationMonth}}
 - Is Simulation Initialized: {{isSimulationInitialized}}
 - User is on page: {{currentSimulationPage}}
-- Cash on Hand: {{financials.currencySymbol}}{{financials.cashOnHand}} ({{financials.currencyCode}})
-- Monthly Burn Rate: {{financials.currencySymbol}}{{financials.burnRate}} ({{financials.currencyCode}})
-- Monthly Revenue: {{financials.currencySymbol}}{{financials.revenue}} ({{financials.currencyCode}})
-- Monthly Expenses: {{financials.currencySymbol}}{{financials.expenses}} ({{financials.currencyCode}})
+- Company Financials:
+  - Cash on Hand: {{financials.currencySymbol}}{{financials.cashOnHand}} ({{financials.currencyCode}})
+  - Monthly Burn Rate: {{financials.currencySymbol}}{{financials.burnRate}} ({{financials.currencyCode}})
+  - Monthly Revenue: {{financials.currencySymbol}}{{financials.revenue}} ({{financials.currencyCode}})
+  - Monthly Expenses: {{financials.currencySymbol}}{{financials.expenses}} ({{financials.currencyCode}})
+- Product Details:
+  - Name: {{product.name}}
+  - Stage: {{product.stage}}
+- Resources:
+  - Marketing Spend: {{financials.currencySymbol}}{{resources.marketingSpend}}/month
+  - Team: {{#each resources.team}}{{{count}}}x {{{role}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Market:
+  - Target Market: {{market.targetMarketDescription}}
 
 Analyze the user's input in the context of an ongoing business simulation. Consider their goals, current situation, challenges, and the data they might be referencing. Use the conversation history to maintain context and provide coherent, evolving advice.
 When discussing financial figures, always use the provided currency symbol (e.g., {{financials.currencySymbol}}).
 
 Based on the user's query and the simulation context:
-1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents. If the user's query is about detailed finances, accounting, runway, or profit margins, consider using the 'aiAccountantTool' to get specific calculations or summaries. The tool needs cashOnHand, burnRate, monthlyRevenue, monthlyExpenses, and the currencySymbol to be most effective.
-2. Proactively suggest a next logical step or page within the ForgeSim app if the conversation or user's implied needs strongly indicate it. Your goal is to help the user navigate ForgeSim effectively and make the most of the simulation.
+1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents. 
+   - If the query is about detailed finances, accounting, runway, or profit margins, consider using the 'aiAccountantTool'. It needs cashOnHand, burnRate, monthlyRevenue, monthlyExpenses, and the currencySymbol.
+   - If the query is about marketing strategy, user acquisition, or campaign ideas, use the 'aiMarketingGuruTool'. Formulate a specific query for the tool based on the conversation.
+   - If the query is about scaling, team structure, operational efficiency, or hiring, use the 'aiOperationsManagerTool'. Formulate a specific query for the tool.
+   - If the query is about entering new markets, international expansion, or assessing expansion risks, use the 'aiExpansionExpertTool'. Formulate a specific query for the tool.
+2. Proactively suggest a next logical step or page within the ForgeSim app if the conversation or user's implied needs strongly indicate it. Your goal is to help the user navigate ForgeSim effectively.
    Navigation suggestions should be in the 'suggestedNextAction' field with 'page' and 'label'.
-   Examples for suggestedNextAction:
-   - If they just completed setup (simulationMonth is 0 or 1 and isSimulationInitialized is true): { "page": "/app/dashboard", "label": "View Your Digital Twin Dashboard" }
-   - If they ask about budget decisions or resource allocation: { "page": "/app/simulation", "label": "Adjust Budgets & Resources" }
-   - If they ask for strategic analysis or risk assessment: { "page": "/app/strategy", "label": "Get Strategic Analysis" }
-   - If they are discussing progress or achievements: { "page": "/app/gamification", "label": "Check Milestones & Score" }
-   - If they express uncertainty about what to do next: { "page": "/app/dashboard", "label": "Review Current Status" } or { "page": "/app/mentor", "label": "Continue Chatting" }
-   Only provide a 'suggestedNextAction' if it's a clear, relevant, and helpful next step. Do not force it. If no suggestion is applicable, the 'suggestedNextAction' field can be omitted or set to null. The label should be concise and action-oriented.
+   Only provide a 'suggestedNextAction' if it's a clear, relevant, and helpful next step. Do not force it.
 
 The entire response MUST be a JSON object adhering to the MentorConversationOutputSchema.
-Specifically, include 'response' and optionally 'suggestedNextAction'. If 'suggestedNextAction' is not relevant, it must be null or omitted.
-Ensure the 'response' field contains your complete textual answer to the user.
-Ensure the 'suggestedNextAction' (if provided and not null) has 'page' and 'label'.
+Include 'response' and optionally 'suggestedNextAction'. If 'suggestedNextAction' is not relevant, it must be null or omitted.
+Ensure the 'response' field contains your complete textual answer.
 `,
   prompt: `{{{userInput}}}
   
@@ -148,6 +170,8 @@ const mentorConversationFlow = ai.defineFlow(
       isToolResponse: msg.role === 'tool_response',
     })).reverse();
 
+    // The entire input object is available to the LLM when it decides to call a tool.
+    // The LLM will formulate the specific 'query' for the specialized tools based on this context.
     const flowInputForPrompt = {
       userInput: input.userInput,
       conversationHistory: processedHistoryForPrompt,
@@ -155,18 +179,31 @@ const mentorConversationFlow = ai.defineFlow(
       financials: input.financials,
       currentSimulationPage: input.currentSimulationPage,
       isSimulationInitialized: input.isSimulationInitialized,
+      product: input.product,
+      resources: input.resources,
+      market: input.market,
     };
     
+    // Only explicitly prepare input for tools that need specific structured data
+    // not easily inferable by the LLM from the main input and have a complex input schema.
+    // The accountantTool is an example. The new tools with simple { query: string } inputs
+    // don't need explicit `toolInput` here, as the LLM forms the query itself.
     const accountantToolInputContext: AccountantToolInput | undefined = input.financials ? {
         simulationMonth: input.simulationMonth,
         cashOnHand: input.financials.cashOnHand,
         burnRate: input.financials.burnRate,
         monthlyRevenue: input.financials.revenue,
         monthlyExpenses: input.financials.expenses,
-        currencySymbol: input.financials.currencySymbol, // Pass currency symbol to tool
+        currencySymbol: input.financials.currencySymbol,
     } : undefined;
 
-    const {output} = await prompt(flowInputForPrompt, {toolInput: accountantToolInputContext });
+    // Pass the accountant tool's specific input context if financials are available.
+    // Other tools will derive their simple 'query' input from the main `flowInputForPrompt` context
+    // as decided by the LLM.
+    const toolContexts = accountantToolInputContext ? { [aiAccountantTool.name]: accountantToolInputContext } : {};
+
+    const {output} = await prompt(flowInputForPrompt, {toolInput: toolContexts});
+
 
     if (!output || !output.response) {
       console.error("Hive Mind AI did not return a valid response structure.", output);
