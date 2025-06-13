@@ -53,7 +53,7 @@ export function ChatInterface() {
       setGuidance(initialGreetingText);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages.length]); // Removed getInitialGreeting, setGuidance from deps to avoid re-triggering if they change due to store re-renders
+  }, []); // Removed getInitialGreeting, setGuidance from deps to avoid re-triggering if they change due to store re-renders
 
 
   const handleSubmit = async (e: FormEvent) => {

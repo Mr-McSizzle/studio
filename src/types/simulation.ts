@@ -285,4 +285,9 @@ export const SimulateMonthOutputSchema = z.object({
 });
 export type SimulateMonthOutput = z.infer<typeof SimulateMonthOutputSchema>;
 
+// DEPRECATED AccountantTool Schemas - Replaced by AlexTheAccountantTool
+export const AccountantToolInputZodSchema = z.object({}).optional();
+export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;
+export const AccountantToolOutputZodSchema = z.object({}).optional();
+export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>;
     

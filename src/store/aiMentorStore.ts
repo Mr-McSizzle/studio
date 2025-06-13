@@ -10,7 +10,7 @@ interface SuggestedNextAction {
 interface AiMentorState {
   lastMessage: string | null;
   suggestedNextAction: SuggestedNextAction | null;
-  setGuidance: (message: string, suggestion?: SuggestedNextAction) => void;
+  setGuidance: (message: string, suggestion?: SuggestedNextAction | null) => void;
   clearGuidance: () => void;
   clearSuggestion: () => void;
   getInitialGreeting: () => string; // Function to generate greeting
@@ -19,7 +19,7 @@ interface AiMentorState {
 export const useAiMentorStore = create<AiMentorState>((set, get) => ({
   lastMessage: null,
   suggestedNextAction: null,
-  setGuidance: (message, suggestion) => set({ lastMessage: message, suggestedNextAction: suggestion }),
+  setGuidance: (message, suggestion = null) => set({ lastMessage: message, suggestedNextAction: suggestion }),
   clearGuidance: () => set({ lastMessage: null, suggestedNextAction: null }),
   clearSuggestion: () => set(state => ({ ...state, suggestedNextAction: null })),
   getInitialGreeting: () => {

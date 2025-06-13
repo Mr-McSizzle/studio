@@ -2,37 +2,41 @@
 'use server';
 /**
  * @fileOverview An AI tool providing advice on operations, scaling, and team structure.
+ * This tool is being deprecated and its functionality will be covered by EVE or other specialized agents.
  *
  * - aiOperationsManagerTool - The Genkit tool definition.
  */
 
 import {ai} from '@/ai/genkit';
-import { 
-  OperationsManagerToolInputSchema, 
-  type OperationsManagerToolInput, 
-  OperationsManagerToolOutputSchema,
-  type OperationsManagerToolOutput
-} from '@/types/simulation';
+import { z } from 'genkit';
+
+// Defining minimal Zod schemas for deprecation, as the original schemas in types/simulation.ts might be removed.
+const DeprecatedOperationsManagerToolInputSchema = z.object({
+  query: z.string().describe("A query about business operations."),
+}).optional();
+type DeprecatedOperationsManagerToolInput = z.infer<typeof DeprecatedOperationsManagerToolInputSchema>;
+
+const DeprecatedOperationsManagerToolOutputSchema = z.object({
+  advice: z.string().describe("Operational advice."),
+});
+type DeprecatedOperationsManagerToolOutput = z.infer<typeof DeprecatedOperationsManagerToolOutputSchema>;
+
 
 export const aiOperationsManagerTool = ai.defineTool(
   {
     name: 'aiOperationsManagerTool',
-    description: 'Provides specialized advice on business operations, team structure, scaling processes, and resource allocation efficiency. Use this when the user asks for the AI Operations Manager\'s opinion or guidance on operational topics.',
-    inputSchema: OperationsManagerToolInputSchema,
-    outputSchema: OperationsManagerToolOutputSchema,
+    description: 'DEPRECATED: This tool for operations management is no longer active. Operational advice is now integrated into EVE or covered by other specialized agents like Leo (Expansion Expert).',
+    inputSchema: DeprecatedOperationsManagerToolInputSchema,
+    outputSchema: DeprecatedOperationsManagerToolOutputSchema,
   },
-  async (input: OperationsManagerToolInput): Promise<OperationsManagerToolOutput> => {
-    let advice = "The AI Operations Manager has analyzed your situation. ";
-    if (input.query.toLowerCase().includes("scaling")) {
-      advice += "When scaling, it's crucial to ensure your foundational processes can handle increased load. This includes customer support, infrastructure, and internal communication. Consider automating repetitive tasks and clearly defining roles and responsibilities within the team. Phased scaling with monitoring is often safer than rapid, uncontrolled growth.";
-    } else if (input.query.toLowerCase().includes("team") || input.query.toLowerCase().includes("hiring")) {
-      advice += "For team structure, ensure you have the right roles to support your current product stage and growth trajectory. Hiring should be strategic; consider the cost versus the expected value a new team member brings. For early-stage startups, versatile individuals are often more valuable than hyper-specialized ones, unless a critical skill gap exists.";
-    } else if (input.query.toLowerCase().includes("efficiency") || input.query.toLowerCase().includes("optimize")) {
-      advice += "To optimize operations, regularly review your workflows for bottlenecks. Implement feedback loops from both your team and customers. Technology can often automate or streamline processes, freeing up human resources for higher-value tasks. Key Performance Indicators (KPIs) for operational efficiency should be tracked.";
+  async (input: DeprecatedOperationsManagerToolInput | undefined): Promise<DeprecatedOperationsManagerToolOutput> => {
+    let advice = "The AI Operations Manager tool is deprecated. ";
+    if(input?.query) {
+      advice += `For your query about "${input.query}", operational advice is now integrated into EVE's general guidance or handled by specialists like Leo, the Expansion Expert, if it relates to scaling. Please direct your questions to EVE.`;
     } else {
-      advice = "The AI Operations Manager advises: Focus on building scalable systems from the outset, even if they seem like overkill initially. Document key processes and clearly define team roles. As you grow, regularly reassess your operational capacity and make proactive adjustments rather than reactive ones.";
+      advice += "Operational advice is now integrated into EVE's general guidance or handled by specialists like Leo, the Expansion Expert, if it relates to scaling. Please direct your questions to EVE.";
     }
-    
     return { advice };
   }
 );
+
