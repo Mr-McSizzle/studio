@@ -147,7 +147,7 @@ export interface DigitalTwinState {
   keyEvents: StructuredKeyEvent[];
   rewards: Reward[];
   initialGoals: string[];
-  missions: Mission[]; 
+  missions: Mission[];
   suggestedChallenges: string[];
   isInitialized: boolean;
   currentAiReasoning: string | null;
@@ -161,9 +161,9 @@ export interface DigitalTwinState {
   historicalChurnRate: HistoricalDataPoint[];
   historicalProductProgress: HistoricalDataPoint[];
 
-  sandboxState: DigitalTwinState | null; 
-  isSandboxing: boolean; 
-  sandboxRelativeMonth: number; 
+  sandboxState: DigitalTwinState | null;
+  isSandboxing: boolean;
+  sandboxRelativeMonth: number;
 }
 
 export interface AIInitialConditions {
@@ -171,7 +171,7 @@ export interface AIInitialConditions {
     estimatedSize?: number;
     growthRate?: number;
     keySegments?: string[] | string;
-    targetMarketDescription?: string; 
+    targetMarketDescription?: string;
   };
   resources?: {
     initialFunding?: number | string;
@@ -180,16 +180,16 @@ export interface AIInitialConditions {
     marketingSpend?: number | string;
     rndSpend?: number | string;
   };
-  productService?: { 
+  productService?: {
     initialDevelopmentStage?: string;
     name?: string;
     pricePerUser?: number | string;
-    features?: string[]; 
+    features?: string[];
   };
   financials?: {
     startingCash?: number | string;
     estimatedInitialMonthlyBurnRate?: number | string;
-    currencyCode?: string; 
+    currencyCode?: string;
   };
   initialGoals?: string[] | string;
   companyName?: string;
@@ -198,17 +198,17 @@ export interface AIInitialConditions {
 // AI Agent Profile
 export interface AIAgentProfile {
   id: string;
-  name: string; 
-  shortName: string; 
-  title: string; 
+  name: string;
+  shortName: string;
+  title: string;
   icon: ComponentType<LucideProps>;
-  iconColorClass: string; 
-  gradientFromClass: string; 
-  gradientToClass: string; 
+  iconColorClass: string;
+  gradientFromClass: string;
+  gradientToClass: string;
   description: string;
   specialties: string[];
   actionText: string;
-  actionLink?: string; 
+  actionLink?: string;
 }
 
 // Snapshot type for saving simulation states
@@ -369,6 +369,14 @@ const AIKeyEventSchema = z.object({
   description: z.string().describe("A concise description of the event. Do NOT include impact text like '(Positive)' here; use the 'impact' field instead."),
   category: KeyEventCategoryEnum.describe("The most relevant category for this event (e.g., Financial, Product, Market, Team, User, General)."),
   impact: KeyEventImpactEnum.describe("The overall impact of the event (Positive, Negative, or Neutral).")
+});
+
+// Define ExpenseBreakdownSchema before it's used
+export const ExpenseBreakdownSchema = z.object({
+  salaries: z.number().describe("Total salary expenses for the month."),
+  marketing: z.number().describe("Total marketing expenses for the month."),
+  rnd: z.number().describe("Total R&D expenses for the month."),
+  operational: z.number().describe("Other operational expenses for the month."),
 });
 
 export const SimulateMonthOutputSchema = z.object({
@@ -554,5 +562,3 @@ export const CompetitorAnalysisOutputSchema = z.object({
   strategicRecommendations: z.array(z.string()).describe("High-level strategic recommendations for the user's startup to navigate the competitive environment."),
 });
 export type CompetitorAnalysisOutput = z.infer<typeof CompetitorAnalysisOutputSchema>;
-
-
