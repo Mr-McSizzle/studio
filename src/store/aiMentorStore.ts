@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import type { ChatMessage as ChatMessageType } from '@/types'; // Ensure ChatMessageType is imported
+import type { ChatMessage as ChatMessageType } from '@/types'; 
 import { useSimulationStore } from './simulationStore';
 
 interface SuggestedNextAction {
@@ -8,12 +8,14 @@ interface SuggestedNextAction {
   label: string;
 }
 
+const EVE_MAIN_CHAT_CONTEXT_ID = "eve_main_chat";
+
 interface AiMentorState {
-  lastMessageText: string | null; // Renamed to avoid confusion with messages array
+  lastMessageText: string | null; 
   suggestedNextAction: SuggestedNextAction | null;
-  messages: ChatMessageType[];
-  setGuidance: (messageContent: string, suggestion?: SuggestedNextAction | null) => void;
-  addMessage: (message: ChatMessageType) => void;
+  messages: ChatMessageType[]; // This will store ALL messages across all contexts
+  setGuidance: (messageContent: string, agentContext: string, suggestion?: SuggestedNextAction | null) => void;
+  addMessage: (message: ChatMessageType) => void; // Message object should now include agentContextId
   initializeGreeting: (focusedAgentId?: string, focusedAgentName?: string) => void;
   clearSuggestion: () => void;
   clearChatHistory: () => void;
@@ -23,28 +25,31 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
   lastMessageText: null,
   suggestedNextAction: null,
   messages: [],
-  setGuidance: (messageContent, suggestion = null) => {
+  setGuidance: (messageContent, agentContext, suggestion = null) => {
     const newAssistantMessage: ChatMessageType = {
       id: `assistant-${Date.now()}`,
       role: "assistant",
       content: messageContent,
       timestamp: new Date(),
+      agentContextId: agentContext, // Tag with current context
     };
     set(state => ({
       messages: [...state.messages, newAssistantMessage],
-      lastMessageText: messageContent,
+      lastMessageText: messageContent, // Update lastMessageText for the guidance bar
       suggestedNextAction: suggestion,
     }));
   },
-  addMessage: (message: ChatMessageType) => {
+  addMessage: (message: ChatMessageType) => { // Expect message to have agentContextId set by ChatInterface
     set(state => ({ messages: [...state.messages, message] }));
-    // If the message being added is from the assistant, also update lastMessageText
-    if (message.role === 'assistant') {
+    if (message.role === 'assistant') { // Though usually setGuidance will handle this
       set({ lastMessageText: message.content });
     }
   },
   initializeGreeting: (focusedAgentId?: string, focusedAgentName?: string) => {
-    if (get().messages.length > 0) return; // Don't add greeting if history exists
+    const currentAgentContext = focusedAgentId || EVE_MAIN_CHAT_CONTEXT_ID;
+    const existingMessagesForContext = get().messages.filter(msg => msg.agentContextId === currentAgentContext);
+
+    if (existingMessagesForContext.length > 0) return; 
 
     const simState = useSimulationStore.getState();
     const currencyInfo = simState.isInitialized
@@ -59,12 +64,16 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
     }
 
     const initialMessage: ChatMessageType = {
-      id: "initial-eve-greeting-" + (focusedAgentId || "general"),
+      id: `initial-eve-greeting-${currentAgentContext}-${Date.now()}`,
       role: "assistant",
       content: initialMessageText,
       timestamp: new Date(),
+      agentContextId: currentAgentContext, // Tag greeting with its context
     };
-    set({ messages: [initialMessage], lastMessageText: initialMessageText });
+    set(state => ({ 
+        messages: [...state.messages, initialMessage], 
+        lastMessageText: initialMessage.content // Also update for guidance bar if it's the very first message overall
+    }));
   },
   clearSuggestion: () => set(state => ({ ...state, suggestedNextAction: null })),
   clearChatHistory: () => set({ messages: [], lastMessageText: null, suggestedNextAction: null }),

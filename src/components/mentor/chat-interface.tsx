@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { FormEvent } from "react";
 import { mentorConversation, type MentorConversationInput, type MentorConversationOutput } from "@/ai/flows/mentor-conversation";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,10 @@ interface ChatInterfaceProps {
   focusedAgentName?: string;
 }
 
+const EVE_MAIN_CHAT_CONTEXT_ID = "eve_main_chat";
+
 export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfaceProps) {
-  const { messages, addMessage, setGuidance, initializeGreeting } = useAiMentorStore();
+  const { messages: allMessages, addMessage, setGuidance, initializeGreeting } = useAiMentorStore();
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -38,15 +40,21 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
   }));
   const pathname = usePathname();
 
+  const currentChatContext = useMemo(() => focusedAgentId || EVE_MAIN_CHAT_CONTEXT_ID, [focusedAgentId]);
+
+  const displayedMessages = useMemo(() => {
+    return allMessages.filter(msg => msg.agentContextId === currentChatContext);
+  }, [allMessages, currentChatContext]);
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [displayedMessages]); // Scroll when displayed messages for the current context change
 
   useEffect(() => {
-    initializeGreeting(focusedAgentId, focusedAgentName);
-    if (focusedAgentId && focusedAgentName && messages.length <=1) { // <=1 to account for potentially just the greeting
+    initializeGreeting(focusedAgentId, focusedAgentName); // Store handles context-specific greeting logic
+    if (focusedAgentId && focusedAgentName && displayedMessages.length <= 1) { 
        setUserInput(`My question for ${focusedAgentName} is about `);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,25 +66,26 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     if (!userInput.trim() || isLoading) return;
 
     const newUserMessage: ChatMessageType = {
-      id: `user-${Date.now()}`,
+      id: `user-${currentChatContext}-${Date.now()}`,
       role: "user",
       content: userInput.trim(),
       timestamp: new Date(),
+      agentContextId: currentChatContext, // Tag user message with current context
     };
-    addMessage(newUserMessage); // Add user message to store
-    const currentInput = userInput; // Capture before clearing
+    addMessage(newUserMessage); 
+    const currentInput = userInput; 
     setUserInput("");
     setIsLoading(true);
 
     try {
-      // Use messages from the store for conversation history
+      // EVE gets the FULL conversation history from all contexts for maximum awareness
       const conversationHistoryForAI = [...useAiMentorStore.getState().messages].map(msg => ({
-        role: msg.role as 'user' | 'assistant' | 'tool_response',
+        role: msg.role as 'user' | 'assistant' | 'tool_response', // Ensure role is correctly typed
         content: msg.content
       }));
 
       const mentorInput: MentorConversationInput = {
-        userInput: currentInput.trim(), // Use the captured input
+        userInput: currentInput.trim(),
         conversationHistory: conversationHistoryForAI,
         simulationMonth: simState.isInitialized ? simState.simulationMonth : undefined,
         financials: simState.isInitialized ? {
@@ -106,9 +115,9 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
       };
 
       const result: MentorConversationOutput = await mentorConversation(mentorInput);
-
-      // setGuidance in the store will add the assistant's message to the store
-      setGuidance(result.response, result.suggestedNextAction);
+      
+      // EVE's response is tagged with the current chat context for UI display
+      setGuidance(result.response, currentChatContext, result.suggestedNextAction);
 
     } catch (error) {
       console.error("Error getting EVE's response:", error);
@@ -118,12 +127,13 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
         variant: "destructive",
       });
       const errorResponseMessage: ChatMessageType = {
-        id: `error-${Date.now()}`,
-        role: "system", // System message for errors
+        id: `error-${currentChatContext}-${Date.now()}`,
+        role: "system",
         content: "Sorry, I encountered an error connecting to EVE. Please try your request again.",
         timestamp: new Date(),
+        agentContextId: currentChatContext, // Tag error message with current context
       };
-      addMessage(errorResponseMessage); // Add error message to store
+      addMessage(errorResponseMessage); 
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +147,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     <div className="flex flex-col h-[calc(100vh-20rem)] max-h-[700px] bg-card shadow-lg rounded-lg">
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-2">
-          {messages.map((msg) => (
+          {displayedMessages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
           ))}
           {isLoading && (
