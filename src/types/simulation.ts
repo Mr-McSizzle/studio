@@ -115,6 +115,10 @@ export interface DigitalTwinState {
   historicalBurnRate: HistoricalDataPoint[];
   historicalNetProfitLoss: HistoricalDataPoint[];
   historicalExpenseBreakdown: ExpenseBreakdownDataPoint[];
+  historicalCAC: HistoricalDataPoint[];
+  historicalChurnRate: HistoricalDataPoint[];
+  historicalProductProgress: HistoricalDataPoint[];
+
 
   // Sandbox specific state
   sandboxState: DigitalTwinState | null; // Holds a copy of the state for sandboxing
@@ -531,3 +535,4 @@ export const CompetitorAnalysisOutputSchema = z.object({
   strategicRecommendations: z.array(z.string()).describe("High-level strategic recommendations for the user's startup to navigate the competitive environment."),
 });
 export type CompetitorAnalysisOutput = z.infer<typeof CompetitorAnalysisOutputSchema>;
+

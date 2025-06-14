@@ -6,7 +6,7 @@ import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, TrendingDown, PiggyBank, Brain, Loader2 } from "lucide-react";
+import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, TrendingDown, PiggyBank, Brain, Loader2, Activity, PercentSquare, LineChart } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,15 +18,19 @@ export default function DashboardPage() {
     simulationMonth,
     financials,
     userMetrics,
+    product,
     startupScore,
     keyEvents,
     isInitialized,
-    currentAiReasoning, // Get AI reasoning
+    currentAiReasoning, 
     historicalRevenue,
     historicalUserGrowth,
     historicalBurnRate,
     historicalNetProfitLoss,
     historicalExpenseBreakdown,
+    historicalCAC,
+    historicalChurnRate,
+    historicalProductProgress,
     advanceMonth,
     resetSimulation,
   } = useSimulationStore();
@@ -114,7 +118,7 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -173,7 +177,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{isInitialized ? startupScore : "0"}/100</div>
             <p className="text-xs text-muted-foreground">
-              Based on simulation progress
+              Overall health & progress
             </p>
           </CardContent>
         </Card>
@@ -185,7 +189,7 @@ export default function DashboardPage() {
             <CardTitle className="font-headline flex items-center gap-2">
               <Brain className="h-6 w-6 text-primary"/> Hive Mind: Simulation Log
             </CardTitle>
-            <CardDescription>AI's real-time notes on the simulation process.</CardDescription>
+            <CardDescription>AI's real-time notes on the simulation process for month {simulationMonth}.</CardDescription>
           </CardHeader>
           <CardContent className="min-h-[60px]">
             {currentAiReasoning && currentAiReasoning.includes("simulating month...") ? (
@@ -201,11 +205,17 @@ export default function DashboardPage() {
       </div>
 
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-8">
-        <PerformanceChart title="Simulated Monthly Revenue" description={`Tracking revenue trends in ${currencySymbol} (${financials.currencyCode})`} dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
-        <PerformanceChart title="Simulated User Growth" description="Tracking user acquisition in your digital twin." dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3 mt-8">
+        <PerformanceChart title="Simulated Monthly Revenue" description={`Revenue trends in ${currencySymbol} (${financials.currencyCode})`} dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
+        <PerformanceChart title="Simulated User Growth" description="User acquisition trends." dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
         <PerformanceChart title="Monthly Burn Rate" description={`Cash burned per month in ${currencySymbol}`} dataKey="value" data={isInitialized ? historicalBurnRate : []} />
-        <PerformanceChart title="Monthly Net Profit/Loss" description={`Net financial result per month in ${currencySymbol}`} dataKey="value" data={isInitialized ? historicalNetProfitLoss : []} />
+        <PerformanceChart title="Monthly Net Profit/Loss" description={`Net financial result in ${currencySymbol}`} dataKey="value" data={isInitialized ? historicalNetProfitLoss : []} />
+        <PerformanceChart title="Customer Acquisition Cost (CAC)" description={`Avg. cost to acquire a new user in ${currencySymbol}`} dataKey="value" data={isInitialized ? historicalCAC : []} />
+        <PerformanceChart title="Monthly Churn Rate (%)" description="Percentage of users lost per month." dataKey="value" data={isInitialized ? historicalChurnRate : []} />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1 mt-8"> {/* Changed to 1 column for better fit */}
+        <PerformanceChart title={`Product: ${product.name} (${product.stage})`} description="Development progress towards next stage (0-100%)." dataKey="value" data={isInitialized ? historicalProductProgress : []} />
       </div>
       
       <div className="mt-8">
@@ -214,7 +224,7 @@ export default function DashboardPage() {
       
       <Card className="mt-8 shadow-lg">
         <CardHeader>
-          <CardTitle>Key Simulation Events</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Activity className="h-6 w-6 text-primary"/>Key Simulation Events</CardTitle>
            <CardDescription>Chronological log of major occurrences in your simulation.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -234,3 +244,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

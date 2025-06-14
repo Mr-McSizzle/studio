@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot } from '@/types/simulation';
+import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission } from '@/types/simulation';
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
 
@@ -20,7 +20,7 @@ const getCurrencySymbol = (code?: string): string => {
   return map[code.toUpperCase()] || code;
 };
 
-const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth'> = {
+const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'missions'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -36,8 +36,8 @@ const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'histor
   userMetrics: {
     activeUsers: 0,
     newUserAcquisitionRate: 0,
-    customerAcquisitionCost: 20,
-    churnRate: 0.05,
+    customerAcquisitionCost: 20, // Default initial CAC
+    churnRate: 0.05, // Default initial churn rate (5%)
     monthlyRecurringRevenue: 0,
   },
   product: {
@@ -74,6 +74,10 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
   historicalBurnRate: [],
   historicalNetProfitLoss: [],
   historicalExpenseBreakdown: [],
+  historicalCAC: [],
+  historicalChurnRate: [],
+  historicalProductProgress: [],
+  missions: [],
   currentAiReasoning: "AI log awaiting initialization.",
   sandboxState: null,
   isSandboxing: false,
@@ -97,7 +101,7 @@ interface SimulationActions {
   adjustSandboxTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => void;
   simulateMonthInSandbox: () => Promise<void>;
   discardSandboxExperiment: () => void;
-  applySandboxDecisionsToMain: () => void; // New action
+  applySandboxDecisionsToMain: () => void;
   // Snapshot actions
   saveCurrentSimulation: (name: string) => DigitalTwinState | null;
   loadSimulation: (snapshotId: string) => DigitalTwinState | null;
@@ -114,9 +118,6 @@ const parseMonetaryValue = (value: string | number | undefined): number => {
 };
 
 const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: SimulationSnapshot[] }): DigitalTwinState => {
-  // Helper to get all fields of DigitalTwinState from the full store state
-  // Explicitly list all properties of DigitalTwinState to ensure we get a clean object
-  // without 'savedSimulations' or actions.
   return {
     simulationMonth: state.simulationMonth,
     companyName: state.companyName,
@@ -138,7 +139,10 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     historicalBurnRate: state.historicalBurnRate,
     historicalNetProfitLoss: state.historicalNetProfitLoss,
     historicalExpenseBreakdown: state.historicalExpenseBreakdown,
-    sandboxState: state.sandboxState, // This will be null when saving main, or current sandbox if copying
+    historicalCAC: state.historicalCAC,
+    historicalChurnRate: state.historicalChurnRate,
+    historicalProductProgress: state.historicalProductProgress,
+    sandboxState: state.sandboxState,
     isSandboxing: state.isSandboxing,
     sandboxRelativeMonth: state.sandboxRelativeMonth,
   };
@@ -309,11 +313,15 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           suggestedChallenges: processedSuggestedChallenges,
           keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month.`],
           rewards: [],
+          missions: [],
           historicalRevenue: [{ month: "M0", revenue: 0, desktop: 0 }],
           historicalUserGrowth: [{ month: "M0", users: 0, desktop: 0 }],
           historicalBurnRate: [{ month: "M0", value: finalInitialBurnRate, desktop: finalInitialBurnRate }],
           historicalNetProfitLoss: [{ month: "M0", value: (0 - finalInitialExpenses), desktop: (0 - finalInitialExpenses) }],
           historicalExpenseBreakdown: [{ month: "M0", ...initialExpenseBreakdownM0 }],
+          historicalCAC: [{ month: "M0", value: initialBaseState.userMetrics.customerAcquisitionCost, desktop: initialBaseState.userMetrics.customerAcquisitionCost }],
+          historicalChurnRate: [{ month: "M0", value: initialBaseState.userMetrics.churnRate * 100, desktop: initialBaseState.userMetrics.churnRate * 100 }],
+          historicalProductProgress: [{ month: "M0", value: 0, desktop: 0 }],
           isInitialized: true,
           simulationMonth: 0,
           startupScore: 10,
@@ -321,7 +329,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           sandboxState: null,
           isSandboxing: false,
           sandboxRelativeMonth: 0,
-          savedSimulations: state.savedSimulations, // Preserve existing snapshots
+          savedSimulations: state.savedSimulations, 
         }));
       },
 
@@ -415,22 +423,27 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           const aiOutput: SimulateMonthOutput = await simulateMonthFlow(simulateMonthInput);
 
           set(state => {
-            // Create a mutable copy of the current active simulation state
             let newState: DigitalTwinState = JSON.parse(JSON.stringify(extractActiveSimState(state))); 
 
             newState.simulationMonth = aiOutput.simulatedMonthNumber;
             newState.financials.revenue = aiOutput.calculatedRevenue;
             newState.financials.expenses = aiOutput.calculatedExpenses;
             newState.financials.profit = newState.financials.revenue - newState.financials.expenses;
-            newState.financials.cashOnHand = state.financials.cashOnHand + newState.financials.profit; // cashOnHand update from ORIGINAL state.financials.cashOnHand
+            newState.financials.cashOnHand = state.financials.cashOnHand + newState.financials.profit; 
             const currentMonthBurnRate = Math.max(0, newState.financials.expenses - newState.financials.revenue);
             newState.financials.burnRate = currentMonthBurnRate;
 
             newState.userMetrics.activeUsers = aiOutput.updatedActiveUsers;
             newState.userMetrics.newUserAcquisitionRate = aiOutput.newUserAcquisition;
             newState.userMetrics.monthlyRecurringRevenue = aiOutput.updatedActiveUsers * newState.product.pricePerUser;
+            
+            // Update CAC and Churn based on current state for charting *this* month's applied values
+            const currentMonthCAC = aiOutput.newUserAcquisition > 0 ? state.resources.marketingSpend / aiOutput.newUserAcquisition : state.userMetrics.customerAcquisitionCost;
+            newState.userMetrics.customerAcquisitionCost = currentMonthCAC; // This might be a decision for the AI to evolve too.
+            // newState.userMetrics.churnRate remains as set by user/AI for this month
 
-            newState.product.developmentProgress = state.product.developmentProgress + aiOutput.productDevelopmentDelta; // progress update from ORIGINAL state.product.developmentProgress
+
+            newState.product.developmentProgress = state.product.developmentProgress + aiOutput.productDevelopmentDelta; 
 
             if (aiOutput.newProductStage && aiOutput.newProductStage !== newState.product.stage) {
               newState.product.stage = aiOutput.newProductStage;
@@ -459,24 +472,27 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
                 newState.keyEvents.push(`Critical: Ran out of cash! Simulation unstable.`);
             }
 
-            const newRevenueData: RevenueDataPoint = { month: `M${newState.simulationMonth}`, revenue: newState.financials.revenue, desktop: newState.financials.revenue };
-            newState.historicalRevenue.push(newRevenueData);
+            const monthLabel = `M${newState.simulationMonth}`;
+            newState.historicalRevenue.push({ month: monthLabel, revenue: newState.financials.revenue, desktop: newState.financials.revenue });
+            newState.historicalUserGrowth.push({ month: monthLabel, users: newState.userMetrics.activeUsers, desktop: newState.userMetrics.activeUsers });
+            newState.historicalBurnRate.push({ month: monthLabel, value: currentMonthBurnRate, desktop: currentMonthBurnRate });
+            newState.historicalNetProfitLoss.push({ month: monthLabel, value: newState.financials.profit, desktop: newState.financials.profit });
+            newState.historicalCAC.push({ month: monthLabel, value: currentMonthCAC, desktop: currentMonthCAC });
+            newState.historicalChurnRate.push({ month: monthLabel, value: newState.userMetrics.churnRate * 100, desktop: newState.userMetrics.churnRate * 100 });
+            newState.historicalProductProgress.push({ month: monthLabel, value: newState.product.developmentProgress, desktop: newState.product.developmentProgress });
+
+
             if (newState.historicalRevenue.length > 12) newState.historicalRevenue.shift();
-
-            const newUserGrowthData: UserDataPoint = { month: `M${newState.simulationMonth}`, users: newState.userMetrics.activeUsers, desktop: newState.userMetrics.activeUsers };
-            newState.historicalUserGrowth.push(newUserGrowthData);
             if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
-
-            const newBurnRateData: HistoricalDataPoint = { month: `M${newState.simulationMonth}`, value: currentMonthBurnRate, desktop: currentMonthBurnRate };
-            newState.historicalBurnRate.push(newBurnRateData);
             if (newState.historicalBurnRate.length > 12) newState.historicalBurnRate.shift();
-
-            const newNetProfitLossData: HistoricalDataPoint = { month: `M${newState.simulationMonth}`, value: newState.financials.profit, desktop: newState.financials.profit };
-            newState.historicalNetProfitLoss.push(newNetProfitLossData);
             if (newState.historicalNetProfitLoss.length > 12) newState.historicalNetProfitLoss.shift();
+            if (newState.historicalCAC.length > 12) newState.historicalCAC.shift();
+            if (newState.historicalChurnRate.length > 12) newState.historicalChurnRate.shift();
+            if (newState.historicalProductProgress.length > 12) newState.historicalProductProgress.shift();
+
 
             if (aiOutput.expenseBreakdown) {
-                const newExpenseBreakdownData: ExpenseBreakdownDataPoint = { month: `M${newState.simulationMonth}`, ...aiOutput.expenseBreakdown };
+                const newExpenseBreakdownData: ExpenseBreakdownDataPoint = { month: monthLabel, ...aiOutput.expenseBreakdown };
                 newState.historicalExpenseBreakdown.push(newExpenseBreakdownData);
                 if (newState.historicalExpenseBreakdown.length > 12) newState.historicalExpenseBreakdown.shift();
             } else {
@@ -495,7 +511,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
             newState.currentAiReasoning = aiOutput.aiReasoning || "AI completed simulation. Reasoning not explicitly provided.";
             
-            // Merge newState back into the overall store state, preserving savedSimulations
             return { ...state, ...newState };
           });
 
@@ -541,25 +556,27 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             sandboxState: null,
             isSandboxing: false,
             sandboxRelativeMonth: 0,
-            savedSimulations: [], // Clear saved simulations on full reset too
+            savedSimulations: [], 
         }));
       },
 
-      // Sandbox actions
       startSandboxExperiment: () => set(state => {
         if (!state.isInitialized) return state;
         const activeSimState = extractActiveSimState(state);
         const sandboxCopy = JSON.parse(JSON.stringify(activeSimState)) as DigitalTwinState;
         
-        // Reset mutable parts for a clean sandbox start based on current main sim conditions
         sandboxCopy.historicalRevenue = [];
         sandboxCopy.historicalUserGrowth = [];
         sandboxCopy.historicalBurnRate = [];
         sandboxCopy.historicalNetProfitLoss = [];
         sandboxCopy.historicalExpenseBreakdown = [];
+        sandboxCopy.historicalCAC = [];
+        sandboxCopy.historicalChurnRate = [];
+        sandboxCopy.historicalProductProgress = [];
         sandboxCopy.keyEvents = [`Sandbox started from main sim month ${state.simulationMonth}. Initial state copied.`];
         sandboxCopy.rewards = []; 
-        sandboxCopy.simulationMonth = state.simulationMonth; // Sandbox starts at the same "logical" month as main
+        sandboxCopy.missions = [];
+        sandboxCopy.simulationMonth = state.simulationMonth; 
         
         return {
           ...state,
@@ -653,7 +670,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         }
 
         const simulateMonthInput: SimulateMonthInput = {
-          currentSimulationMonth: currentFullState.sandboxRelativeMonth, // Use relative month for AI
+          currentSimulationMonth: currentFullState.sandboxRelativeMonth, 
           companyName: sandbox.companyName,
           financials: {
             cashOnHand: sandbox.financials.cashOnHand,
@@ -688,11 +705,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
           set(state => {
             if (!state.isSandboxing || !state.sandboxState) return state;
-            // Create a mutable copy of the current sandbox state
             const newSandboxState: DigitalTwinState = JSON.parse(JSON.stringify(state.sandboxState));
 
-            // Important: Sandbox month is relative. Main simulation month is preserved in newSandboxState.simulationMonth
-            // This means newSandboxState.simulationMonth refers to the main sim month *from which this sandbox originated*.
             const simulatedSandboxDisplayMonth = state.sandboxRelativeMonth + 1;
 
             newSandboxState.financials.revenue = aiOutput.calculatedRevenue;
@@ -735,8 +749,9 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
                 newSandboxState.keyEvents.push(`(Sandbox) Critical: Ran out of cash!`);
             }
 
-            newSandboxState.historicalRevenue.push({ month: `SB M${simulatedSandboxDisplayMonth}`, revenue: newSandboxState.financials.revenue, desktop: newSandboxState.financials.revenue });
-            newSandboxState.historicalUserGrowth.push({ month: `SB M${simulatedSandboxDisplayMonth}`, users: newSandboxState.userMetrics.activeUsers, desktop: newSandboxState.userMetrics.activeUsers });
+            const sandboxMonthLabel = `SB M${simulatedSandboxDisplayMonth}`;
+            newSandboxState.historicalRevenue.push({ month: sandboxMonthLabel, revenue: newSandboxState.financials.revenue, desktop: newSandboxState.financials.revenue });
+            newSandboxState.historicalUserGrowth.push({ month: sandboxMonthLabel, users: newSandboxState.userMetrics.activeUsers, desktop: newSandboxState.userMetrics.activeUsers });
              if (newSandboxState.historicalRevenue.length > 6) newSandboxState.historicalRevenue.shift(); 
              if (newSandboxState.historicalUserGrowth.length > 6) newSandboxState.historicalUserGrowth.shift();
 
@@ -777,42 +792,35 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
       applySandboxDecisionsToMain: () => set(state => {
         if (!state.isSandboxing || !state.sandboxState) {
           console.warn("Cannot apply sandbox: No active sandbox experiment.");
-          // Potentially add a key event or AI reasoning update here too
           return {
             ...state,
             currentAiReasoning: (state.currentAiReasoning || "") + "\nAttempted to apply sandbox decisions, but no active sandbox experiment found.",
           };
         }
       
-        // Create a mutable deep copy of the main simulation state properties
-        // Ensure we are not directly mutating 'state' but a copy that will form the new state
         const updatedMainState: DigitalTwinState = JSON.parse(JSON.stringify(extractActiveSimState(state)));
         const sandboxDecisionState = state.sandboxState;
       
-        // Apply the decision levers and product state from the sandbox to the main simulation
         updatedMainState.resources.marketingSpend = sandboxDecisionState.resources.marketingSpend;
         updatedMainState.resources.rndSpend = sandboxDecisionState.resources.rndSpend;
         updatedMainState.product.pricePerUser = sandboxDecisionState.product.pricePerUser;
-        updatedMainState.resources.team = JSON.parse(JSON.stringify(sandboxDecisionState.resources.team)); // Deep copy team
+        updatedMainState.resources.team = JSON.parse(JSON.stringify(sandboxDecisionState.resources.team)); 
       
         updatedMainState.product.stage = sandboxDecisionState.product.stage;
         updatedMainState.product.developmentProgress = sandboxDecisionState.product.developmentProgress;
         updatedMainState.product.name = sandboxDecisionState.product.name;
         updatedMainState.product.features = JSON.parse(JSON.stringify(sandboxDecisionState.product.features));
       
-        // Preserve existing key events and add a new one
         updatedMainState.keyEvents = [
-          ...state.keyEvents, // Use key events from the original main state
+          ...state.keyEvents, 
           `Decisions and product state from a sandbox experiment (which ran for ${state.sandboxRelativeMonth} month(s)) applied to the main simulation.`
         ];
       
         updatedMainState.currentAiReasoning = (state.currentAiReasoning || "") + 
           `\n[Main Sim Update]: Adopted decisions (marketing, R&D, price, team, product dev) from the recent sandbox experiment. The main simulation will now proceed with these settings.`;
       
-        // Return the new state, which includes the updated main simulation parts and resets sandbox
         return {
-          ...state, // Spread original state to keep `savedSimulations` and other top-level parts
-          // Overwrite the active simulation properties with updatedMainState
+          ...state, 
           simulationMonth: updatedMainState.simulationMonth,
           companyName: updatedMainState.companyName,
           financials: updatedMainState.financials,
@@ -833,8 +841,9 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           historicalBurnRate: updatedMainState.historicalBurnRate,
           historicalNetProfitLoss: updatedMainState.historicalNetProfitLoss,
           historicalExpenseBreakdown: updatedMainState.historicalExpenseBreakdown,
-          
-          // Reset sandbox state
+          historicalCAC: updatedMainState.historicalCAC,
+          historicalChurnRate: updatedMainState.historicalChurnRate,
+          historicalProductProgress: updatedMainState.historicalProductProgress,
           isSandboxing: false,
           sandboxState: null,
           sandboxRelativeMonth: 0,
@@ -848,9 +857,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           console.warn("Cannot save: Simulation not initialized.");
           return null;
         }
-        // Use extractActiveSimState to get a clean copy of the active simulation for saving
         const stateToSave = JSON.parse(JSON.stringify(extractActiveSimState(currentFullState)));
-        // Nullify sandbox parts in the saved state, as snapshots are of the main sim
         stateToSave.sandboxState = null;
         stateToSave.isSandboxing = false;
         stateToSave.sandboxRelativeMonth = 0;
@@ -880,21 +887,17 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         const loadedSimState = JSON.parse(JSON.stringify(snapshotToLoad.simulationState));
         
         const newStateFromSnapshot = {
-          // Spread all properties from the loaded simulation state
           ...loadedSimState,
-          // Reset sandbox attributes explicitly after spreading
           sandboxState: null,
           isSandboxing: false,
           sandboxRelativeMonth: 0,
-          // Preserve the list of saved simulations from the current store state
           savedSimulations: currentFullState.savedSimulations,
-          // Add a key event for loading
           keyEvents: [...loadedSimState.keyEvents, `Simulation loaded from snapshot: ${snapshotToLoad.name}`],
           currentAiReasoning: `Simulation state loaded from snapshot: "${snapshotToLoad.name}". Main simulation month is now ${loadedSimState.simulationMonth}.`,
         };
         
         set(newStateFromSnapshot);
-        return loadedSimState; // Return the DigitalTwinState part of the snapshot
+        return loadedSimState; 
       },
 
       deleteSavedSimulation: (snapshotId: string) => {
@@ -912,8 +915,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         const persistedState = persistedStateUnknown as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
         let mergedState = { ...currentState, ...persistedState };
 
-        // Ensure all array and object fields are properly initialized if they are missing from persistedState
-        // or to maintain their structure from the initial state definition if not present.
         const defaultStateArrays = getInitialState();
 
         mergedState.initialGoals = Array.isArray(mergedState.initialGoals) ? mergedState.initialGoals : defaultStateArrays.initialGoals;
@@ -923,6 +924,9 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         mergedState.historicalBurnRate = Array.isArray(mergedState.historicalBurnRate) ? mergedState.historicalBurnRate : defaultStateArrays.historicalBurnRate;
         mergedState.historicalNetProfitLoss = Array.isArray(mergedState.historicalNetProfitLoss) ? mergedState.historicalNetProfitLoss : defaultStateArrays.historicalNetProfitLoss;
         mergedState.historicalExpenseBreakdown = Array.isArray(mergedState.historicalExpenseBreakdown) ? mergedState.historicalExpenseBreakdown : defaultStateArrays.historicalExpenseBreakdown;
+        mergedState.historicalCAC = Array.isArray(mergedState.historicalCAC) ? mergedState.historicalCAC : defaultStateArrays.historicalCAC;
+        mergedState.historicalChurnRate = Array.isArray(mergedState.historicalChurnRate) ? mergedState.historicalChurnRate : defaultStateArrays.historicalChurnRate;
+        mergedState.historicalProductProgress = Array.isArray(mergedState.historicalProductProgress) ? mergedState.historicalProductProgress : defaultStateArrays.historicalProductProgress;
         mergedState.keyEvents = Array.isArray(mergedState.keyEvents) ? mergedState.keyEvents : defaultStateArrays.keyEvents;
         mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : defaultStateArrays.rewards;
         mergedState.savedSimulations = Array.isArray(mergedState.savedSimulations) ? mergedState.savedSimulations : defaultStateArrays.savedSimulations;
@@ -979,18 +983,20 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         if (typeof mergedState.isSandboxing === 'undefined') {
             mergedState.isSandboxing = defaultStateArrays.isSandboxing;
         }
-        if (typeof mergedState.sandboxState === 'undefined') { // Check for undefined specifically
+        if (typeof mergedState.sandboxState === 'undefined') { 
             mergedState.sandboxState = defaultStateArrays.sandboxState;
         }
          if (typeof mergedState.sandboxRelativeMonth === 'undefined') {
             mergedState.sandboxRelativeMonth = defaultStateArrays.sandboxRelativeMonth;
         }
         
-        if (mergedState.sandboxState) { // If sandboxState exists, ensure its arrays are also initialized
+        if (mergedState.sandboxState) { 
             mergedState.sandboxState.keyEvents = Array.isArray(mergedState.sandboxState.keyEvents) ? mergedState.sandboxState.keyEvents : [];
             mergedState.sandboxState.historicalRevenue = Array.isArray(mergedState.sandboxState.historicalRevenue) ? mergedState.sandboxState.historicalRevenue : [];
             mergedState.sandboxState.historicalUserGrowth = Array.isArray(mergedState.sandboxState.historicalUserGrowth) ? mergedState.sandboxState.historicalUserGrowth : [];
-            // Ensure all other fields of sandboxState are correctly typed and structured as per DigitalTwinState
+            mergedState.sandboxState.historicalCAC = Array.isArray(mergedState.sandboxState.historicalCAC) ? mergedState.sandboxState.historicalCAC : [];
+            mergedState.sandboxState.historicalChurnRate = Array.isArray(mergedState.sandboxState.historicalChurnRate) ? mergedState.sandboxState.historicalChurnRate : [];
+            mergedState.sandboxState.historicalProductProgress = Array.isArray(mergedState.sandboxState.historicalProductProgress) ? mergedState.sandboxState.historicalProductProgress : [];
         }
 
         return mergedState as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
