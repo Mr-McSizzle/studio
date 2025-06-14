@@ -46,9 +46,11 @@ const predefinedScenarioOptions: PredefinedScenarioOption[] = [
   { id: "key_employee_loss", label: "Key Employee Departure", description: "A critical senior engineer/developer unexpectedly resigns, potentially delaying product development by 2-3 months unless a replacement is found quickly."}
 ];
 
-const DEFAULT_ENGINEER_SALARY_SANDBOX = 5000;
+const DEFAULT_SENIOR_ENGINEER_SALARY_SANDBOX = 7500;
+const DEFAULT_JUNIOR_ENGINEER_SALARY_SANDBOX = 4000;
 const DEFAULT_MARKETER_SALARY_SANDBOX = 4500;
 const DEFAULT_SALESPERSON_SALARY_SANDBOX = 4000;
+
 
 const MAX_ANALYSIS_RESULTS = 3;
 
@@ -534,11 +536,18 @@ export default function InnovationLabPage() {
                         <Label className="text-xs font-medium">Team Composition (Sandbox)</Label>
                         <p className="text-xs text-muted-foreground">Adjust your team for this experiment. Changes impact monthly salary costs.</p>
                     </div>
-                     <div className="space-y-2">
-                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Engineers ({getSandboxTeamMemberCount("Engineer")}) - Salary: {currencySymbol}{DEFAULT_ENGINEER_SALARY_SANDBOX}/mo</Label>
+                    <div className="space-y-2">
+                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Senior Engineers ({getSandboxTeamMemberCount("Engineer - Senior")}) - Salary: {currencySymbol}{DEFAULT_SENIOR_ENGINEER_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", -1)} disabled={getSandboxTeamMemberCount("Engineer") === 0 || isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><MinusCircle className="h-4 w-4"/></Button>
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", 1, DEFAULT_ENGINEER_SALARY_SANDBOX)} disabled={isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><PlusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer - Senior", -1)} disabled={getSandboxTeamMemberCount("Engineer - Senior") === 0 || isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><MinusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer - Senior", 1, DEFAULT_SENIOR_ENGINEER_SALARY_SANDBOX)} disabled={isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><PlusCircle className="h-4 w-4"/></Button>
+                        </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Junior Engineers ({getSandboxTeamMemberCount("Engineer - Junior")}) - Salary: {currencySymbol}{DEFAULT_JUNIOR_ENGINEER_SALARY_SANDBOX}/mo</Label>
+                        <div className="flex items-center gap-2">
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer - Junior", -1)} disabled={getSandboxTeamMemberCount("Engineer - Junior") === 0 || isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><MinusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer - Junior", 1, DEFAULT_JUNIOR_ENGINEER_SALARY_SANDBOX)} disabled={isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><PlusCircle className="h-4 w-4"/></Button>
                         </div>
                     </div>
                      <div className="space-y-2">
