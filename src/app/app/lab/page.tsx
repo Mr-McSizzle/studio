@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb, XCircle, Save, ListRestart, HistoryIcon } from "lucide-react";
+import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb, XCircle, Save, ListRestart, HistoryIcon, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { analyzeCustomScenario, type AnalyzeCustomScenarioInput } from "@/ai/flows/analyze-custom-scenario-flow";
 import { suggestScenarios, type SuggestScenariosInput, type SuggestedScenario } from "@/ai/flows/suggest-scenarios-flow";
@@ -75,6 +75,8 @@ export default function InnovationLabPage() {
   const [currentAnalysisType, setCurrentAnalysisType] = useState<'qualitative' | 'quantitative_forecast' | null>(null);
 
   const [isLoadingSandboxSim, setIsLoadingSandboxSim] = useState(false);
+  const [isLoadingApplySandbox, setIsLoadingApplySandbox] = useState(false);
+
 
   const [sandboxMarketingSpend, setSandboxLocalMarketingSpend] = useState(0);
   const [sandboxRndSpend, setSandboxLocalRndSpend] = useState(0);
@@ -99,8 +101,13 @@ export default function InnovationLabPage() {
       setSandboxLocalMarketingSpend(simState.sandboxState.resources.marketingSpend);
       setSandboxLocalRndSpend(simState.sandboxState.resources.rndSpend);
       setSandboxLocalPricePerUser(simState.sandboxState.product.pricePerUser);
+    } else {
+      // When not in sandbox, reset local sandbox inputs to prevent stale values if sandbox is re-entered
+      setSandboxLocalMarketingSpend(simState.resources.marketingSpend);
+      setSandboxLocalRndSpend(simState.resources.rndSpend);
+      setSandboxLocalPricePerUser(simState.product.pricePerUser);
     }
-  }, [simState.isSandboxing, simState.sandboxState]);
+  }, [simState.isSandboxing, simState.sandboxState, simState.resources.marketingSpend, simState.resources.rndSpend, simState.product.pricePerUser]);
 
 
   const activeScenarioDescription = useMemo(() => {
@@ -138,10 +145,9 @@ export default function InnovationLabPage() {
         keyEvents: stateToSerialize.keyEvents.slice(-5), // Keep it brief
         rewards: stateToSerialize.rewards, 
         initialGoals: stateToSerialize.initialGoals,
-        missions: stateToSerialize.missions, // Pass missions if available
+        missions: stateToSerialize.missions, 
         suggestedChallenges: stateToSerialize.suggestedChallenges,
         isInitialized: stateToSerialize.isInitialized,
-        // Do not pass sandboxState, isSandboxing, sandboxRelativeMonth, savedSimulations
       };
   };
 
@@ -209,13 +215,20 @@ export default function InnovationLabPage() {
     setIsLoadingSandboxSim(true);
     await simState.simulateMonthInSandbox();
     setIsLoadingSandboxSim(false);
-    toast({ title: "Sandbox Month Simulated", description: `Results for Sandbox Month ${simState.sandboxRelativeMonth} are in.` });
+    toast({ title: "Sandbox Month Simulated", description: `Results for Sandbox Relative Month ${simState.sandboxRelativeMonth} are in.` });
   };
   
   const handleDiscardSandbox = () => {
     simState.discardSandboxExperiment();
     setAnalysisResults([]); 
     toast({ title: "Sandbox Discarded", description: "Returned to main simulation context." });
+  };
+
+  const handleApplySandbox = async () => {
+    setIsLoadingApplySandbox(true);
+    simState.applySandboxDecisionsToMain();
+    toast({ title: "Sandbox Decisions Applied!", description: "Decision levers from sandbox have been applied to your main simulation. Sandbox discarded." });
+    setIsLoadingApplySandbox(false);
   };
 
 
@@ -285,7 +298,7 @@ export default function InnovationLabPage() {
     const loadedState = simState.loadSimulation(snapshotId);
     if (loadedState) {
       toast({ title: "Simulation Loaded", description: `Loaded snapshot "${loadedState.companyName}" (Month ${loadedState.simulationMonth}). Redirecting to dashboard.` });
-      router.push('/app/dashboard'); // Redirect to dashboard after loading
+      router.push('/app/dashboard'); 
     } else {
       toast({ title: "Load Failed", description: "Could not load the selected snapshot.", variant: "destructive" });
     }
@@ -356,7 +369,7 @@ export default function InnovationLabPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
             <div><strong>Company:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? currentContextState.companyName : "N/A"}</span></div>
-            <div><strong>Month:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? (simState.isSandboxing ? `Sandbox M${simState.sandboxRelativeMonth} (Main M${simState.simulationMonth})` : `Main M${simState.simulationMonth}`) : "N/A"}</span></div>
+            <div><strong>Month:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? (simState.isSandboxing ? `Sandbox M${simState.sandboxRelativeMonth} (Main M${currentContextState.simulationMonth})` : `Main M${simState.simulationMonth}`) : "N/A"}</span></div>
             <div><DollarSign className="inline h-4 w-4 mr-1"/><strong>Cash:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? `${currencySymbol}${currentContextState.financials.cashOnHand.toLocaleString()}` : "N/A"}</span></div>
             <div><Users className="inline h-4 w-4 mr-1"/><strong>Users:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? currentContextState.userMetrics.activeUsers.toLocaleString() : "N/A"}</span></div>
             <div><BarChart3 className="inline h-4 w-4 mr-1"/><strong>Score:</strong> <span className="text-muted-foreground">{currentContextState.isInitialized ? currentContextState.startupScore : "N/A"}/100</span></div>
@@ -480,7 +493,7 @@ export default function InnovationLabPage() {
             <PackageOpen className="h-7 w-7" /> Decision Lever Sandbox
           </CardTitle>
           <CardDescription>
-            Test decisions in an isolated environment. Changes here DO NOT affect your main simulation. Exit sandbox to save main simulation.
+            Test decisions in an isolated environment. Changes here DO NOT affect your main simulation unless explicitly applied.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -494,7 +507,7 @@ export default function InnovationLabPage() {
                 <TestTube2 className="h-5 w-5 text-primary" />
                 <AlertTitle className="text-primary font-semibold">Sandbox Mode Active</AlertTitle>
                 <AlertDescription className="text-primary/90">
-                  You are currently experimenting. Sandbox Relative Month: {simState.sandboxRelativeMonth} (Main Sim Month: {simState.simulationMonth})
+                  You are currently experimenting. Sandbox Relative Month: {simState.sandboxRelativeMonth} (Main Sim Origin Month: {simState.sandboxState?.simulationMonth})
                 </AlertDescription>
               </Alert>
 
@@ -524,22 +537,22 @@ export default function InnovationLabPage() {
                      <div className="space-y-2">
                         <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Engineers ({getSandboxTeamMemberCount("Engineer")}) - Salary: {currencySymbol}{DEFAULT_ENGINEER_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", -1)} disabled={getSandboxTeamMemberCount("Engineer") === 0}><MinusCircle className="h-4 w-4"/></Button>
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", 1, DEFAULT_ENGINEER_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", -1)} disabled={getSandboxTeamMemberCount("Engineer") === 0 || isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><MinusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Engineer", 1, DEFAULT_ENGINEER_SALARY_SANDBOX)} disabled={isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><PlusCircle className="h-4 w-4"/></Button>
                         </div>
                     </div>
                      <div className="space-y-2">
                         <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Marketers ({getSandboxTeamMemberCount("Marketer")}) - Salary: {currencySymbol}{DEFAULT_MARKETER_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Marketer", -1)} disabled={getSandboxTeamMemberCount("Marketer") === 0}><MinusCircle className="h-4 w-4"/></Button>
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Marketer", 1, DEFAULT_MARKETER_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Marketer", -1)} disabled={getSandboxTeamMemberCount("Marketer") === 0 || isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><MinusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Marketer", 1, DEFAULT_MARKETER_SALARY_SANDBOX)} disabled={isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><PlusCircle className="h-4 w-4"/></Button>
                         </div>
                     </div>
                      <div className="space-y-2">
                         <Label className="text-xs flex items-center gap-1"><Briefcase className="h-3 w-3"/>Salespersons ({getSandboxTeamMemberCount("Salesperson")}) - Salary: {currencySymbol}{DEFAULT_SALESPERSON_SALARY_SANDBOX}/mo</Label>
                         <div className="flex items-center gap-2">
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Salesperson", -1)} disabled={getSandboxTeamMemberCount("Salesperson") === 0}><MinusCircle className="h-4 w-4"/></Button>
-                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Salesperson", 1, DEFAULT_SALESPERSON_SALARY_SANDBOX)}><PlusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Salesperson", -1)} disabled={getSandboxTeamMemberCount("Salesperson") === 0 || isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><MinusCircle className="h-4 w-4"/></Button>
+                             <Button variant="outline" size="icon" onClick={() => simState.adjustSandboxTeamMemberCount("Salesperson", 1, DEFAULT_SALESPERSON_SALARY_SANDBOX)} disabled={isLoadingSandboxSim || isLoadingApplySandbox} className="h-8 w-8"><PlusCircle className="h-4 w-4"/></Button>
                         </div>
                     </div>
                   </CardContent>
@@ -549,12 +562,12 @@ export default function InnovationLabPage() {
                         <CardTitle className="text-lg flex items-center gap-2"><Zap className="h-5 w-5"/>Sandbox State</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm">
-                        <p><strong>Sandbox Month:</strong> {simState.sandboxRelativeMonth}</p>
+                        <p><strong>Sandbox Relative Month:</strong> {simState.sandboxRelativeMonth}</p>
                         <p><strong>Cash:</strong> {currencySymbol}{simState.sandboxState?.financials.cashOnHand.toLocaleString()}</p>
                         <p><strong>Users:</strong> {simState.sandboxState?.userMetrics.activeUsers.toLocaleString()}</p>
                         <p><strong>Revenue:</strong> {currencySymbol}{simState.sandboxState?.financials.revenue.toLocaleString()}</p>
                         <p><strong>Burn Rate:</strong> {currencySymbol}{simState.sandboxState?.financials.burnRate.toLocaleString()}</p>
-                         <p className="text-xs text-muted-foreground mt-2">Scores and full history are tracked in the main simulation.</p>
+                         <p className="text-xs text-muted-foreground mt-2">Startup scores and full history are only tracked in the main simulation.</p>
                          <ScrollArea className="h-24 mt-2 border p-2 rounded-md text-xs">
                             <p className="font-semibold mb-1">Sandbox AI Log:</p>
                             <pre className="whitespace-pre-wrap">{simState.sandboxState?.currentAiReasoning || "Log empty."}</pre>
@@ -564,11 +577,32 @@ export default function InnovationLabPage() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={handleSimulateSandboxMonth} disabled={isLoadingSandboxSim || (simState.sandboxState?.financials?.cashOnHand ?? 0) <= 0} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button onClick={handleSimulateSandboxMonth} disabled={isLoadingSandboxSim || (simState.sandboxState?.financials?.cashOnHand ?? 0) <= 0 || isLoadingApplySandbox} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
                   {isLoadingSandboxSim ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Zap className="mr-2 h-5 w-5"/>}
                   Simulate 1 Month in Sandbox
                 </Button>
-                <Button onClick={handleDiscardSandbox} variant="outline" className="flex-1">
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" className="flex-1 border-green-500 text-green-600 hover:bg-green-500/10 hover:text-green-700" disabled={isLoadingSandboxSim || isLoadingApplySandbox || simState.sandboxRelativeMonth === 0}>
+                           <CheckCircle className="mr-2 h-5 w-5"/> Apply Decisions to Main Sim
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Apply Sandbox Decisions?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will copy the current decision lever settings (marketing, R&D, price, team, product state) from this sandbox to your main simulation. The main simulation's financial metrics and history will NOT be overwritten by the sandbox outcomes. The sandbox experiment will then be discarded. Are you sure?
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isLoadingApplySandbox}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleApplySandbox} disabled={isLoadingApplySandbox} className="bg-green-600 hover:bg-green-700">
+                            {isLoadingApplySandbox ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : "Apply & Exit Sandbox"}
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <Button onClick={handleDiscardSandbox} variant="outline" className="flex-1" disabled={isLoadingSandboxSim || isLoadingApplySandbox}>
                   <Trash2 className="mr-2 h-5 w-5"/> Discard Sandbox & Exit
                 </Button>
               </div>
@@ -576,7 +610,7 @@ export default function InnovationLabPage() {
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4"/>
                     <AlertTitle>Sandbox Out of Cash!</AlertTitle>
-                    <AlertDescription>This sandbox experiment has run out of funds. Discard to try different parameters.</AlertDescription>
+                    <AlertDescription>This sandbox experiment has run out of funds. Adjust levers or discard to try different parameters.</AlertDescription>
                 </Alert>
                )}
             </div>
@@ -592,7 +626,8 @@ export default function InnovationLabPage() {
             <Sparkles className="h-7 w-7" /> AI Strategic "What-If" Analysis
           </CardTitle>
           <CardDescription>
-            Select a pre-defined scenario, generate AI ideas, or describe your own hypothetical situation. The AI will provide analysis based on your {simState.isSandboxing ? "current SANDBOX" : "MAIN simulation's"} state.
+            Select a pre-defined scenario, generate AI ideas, or describe your own hypothetical situation. The AI will provide analysis based on your {simState.isSandboxing ? "current SANDBOX's" : "MAIN simulation's"} state.
+            {simState.isSandboxing && <span className="block mt-1 font-semibold text-primary"> (Analysis will use current Sandbox state)</span>}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -749,3 +784,4 @@ export default function InnovationLabPage() {
     </div>
   );
 }
+
