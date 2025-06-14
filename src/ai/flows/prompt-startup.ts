@@ -4,6 +4,7 @@
 /**
  * @fileOverview A flow to initialize the startup simulation (digital twin)
  * based on a user-provided business plan, target market, budget, currency, and specific goals.
+ * Now includes more detailed optional parameters for setup.
  *
  * - promptStartup - A function that takes user input and returns initial startup conditions for the simulation.
  * - PromptStartupInput - The input type for the promptStartup function.
@@ -21,6 +22,10 @@ const PromptStartupInputSchema = z.object({
   targetGrowthRate: z.string().optional().describe('User\'s target monthly user growth rate (e.g., "20" for 20%).'),
   desiredProfitMargin: z.string().optional().describe('User\'s desired profit margin (e.g., "15" for 15%).'),
   targetCAC: z.string().optional().describe('User\'s target Customer Acquisition Cost (e.g., "25" if currency is USD).'),
+  // New detailed optional parameters
+  initialTeamSetupNotes: z.string().optional().describe('User notes on desired initial team structure or key roles (e.g., "Two technical co-founders, 1 marketing intern"). AI should interpret this for the coreTeam structure.'),
+  initialProductFeatures: z.array(z.string()).optional().describe('A list of key initial product features the user envisions (e.g., ["User Authentication", "Dashboard Analytics", "AI Content Suggestions"]).'),
+  initialIP: z.string().optional().describe('Any initial intellectual property, unique assets, or proprietary technology the startup possesses (e.g., "Patented algorithm for X", "Exclusive dataset Y").'),
 });
 export type PromptStartupInput = z.infer<typeof PromptStartupInputSchema>;
 
@@ -42,36 +47,48 @@ const prompt = ai.definePrompt({
   name: 'promptStartupPrompt',
   input: {schema: PromptStartupInputSchema},
   output: {schema: PromptStartupOutputSchema},
-  prompt: `You are an expert startup simulator and business strategist. Your task is to take a user's description of their desired startup (including their business plan/idea, target market, initial budget, preferred currency code: {{{currencyCode}}}, and any specified goals) and generate the initial conditions for a "digital twin" simulation. Also, suggest a list of potential early-stage challenges or key decisions, considering their goals.
+  prompt: `You are an expert startup simulator and business strategist. Your task is to take a user's description of their desired startup and generate the initial conditions for a "digital twin" simulation.
 
 User Startup Description:
 {{{prompt}}}
-(This includes: Business Plan, Target Market, Budget, Preferred Currency: {{{currencyCode}}}
+(This includes: Business Plan/Idea Summary, Target Market Description, Initial Budget, Preferred Currency: {{{currencyCode}}})
+
+Optional Specific Goals from User:
 {{#if targetGrowthRate}}Target Monthly User Growth Rate: {{{targetGrowthRate}}}%{{/if}}
 {{#if desiredProfitMargin}}Desired Profit Margin: {{{desiredProfitMargin}}}%{{/if}}
 {{#if targetCAC}}Target Customer Acquisition Cost (CAC): {{{currencyCode}}} {{{targetCAC}}}{{/if}}
-)
 
-Based on this comprehensive description, generate:
+Optional Detailed Initial Parameters from User:
+{{#if initialTeamSetupNotes}}Initial Team Setup Notes: "{{{initialTeamSetupNotes}}}" (Use this to inform the 'coreTeam' structure. If roles like 'engineer' or 'marketer' are mentioned, try to include them with estimated counts and sensible default salaries. Ensure at least one 'Founder' role, typically with 0 salary initially unless specified).{{/if}}
+{{#if initialProductFeatures}}Key Initial Product Features: {{#each initialProductFeatures}}"{{{this}}}"{{#unless @last}}, {{/unless}}{{/each}} (Incorporate these into 'productService.features').{{/if}}
+{{#if initialIP}}Initial IP/Assets: "{{{initialIP}}}" (Reflect this in 'resources.initialIpOrAssets').{{/if}}
+
+Based on ALL available information, generate:
 1. Initial Conditions: A detailed JSON string for the startup's digital twin. This should include realistic starting values for:
-    - Market: Estimated size, growth rate, key segments.
-    - Resources:
+    - companyName: A suitable name for the startup itself, derived from the user's prompt or {{{prompt}}} if not specified.
+    - market:
+        - targetMarketDescription: Based on user input.
+        - estimatedSize: Estimated market size.
+        - growthRate: Estimated market growth rate.
+        - keySegments: Key segments within the target market.
+    - resources:
         - initialFunding: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
-        - coreTeam: (e.g., number of founders, initial hires if any, AI-suggested salaries).
-        - any initial IP or assets.
-        - marketingSpend: Suggest a realistic initial monthly marketing spend. If the user provided a target CAC, this might be adjusted.
+        - coreTeam: An array of objects (e.g., [{ role: 'Founder', count: 1, salary: 0 }, { role: 'Engineer', count: 1, salary: 5000 }]). Interpret {{{initialTeamSetupNotes}}} if provided. Ensure salaries are realistic for the {{{currencyCode}}} and startup stage.
+        - initialIpOrAssets: Based on {{{initialIP}}} if provided.
+        - marketingSpend: Suggest a realistic initial monthly marketing spend.
         - rndSpend: Suggest a realistic initial monthly R&D spend.
-    - Product/Service:
-        - name: A suitable name for the product/service.
-        - initialDevelopmentStage: (e.g., idea, prototype, mvp). This should map to 'idea', 'prototype', 'mvp', 'growth', or 'mature'.
-        - pricePerUser: Suggest an initial monthly price per user/customer. This might be influenced by profit margin goals if provided.
-    - Financials:
+    - productService: (Note: use 'productService' as the key for the product object in the JSON)
+        - name: A suitable name for the product/service, derived from user's prompt or {{{prompt}}}.
+        - initialDevelopmentStage: (e.g., 'idea', 'prototype', 'mvp'). This should map to 'idea', 'prototype', 'mvp', 'growth', or 'mature'.
+        - features: An array of strings. Incorporate {{{initialProductFeatures}}} if provided.
+        - pricePerUser: Suggest an initial monthly price per user/customer.
+    - financials:
         - startingCash: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
-        - estimatedInitialMonthlyBurnRate: CRITICALLY IMPORTANT - Provide a realistic estimate of the *total* initial monthly burn rate.
+        - estimatedInitialMonthlyBurnRate: CRITICALLY IMPORTANT - Provide a realistic estimate of the *total* initial monthly burn rate, factoring in all team salaries, marketing, R&D, and operational costs.
         - currencyCode: Set this to {{{currencyCode}}}.
     - initialGoals: One or two key short-term objectives. If the user provided specific goals (growth, profit, CAC), incorporate them or related stepping stones here.
-    - companyName: A suitable name for the startup itself.
-2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges. These should be specific and actionable. If the user set ambitious goals (e.g., high growth with low CAC), challenges should reflect the difficulty of achieving these (e.g., "Balancing rapid user acquisition (target: {{{targetGrowthRate}}}%) with maintaining a CAC below {{{currencyCode}}} {{{targetCAC}}} will require exceptional marketing efficiency.").
+
+2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges. These should be specific and actionable. If the user set ambitious goals, challenges should reflect the difficulty of achieving these.
 
 CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
 - The 'initialConditions' field MUST be a single, valid, strictly parsable JSON string. NO EXCEPTIONS.
@@ -80,6 +97,8 @@ CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
 - All monetary values MUST be plain numbers in the specified {{{currencyCode}}}.
 - You MUST adjust the *scale* of numbers to be realistic for that currency and budget.
 - Ensure 'financials.currencyCode', 'financials.startingCash', 'resources.initialFunding', and 'financials.estimatedInitialMonthlyBurnRate' are clean numerical values.
+- The 'productService.features' field within 'initialConditions' MUST be a JSON array of strings.
+- The 'resources.coreTeam' field MUST be a JSON array of objects, each with 'role' (string), 'count' (number), and 'salary' (number).
 - The 'suggestedChallenges' field MUST be a valid JSON array of strings.
 - Do not include any prose outside the structured JSON output. The entire response MUST BE ONLY the JSON object defined by the output schema.
 
@@ -116,6 +135,14 @@ const promptStartupFlow = ai.defineFlow(
         if (conditions.financials && typeof conditions.financials.estimatedInitialMonthlyBurnRate !== 'number') {
             console.warn(`AI returned financials.estimatedInitialMonthlyBurnRate that is not a number: `, conditions.financials.estimatedInitialMonthlyBurnRate);
         }
+        if (conditions.productService && !Array.isArray(conditions.productService.features)) {
+            console.warn(`AI returned productService.features that is not an array: `, conditions.productService.features);
+        }
+        if (conditions.resources && !Array.isArray(conditions.resources.coreTeam)) {
+            console.warn(`AI returned resources.coreTeam that is not an array: `, conditions.resources.coreTeam);
+        }
+
+
     } catch (e) {
         // This catch is for the debugging validation above, not the main parse in the store.
         // The main parse error is handled in simulationStore.ts.
@@ -124,3 +151,4 @@ const promptStartupFlow = ai.defineFlow(
     return output;
   }
 );
+

@@ -4,20 +4,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { promptStartup, type PromptStartupInput, type PromptStartupOutput } from "@/ai/flows/prompt-startup";
+import { suggestNames, type SuggestNamesInput, type SuggestNamesOutput } from "@/ai/flows/suggest-names-flow"; // New import
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target, DollarSign, TrendingUp, Percent, Users } from "lucide-react";
+import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target, DollarSign, TrendingUp, Percent, Users, MessageSquare, FileSignature, Brain, Wand2 } from "lucide-react"; // Added Wand2 for name suggestions
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 
 export default function SetupSimulationPage() {
-  const [startupName, setStartupName] = useState("");
+  const [startupNameIdea, setStartupNameIdea] = useState(""); // Renamed for clarity
   const [targetMarket, setTargetMarket] = useState("");
   const [budget, setBudget] = useState("");
   const [currencyCode, setCurrencyCode] = useState("USD");
@@ -25,9 +27,17 @@ export default function SetupSimulationPage() {
   const [desiredProfitMargin, setDesiredProfitMargin] = useState("");
   const [targetCAC, setTargetCAC] = useState("");
 
+  // New detailed fields
+  const [initialTeamSetupNotes, setInitialTeamSetupNotes] = useState("");
+  const [initialProductFeatures, setInitialProductFeatures] = useState(""); // Comma-separated string
+  const [initialIP, setInitialIP] = useState("");
+
+
   const [simulationOutput, setSimulationOutput] = useState<PromptStartupOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuggestingNames, setIsSuggestingNames] = useState(false); // New state for name suggestion loading
+
   const { toast } = useToast();
   const router = useRouter();
 
@@ -37,7 +47,7 @@ export default function SetupSimulationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!startupName.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim()) {
+    if (!startupNameIdea.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim()) {
       toast({
         title: "Input Required",
         description: "Please provide your startup name/idea, target market, initial budget, and currency code.",
@@ -70,13 +80,16 @@ export default function SetupSimulationPage() {
     resetSimStore();
 
     const fullPromptForAI = `
-      Business Plan / Idea: ${startupName}
+      Business Plan / Idea: ${startupNameIdea}
       Target Market: ${targetMarket}
       Initial Budget: ${budget}
       Preferred Currency: ${currencyCode.toUpperCase()}
       ${targetGrowthRate ? `Target Monthly User Growth Rate: ${targetGrowthRate}%` : ''}
       ${desiredProfitMargin ? `Desired Profit Margin: ${desiredProfitMargin}%` : ''}
       ${targetCAC ? `Target Customer Acquisition Cost (CAC): ${currencyCode.toUpperCase()} ${targetCAC}` : ''}
+      ${initialTeamSetupNotes ? `Initial Team Setup: ${initialTeamSetupNotes}` : ''}
+      ${initialProductFeatures ? `Initial Product Features: ${initialProductFeatures}` : ''}
+      ${initialIP ? `Initial IP/Assets: ${initialIP}` : ''}
     `;
 
     try {
@@ -86,11 +99,14 @@ export default function SetupSimulationPage() {
         targetGrowthRate: targetGrowthRate || undefined,
         desiredProfitMargin: desiredProfitMargin || undefined,
         targetCAC: targetCAC || undefined,
+        initialTeamSetupNotes: initialTeamSetupNotes.trim() || undefined,
+        initialProductFeatures: initialProductFeatures.split(',').map(f => f.trim()).filter(f => f) || undefined,
+        initialIP: initialIP.trim() || undefined,
       };
       const result = await promptStartup(input);
       setSimulationOutput(result);
 
-      initializeSimulationInStore(result, startupName, targetMarket, budget, currencyCode.toUpperCase());
+      initializeSimulationInStore(result, startupNameIdea, targetMarket, budget, currencyCode.toUpperCase());
 
       toast({
         title: "Digital Twin Initialized!",
@@ -128,6 +144,45 @@ export default function SetupSimulationPage() {
       setIsLoading(false);
     }
   };
+
+  const handleSuggestNames = async () => {
+    if (!startupNameIdea.trim()) {
+      toast({ title: "Business Idea Needed", description: "Please enter your Startup Name / Business Idea Summary first.", variant: "destructive" });
+      return;
+    }
+    setIsSuggestingNames(true);
+    try {
+      const input: SuggestNamesInput = {
+        businessIdea: startupNameIdea.trim(),
+        // keywords: Optionally add a keywords input field later
+      };
+      const result = await suggestNames(input);
+      
+      let message = "AI Name Suggestions:\n";
+      if (result.suggestedCompanyNames && result.suggestedCompanyNames.length > 0) {
+        message += "\nCompany Names:\n- " + result.suggestedCompanyNames.join("\n- ");
+      }
+      if (result.suggestedProductNames && result.suggestedProductNames.length > 0) {
+        message += "\n\nProduct Names:\n- " + result.suggestedProductNames.join("\n- ");
+      }
+      if (message === "AI Name Suggestions:\n") {
+        message = "AI couldn't come up with names this time. Try rephrasing your idea.";
+      }
+
+      toast({
+        title: "AI Name Ideas!",
+        description: <pre className="whitespace-pre-wrap text-xs">{message}</pre>,
+        duration: 15000, // Longer duration to allow copying
+      });
+
+    } catch (err) {
+      console.error("Error suggesting names:", err);
+      toast({ title: "Name Suggestion Failed", description: err instanceof Error ? err.message : "Could not get name suggestions.", variant: "destructive" });
+    } finally {
+      setIsSuggestingNames(false);
+    }
+  };
+
 
   const prettyPrintJson = (jsonString: string) => {
     try {
@@ -172,16 +227,28 @@ export default function SetupSimulationPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="startup-name" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground"/> Startup Name / Business Idea Summary
-              </Label>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="startup-name-idea" className="text-sm font-medium flex items-center gap-2">
+                  <FileSignature className="h-4 w-4 text-muted-foreground"/> Startup Name / Business Idea Summary
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSuggestNames}
+                  disabled={isLoading || isSuggestingNames}
+                >
+                  {isSuggestingNames ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4"/>}
+                  Need Name Ideas?
+                </Button>
+              </div>
               <Textarea
-                id="startup-name"
-                value={startupName}
-                onChange={(e) => setStartupName(e.target.value)}
+                id="startup-name-idea"
+                value={startupNameIdea}
+                onChange={(e) => setStartupNameIdea(e.target.value)}
                 placeholder="e.g., 'ForgePress' - A SaaS platform for small businesses to manage social media with AI content suggestions..."
-                rows={5}
+                rows={3}
                 className="w-full"
                 disabled={isLoading}
               />
@@ -229,6 +296,50 @@ export default function SetupSimulationPage() {
                 />
               </div>
             </div>
+            
+            <Separator />
+            <p className="text-sm text-muted-foreground">Optional: Provide more details for a richer starting simulation.</p>
+
+            <div>
+              <Label htmlFor="initial-team-notes" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground"/> Initial Team Setup Notes (Optional)
+              </Label>
+              <Input
+                id="initial-team-notes"
+                value={initialTeamSetupNotes}
+                onChange={(e) => setInitialTeamSetupNotes(e.target.value)}
+                placeholder="e.g., 'Two technical co-founders (0 salary), 1 marketing intern ($1000/mo)'"
+                className="w-full"
+                disabled={isLoading}
+              />
+            </div>
+             <div>
+              <Label htmlFor="initial-product-features" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <Brain className="h-4 w-4 text-muted-foreground"/> Key Initial Product Features (Comma-separated, Optional)
+              </Label>
+              <Input
+                id="initial-product-features"
+                value={initialProductFeatures}
+                onChange={(e) => setInitialProductFeatures(e.target.value)}
+                placeholder="e.g., User Authentication, Dashboard Analytics, AI Content Suggestions"
+                className="w-full"
+                disabled={isLoading}
+              />
+            </div>
+             <div>
+              <Label htmlFor="initial-ip" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground"/> Initial IP/Assets (Optional)
+              </Label>
+              <Input
+                id="initial-ip"
+                value={initialIP}
+                onChange={(e) => setInitialIP(e.target.value)}
+                placeholder="e.g., Patented algorithm for X, Exclusive dataset Y"
+                className="w-full"
+                disabled={isLoading}
+              />
+            </div>
+
 
             <Card className="bg-card/50 border-dashed">
               <CardHeader className="pb-3 pt-4">
@@ -284,7 +395,7 @@ export default function SetupSimulationPage() {
 
             <Button
               type="submit"
-              disabled={isLoading || !startupName.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim() || currencyCode.trim().length !== 3}
+              disabled={isLoading || !startupNameIdea.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim() || currencyCode.trim().length !== 3}
               className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto"
               size="lg"
             >

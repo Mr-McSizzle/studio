@@ -105,6 +105,7 @@ export interface DigitalTwinState {
   keyEvents: string[];
   rewards: Reward[];
   initialGoals: string[];
+  missions: Mission[]; // Added for dynamic missions
   suggestedChallenges: string[];
   isInitialized: boolean;
   currentAiReasoning: string | null;
@@ -130,12 +131,23 @@ export type Reward = z.infer<typeof RewardSchema> & {
   dateEarned: string; // ISO date string
 };
 
+export const MissionSchema = z.object({
+  id: z.string().describe("Unique ID for the mission."),
+  title: z.string().describe("The main title or objective of the mission."),
+  description: z.string().describe("A brief explanation of what needs to be done."),
+  rewardText: z.string().describe("Textual description of the reward upon completion (e.g., '+10 Score, Unlock Feature X')."),
+  isCompleted: z.boolean().default(false).describe("Whether the mission has been completed."),
+  difficulty: z.enum(['easy', 'medium', 'hard']).optional().describe("Optional difficulty rating."),
+});
+export type Mission = z.infer<typeof MissionSchema>;
+
 
 export interface AIInitialConditions {
   market?: {
     estimatedSize?: number;
     growthRate?: number;
     keySegments?: string[] | string;
+    targetMarketDescription?: string; // Added
   };
   resources?: {
     initialFunding?: number | string;
@@ -144,10 +156,11 @@ export interface AIInitialConditions {
     marketingSpend?: number | string;
     rndSpend?: number | string;
   };
-  productService?: {
+  productService?: { // Renamed from product for clarity
     initialDevelopmentStage?: string;
     name?: string;
     pricePerUser?: number | string;
+    features?: string[]; // Added
   };
   financials?: {
     startingCash?: number | string;
@@ -428,9 +441,85 @@ export const AccountantToolInputZodSchema = z.object({}).optional();
 export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;
 export const AccountantToolOutputZodSchema = z.object({}).optional();
 export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>;
-    
 
-    
+// -- New Schemas for Startup Setup Enhancements & New Insight Flows --
 
-    
+// Suggest Names Flow
+export const SuggestNamesInputSchema = z.object({
+  businessIdea: z.string().describe("A brief description of the business idea or core concept."),
+  keywords: z.array(z.string()).optional().describe("Optional keywords related to the business, industry, or brand values."),
+});
+export type SuggestNamesInput = z.infer<typeof SuggestNamesInputSchema>;
 
+export const SuggestNamesOutputSchema = z.object({
+  suggestedCompanyNames: z.array(z.string()).describe("A list of 3-5 suggested company names."),
+  suggestedProductNames: z.array(z.string()).describe("A list of 3-5 suggested product/service names based on the idea."),
+});
+export type SuggestNamesOutput = z.infer<typeof SuggestNamesOutputSchema>;
+
+// Generate Dynamic Missions Flow
+export const GenerateDynamicMissionsInputSchema = z.object({
+  simulationStateJSON: z.string().describe("The full current DigitalTwinState of the simulation, serialized as a JSON string."),
+  recentEvents: z.array(z.string()).optional().describe("A summary of the last few significant events in the simulation."),
+  currentGoals: z.array(z.string()).optional().describe("User's stated or AI-derived current strategic goals."),
+});
+export type GenerateDynamicMissionsInput = z.infer<typeof GenerateDynamicMissionsInputSchema>;
+
+export const GenerateDynamicMissionsOutputSchema = z.object({
+  generatedMissions: z.array(MissionSchema.omit({ id: true, isCompleted: true })).describe("An array of 2-3 dynamically generated missions relevant to the current simulation state. IDs and completion status will be handled by the client."),
+});
+export type GenerateDynamicMissionsOutput = z.infer<typeof GenerateDynamicMissionsOutputSchema>;
+
+// Detailed Financial Analysis Flow
+export const DetailedFinancialAnalysisInputSchema = z.object({
+  simulationStateJSON: z.string().describe("The full current DigitalTwinState of the simulation, serialized as a JSON string."),
+  userQuery: z.string().optional().describe("Specific financial aspect the user wants to analyze (e.g., 'Analyze our profitability trends', 'Assess investment readiness based on Q2 performance')."),
+  analysisPeriodMonths: z.number().optional().default(3).describe("Number of recent simulation months to focus the analysis on."),
+});
+export type DetailedFinancialAnalysisInput = z.infer<typeof DetailedFinancialAnalysisInputSchema>;
+
+export const FinancialRatioSchema = z.object({
+  name: z.string().describe("Name of the financial ratio (e.g., 'Gross Profit Margin', 'Current Ratio')."),
+  value: z.string().describe("Calculated value of the ratio (can be percentage or number)."),
+  interpretation: z.string().describe("Brief interpretation of this ratio in the context of the startup."),
+});
+
+export const DetailedFinancialAnalysisOutputSchema = z.object({
+  analysisSummary: z.string().describe("Overall summary of the financial health and performance."),
+  keyObservations: z.array(z.string()).describe("List of important observations from the financial data."),
+  calculatedRatios: z.array(FinancialRatioSchema).optional().describe("Key financial ratios calculated and interpreted."),
+  recommendations: z.array(z.string()).optional().describe("Actionable financial recommendations."),
+  investmentReadiness: z.string().optional().describe("Assessment of investment readiness if queried."),
+});
+export type DetailedFinancialAnalysisOutput = z.infer<typeof DetailedFinancialAnalysisOutputSchema>;
+
+// Competitor Analysis Flow
+export const CompetitorInfoSchema = z.object({
+  name: z.string().describe("Name of the competitor."),
+  strengths: z.array(z.string()).optional().describe("Known strengths of the competitor."),
+  weaknesses: z.array(z.string()).optional().describe("Known weaknesses of the competitor."),
+  productOffering: z.string().optional().describe("Brief description of the competitor's main product/service."),
+});
+
+export const CompetitorAnalysisInputSchema = z.object({
+  simulationStateJSON: z.string().describe("The full current DigitalTwinState of the user's simulation, serialized as a JSON string."),
+  competitorsToAnalyze: z.array(CompetitorInfoSchema).min(1).describe("Information about one or more competitors the user wants analyzed."),
+  marketDescription: z.string().optional().describe("User's description of the target market."),
+});
+export type CompetitorAnalysisInput = z.infer<typeof CompetitorAnalysisInputSchema>;
+
+export const SingleCompetitorAnalysisSchema = z.object({
+  competitorName: z.string(),
+  aiAssessedStrengths: z.array(z.string()).describe("AI's assessment of the competitor's strengths."),
+  aiAssessedWeaknesses: z.array(z.string()).describe("AI's assessment of the competitor's weaknesses."),
+  potentialThreatsToUser: z.array(z.string()).describe("How this competitor might pose a threat to the user's startup."),
+  potentialOpportunitiesForUser: z.array(z.string()).describe("Opportunities for the user's startup in relation to this competitor."),
+  strategicConsiderations: z.string().describe("Overall strategic considerations for the user regarding this competitor."),
+});
+
+export const CompetitorAnalysisOutputSchema = z.object({
+  overallMarketPerspective: z.string().describe("AI's brief overview of the competitive landscape based on the provided info."),
+  detailedAnalyses: z.array(SingleCompetitorAnalysisSchema).describe("Individual analysis for each competitor provided."),
+  strategicRecommendations: z.array(z.string()).describe("High-level strategic recommendations for the user's startup to navigate the competitive environment."),
+});
+export type CompetitorAnalysisOutput = z.infer<typeof CompetitorAnalysisOutputSchema>;
