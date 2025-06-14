@@ -187,6 +187,14 @@ export interface AIAgentProfile {
   actionLink?: string; // e.g., "/app/mentor?focus=alex"
 }
 
+// Snapshot type for saving simulation states
+export interface SimulationSnapshot {
+  id: string;
+  name: string;
+  createdAt: string; // ISO date string
+  simulationState: DigitalTwinState; // The actual state snapshot
+}
+
 
 // Alex the Accountant Tool
 export const AlexTheAccountantToolInputSchema = z.object({

@@ -5,12 +5,13 @@ import { useState, useEffect, useMemo, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
+import type { SimulationSnapshot } from "@/types/simulation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb, XCircle } from "lucide-react";
+import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb, XCircle, Save, ListRestart, HistoryIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { analyzeCustomScenario, type AnalyzeCustomScenarioInput } from "@/ai/flows/analyze-custom-scenario-flow";
 import { suggestScenarios, type SuggestScenariosInput, type SuggestedScenario } from "@/ai/flows/suggest-scenarios-flow";
@@ -18,6 +19,17 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface PredefinedScenarioOption {
   id: string;
@@ -72,6 +84,9 @@ export default function InnovationLabPage() {
   const [isLoadingAiSuggestions, setIsLoadingAiSuggestions] = useState(false);
   const [aiSuggestionsError, setAiSuggestionsError] = useState<string | null>(null);
 
+  const [snapshotName, setSnapshotName] = useState("");
+  const [isLoadingSnapshotAction, setIsLoadingSnapshotAction] = useState(false);
+
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -110,6 +125,7 @@ export default function InnovationLabPage() {
 
   const getSerializableSimulationState = () => {
     const stateToSerialize = simState.isSandboxing && simState.sandboxState ? simState.sandboxState : simState;
+    // Ensure we only serialize properties of DigitalTwinState for AI flows
     return {
         simulationMonth: stateToSerialize.simulationMonth,
         companyName: stateToSerialize.companyName,
@@ -119,11 +135,13 @@ export default function InnovationLabPage() {
         resources: stateToSerialize.resources,
         market: stateToSerialize.market,
         startupScore: stateToSerialize.startupScore,
-        keyEvents: stateToSerialize.keyEvents.slice(-5),
+        keyEvents: stateToSerialize.keyEvents.slice(-5), // Keep it brief
         rewards: stateToSerialize.rewards, 
         initialGoals: stateToSerialize.initialGoals,
+        missions: stateToSerialize.missions, // Pass missions if available
         suggestedChallenges: stateToSerialize.suggestedChallenges,
         isInitialized: stateToSerialize.isInitialized,
+        // Do not pass sandboxState, isSandboxing, sandboxRelativeMonth, savedSimulations
       };
   };
 
@@ -134,7 +152,7 @@ export default function InnovationLabPage() {
     }
     const baseSimState = simState.isSandboxing && simState.sandboxState ? simState.sandboxState : simState;
     if (!baseSimState.isInitialized) {
-        toast({ title: "Simulation Not Ready", description: "Please initialize your simulation before analyzing scenarios.", variant: "destructive"});
+        toast({ title: "Simulation Not Ready", description: `Please initialize your ${simState.isSandboxing ? 'sandbox' : 'main'} simulation before analyzing scenarios.`, variant: "destructive"});
         return;
     }
 
@@ -183,7 +201,7 @@ export default function InnovationLabPage() {
       return;
     }
     simState.startSandboxExperiment();
-    setAnalysisResults([]); // Clear analysis results when starting/discarding sandbox
+    setAnalysisResults([]); 
     toast({ title: "Sandbox Mode Activated!", description: "Experiment with decisions without affecting your main simulation." });
   };
 
@@ -196,7 +214,7 @@ export default function InnovationLabPage() {
   
   const handleDiscardSandbox = () => {
     simState.discardSandboxExperiment();
-    setAnalysisResults([]); // Clear analysis results when starting/discarding sandbox
+    setAnalysisResults([]); 
     toast({ title: "Sandbox Discarded", description: "Returned to main simulation context." });
   };
 
@@ -204,7 +222,7 @@ export default function InnovationLabPage() {
   const handleGenerateAiScenarios = async () => {
     const baseSimState = simState.isSandboxing && simState.sandboxState ? simState.sandboxState : simState;
     if (!baseSimState.isInitialized) {
-        toast({ title: "Simulation Not Ready", description: "Please initialize your simulation to get AI scenario suggestions.", variant: "destructive"});
+        toast({ title: "Simulation Not Ready", description: `Please initialize your ${simState.isSandboxing ? 'sandbox' : 'main'} simulation to get AI scenario suggestions.`, variant: "destructive"});
         return;
     }
     setIsLoadingAiSuggestions(true);
@@ -242,6 +260,45 @@ export default function InnovationLabPage() {
     setAnalysisResults(prevResults => prevResults.filter(result => result.id !== idToRemove));
   };
 
+  const handleSaveSnapshot = () => {
+    if (!snapshotName.trim()) {
+      toast({ title: "Snapshot Name Required", description: "Please enter a name for your simulation snapshot.", variant: "destructive" });
+      return;
+    }
+    if (simState.isSandboxing) {
+      toast({ title: "Cannot Save in Sandbox", description: "Please exit sandbox mode to save the main simulation state.", variant: "destructive" });
+      return;
+    }
+    setIsLoadingSnapshotAction(true);
+    const savedState = simState.saveCurrentSimulation(snapshotName);
+    if (savedState) {
+      toast({ title: "Simulation Snapshot Saved!", description: `State "${snapshotName}" (Month ${savedState.simulationMonth}) has been saved.` });
+      setSnapshotName(""); // Clear input after saving
+    } else {
+      toast({ title: "Save Failed", description: "Could not save snapshot. Ensure simulation is initialized.", variant: "destructive" });
+    }
+    setIsLoadingSnapshotAction(false);
+  };
+
+  const handleLoadSnapshot = (snapshotId: string) => {
+    setIsLoadingSnapshotAction(true);
+    const loadedState = simState.loadSimulation(snapshotId);
+    if (loadedState) {
+      toast({ title: "Simulation Loaded", description: `Loaded snapshot "${loadedState.companyName}" (Month ${loadedState.simulationMonth}). Redirecting to dashboard.` });
+      router.push('/app/dashboard'); // Redirect to dashboard after loading
+    } else {
+      toast({ title: "Load Failed", description: "Could not load the selected snapshot.", variant: "destructive" });
+    }
+    setIsLoadingSnapshotAction(false);
+  };
+
+  const handleDeleteSnapshot = (snapshotId: string) => {
+    setIsLoadingSnapshotAction(true);
+    simState.deleteSavedSimulation(snapshotId);
+    toast({ title: "Snapshot Deleted", description: "The simulation snapshot has been removed." });
+    setIsLoadingSnapshotAction(false);
+  };
+
 
   if (!isAuthenticated) {
     return (
@@ -272,7 +329,7 @@ export default function InnovationLabPage() {
                 <h1 className="text-3xl font-headline text-foreground">
                     ForgeSim Innovation Lab
                 </h1>
-                <p className="text-muted-foreground">Experiment with 'what-if' scenarios, sandbox decisions, and get AI-driven insights.</p>
+                <p className="text-muted-foreground">Experiment with 'what-if' scenarios, sandbox decisions, save simulation states, and get AI-driven insights.</p>
             </div>
         </div>
       </header>
@@ -309,18 +366,126 @@ export default function InnovationLabPage() {
       
       <Separator />
 
+      <Card className="shadow-xl border-blue-500/30" id="save-load-section">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-xl text-blue-500">
+            <HistoryIcon className="h-7 w-7" /> Simulation Snapshots &amp; Versioning
+          </CardTitle>
+          <CardDescription>
+            Save your main simulation's progress at key milestones or load a previously saved state to explore different paths. Snapshots are of the main simulation, not sandbox experiments.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex-grow">
+              <Label htmlFor="snapshot-name" className="text-base font-medium">Snapshot Name</Label>
+              <Input
+                id="snapshot-name"
+                value={snapshotName}
+                onChange={(e) => setSnapshotName(e.target.value)}
+                placeholder="e.g., Pre-Seed Funding Round, MVP Launch State"
+                className="mt-1"
+                disabled={!simState.isInitialized || simState.isSandboxing || isLoadingSnapshotAction}
+              />
+            </div>
+            <Button
+              onClick={handleSaveSnapshot}
+              disabled={!simState.isInitialized || simState.isSandboxing || !snapshotName.trim() || isLoadingSnapshotAction}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {isLoadingSnapshotAction ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Save className="mr-2 h-5 w-5"/>}
+              Save Current Simulation
+            </Button>
+          </div>
+          {simState.isSandboxing && (
+            <Alert variant="default" className="bg-yellow-500/10 border-yellow-500/50 text-yellow-700">
+              <Info className="h-4 w-4 text-yellow-600" />
+              <AlertTitle>Snapshot Info</AlertTitle>
+              <AlertDescription>Saving is disabled while in Sandbox mode. Exit sandbox to save the main simulation.</AlertDescription>
+            </Alert>
+          )}
+          <div>
+            <h4 className="text-lg font-medium mb-2">Saved Snapshots:</h4>
+            {simState.savedSimulations.length === 0 ? (
+              <p className="text-muted-foreground">No snapshots saved yet. Use the controls above to save your current main simulation progress.</p>
+            ) : (
+              <ScrollArea className="max-h-[300px] pr-2">
+                <ul className="space-y-3">
+                  {simState.savedSimulations.map((snapshot) => (
+                    <li key={snapshot.id} className="p-3 border rounded-md bg-card/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div>
+                        <p className="font-semibold text-foreground">{snapshot.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Saved: {new Date(snapshot.createdAt).toLocaleString()} | Sim Month: {snapshot.simulationState.simulationMonth}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 mt-2 sm:mt-0 shrink-0">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" disabled={isLoadingSnapshotAction} className="border-green-500 text-green-600 hover:bg-green-500/10 hover:text-green-700">
+                              <ListRestart className="mr-2 h-4 w-4"/> Load
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Load Simulation Snapshot?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will replace your current main simulation state with the state from "{snapshot.name}". Sandbox experiments will be discarded. Are you sure?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel disabled={isLoadingSnapshotAction}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleLoadSnapshot(snapshot.id)} disabled={isLoadingSnapshotAction} className="bg-green-600 hover:bg-green-700">
+                                {isLoadingSnapshotAction ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : "Load Snapshot"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                         <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                             <Button variant="destructive" size="sm" disabled={isLoadingSnapshotAction} className="bg-red-600/10 border-red-600 text-red-700 hover:bg-red-600/20 hover:text-red-800">
+                                <Trash2 className="mr-2 h-4 w-4"/> Delete
+                              </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Snapshot?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to permanently delete the snapshot "{snapshot.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel disabled={isLoadingSnapshotAction}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteSnapshot(snapshot.id)} disabled={isLoadingSnapshotAction} className="bg-destructive hover:bg-destructive/90">
+                                 {isLoadingSnapshotAction ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : "Delete"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
       <Card className="shadow-xl border-primary/30" id="sandbox-section">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-xl text-primary">
             <PackageOpen className="h-7 w-7" /> Decision Lever Sandbox
           </CardTitle>
           <CardDescription>
-            Test decisions in an isolated environment. Changes here DO NOT affect your main simulation.
+            Test decisions in an isolated environment. Changes here DO NOT affect your main simulation. Exit sandbox to save main simulation.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {!simState.isSandboxing ? (
-            <Button onClick={handleStartSandbox} disabled={!simState.isInitialized} size="lg" className="w-full sm:w-auto">
+            <Button onClick={handleStartSandbox} disabled={!simState.isInitialized || isLoadingSnapshotAction} size="lg" className="w-full sm:w-auto">
               <TestTube2 className="mr-2 h-5 w-5" /> Start Sandbox Experiment
             </Button>
           ) : (
@@ -329,7 +494,7 @@ export default function InnovationLabPage() {
                 <TestTube2 className="h-5 w-5 text-primary" />
                 <AlertTitle className="text-primary font-semibold">Sandbox Mode Active</AlertTitle>
                 <AlertDescription className="text-primary/90">
-                  You are currently experimenting. Sandbox Relative Month: {simState.sandboxRelativeMonth}
+                  You are currently experimenting. Sandbox Relative Month: {simState.sandboxRelativeMonth} (Main Sim Month: {simState.simulationMonth})
                 </AlertDescription>
               </Alert>
 
@@ -584,6 +749,3 @@ export default function InnovationLabPage() {
     </div>
   );
 }
-    
-    
-        
