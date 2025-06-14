@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission } from '@/types/simulation';
+import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact } from '@/types/simulation';
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
 
@@ -19,6 +19,21 @@ const getCurrencySymbol = (code?: string): string => {
   const map: Record<string, string> = { USD: "$", EUR: "€", JPY: "¥", GBP: "£", CAD: "C$", AUD: "A$" };
   return map[code.toUpperCase()] || code;
 };
+
+const createStructuredEvent = (
+  month: number,
+  description: string,
+  category: KeyEventCategory,
+  impact: KeyEventImpact
+): StructuredKeyEvent => ({
+  id: `event-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  timestamp: new Date().toISOString(),
+  month,
+  description,
+  category,
+  impact,
+});
+
 
 const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'missions'> = {
   simulationMonth: 0,
@@ -66,7 +81,7 @@ const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'histor
 
 const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSnapshot[] } => ({
   ...initialBaseState,
-  keyEvents: ["Simulation not yet initialized. Set up your venture to begin!"],
+  keyEvents: [createStructuredEvent(0, "Simulation not yet initialized. Set up your venture to begin!", "System", "Neutral")],
   rewards: [],
   suggestedChallenges: [],
   historicalRevenue: [],
@@ -170,7 +185,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           const errorMessage = `AI returned malformed data for initial setup. Details: ${errorDetails}. Cannot initialize simulation.`;
           set(state => ({
             ...state,
-            keyEvents: [...state.keyEvents, errorMessage],
+            keyEvents: [createStructuredEvent(0, errorMessage, "System", "Negative")],
             isInitialized: false,
             currentAiReasoning: "Fatal Error: AI provided unusable data for startup initialization. Please try setting up again.",
           }));
@@ -311,7 +326,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           },
           initialGoals: processedInitialGoals,
           suggestedChallenges: processedSuggestedChallenges,
-          keyEvents: [`Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month.`],
+          keyEvents: [createStructuredEvent(0, `Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month.`, "System", "Positive")],
           rewards: [],
           missions: [],
           historicalRevenue: [{ month: "M0", revenue: 0, desktop: 0 }],
@@ -424,6 +439,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
           set(state => {
             let newState: DigitalTwinState = JSON.parse(JSON.stringify(extractActiveSimState(state))); 
+            const newKeyEvents: StructuredKeyEvent[] = [];
 
             newState.simulationMonth = aiOutput.simulatedMonthNumber;
             newState.financials.revenue = aiOutput.calculatedRevenue;
@@ -437,10 +453,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newState.userMetrics.newUserAcquisitionRate = aiOutput.newUserAcquisition;
             newState.userMetrics.monthlyRecurringRevenue = aiOutput.updatedActiveUsers * newState.product.pricePerUser;
             
-            // Update CAC and Churn based on current state for charting *this* month's applied values
             const currentMonthCAC = aiOutput.newUserAcquisition > 0 ? state.resources.marketingSpend / aiOutput.newUserAcquisition : state.userMetrics.customerAcquisitionCost;
-            newState.userMetrics.customerAcquisitionCost = currentMonthCAC; // This might be a decision for the AI to evolve too.
-            // newState.userMetrics.churnRate remains as set by user/AI for this month
+            newState.userMetrics.customerAcquisitionCost = currentMonthCAC; 
 
 
             newState.product.developmentProgress = state.product.developmentProgress + aiOutput.productDevelopmentDelta; 
@@ -448,29 +462,34 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             if (aiOutput.newProductStage && aiOutput.newProductStage !== newState.product.stage) {
               newState.product.stage = aiOutput.newProductStage;
               newState.product.developmentProgress = 0; 
-              newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage!`);
+              newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Product advanced to ${newState.product.stage} stage!`, "Product", "Positive"));
             } else if (newState.product.developmentProgress >= 100 && newState.product.stage !== 'mature') {
                 const stagesList: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
                 const currentStageIndex = stagesList.indexOf(newState.product.stage);
                 if (currentStageIndex < stagesList.length - 1) {
                   newState.product.stage = stagesList[currentStageIndex + 1];
                   newState.product.developmentProgress = newState.product.developmentProgress % 100; 
-                  newState.keyEvents.push(`Product advanced to ${newState.product.stage} stage! (Progress Milestone)`);
+                  newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Product advanced to ${newState.product.stage} stage! (Progress Milestone)`, "Product", "Positive"));
                 } else { 
                     newState.product.stage = 'mature';
                     newState.product.developmentProgress = 100; 
-                    newState.keyEvents.push(`Product reached maturity! (Progress Milestone)`);
+                     newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Product reached maturity! (Progress Milestone)`, "Product", "Positive"));
                 }
             }
             newState.product.developmentProgress = Math.min(100, Math.max(0,newState.product.developmentProgress));
 
-            aiOutput.keyEventsGenerated.forEach(event => newState.keyEvents.push(event));
-            newState.keyEvents.push(`Month ${newState.simulationMonth} (AI Sim): Revenue ${newState.financials.currencySymbol}${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, Burn ${newState.financials.currencySymbol}${currentMonthBurnRate.toLocaleString()}, Profit ${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}`);
+            aiOutput.keyEventsGenerated.forEach(event => {
+              newKeyEvents.push(createStructuredEvent(newState.simulationMonth, event.description, event.category, event.impact));
+            });
+            newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Month ${newState.simulationMonth} (AI Sim): Revenue ${newState.financials.currencySymbol}${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, Burn ${newState.financials.currencySymbol}${currentMonthBurnRate.toLocaleString()}, Profit ${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}`, "System", "Neutral"));
 
             newState.startupScore = Math.max(0, Math.min(100, newState.startupScore + aiOutput.startupScoreAdjustment));
             if (newState.financials.cashOnHand <= 0 && state.financials.cashOnHand > 0) { 
-                newState.keyEvents.push(`Critical: Ran out of cash! Simulation unstable.`);
+                newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Critical: Ran out of cash! Simulation unstable.`, "Financial", "Negative"));
             }
+            
+            newState.keyEvents = [...state.keyEvents, ...newKeyEvents];
+
 
             const monthLabel = `M${newState.simulationMonth}`;
             newState.historicalRevenue.push({ month: monthLabel, revenue: newState.financials.revenue, desktop: newState.financials.revenue });
@@ -506,8 +525,11 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
                 dateEarned: new Date().toISOString(),
               }));
               newState.rewards.push(...newRewards);
-              newRewards.forEach(nr => newState.keyEvents.push(`Reward Earned: ${nr.name} - ${nr.description}`));
+              newRewards.forEach(nr => newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Reward Earned: ${nr.name} - ${nr.description}`, "General", "Positive")));
             }
+            
+            newState.keyEvents = [...state.keyEvents, ...newKeyEvents.filter(e => !state.keyEvents.find(se => se.id === e.id))]; // Add only new unique events by ID
+
 
             newState.currentAiReasoning = aiOutput.aiReasoning || "AI completed simulation. Reasoning not explicitly provided.";
             
@@ -542,7 +564,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
           set(state => ({
             ...state,
-            keyEvents: [...state.keyEvents, userFriendlyMessage],
+            keyEvents: [...state.keyEvents, createStructuredEvent(targetMonth, userFriendlyMessage, "System", "Negative")],
             currentAiReasoning: reasoningMessage
           }));
         }
@@ -551,7 +573,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
       resetSimulation: () => {
         set(state => ({
             ...getInitialState(), 
-            keyEvents: ["Simulation reset. Please initialize a new venture."],
+            keyEvents: [createStructuredEvent(0, "Simulation reset. Please initialize a new venture.", "System", "Neutral")],
             currentAiReasoning: "Simulation reset. AI log cleared.",
             sandboxState: null,
             isSandboxing: false,
@@ -573,7 +595,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         sandboxCopy.historicalCAC = [];
         sandboxCopy.historicalChurnRate = [];
         sandboxCopy.historicalProductProgress = [];
-        sandboxCopy.keyEvents = [`Sandbox started from main sim month ${state.simulationMonth}. Initial state copied.`];
+        sandboxCopy.keyEvents = [createStructuredEvent(state.simulationMonth, `Sandbox started from main sim month ${state.simulationMonth}. Initial state copied.`, "System", "Neutral")];
         sandboxCopy.rewards = []; 
         sandboxCopy.missions = [];
         sandboxCopy.simulationMonth = state.simulationMonth; 
@@ -706,6 +728,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           set(state => {
             if (!state.isSandboxing || !state.sandboxState) return state;
             const newSandboxState: DigitalTwinState = JSON.parse(JSON.stringify(state.sandboxState));
+            const newSandboxKeyEvents: StructuredKeyEvent[] = [];
 
             const simulatedSandboxDisplayMonth = state.sandboxRelativeMonth + 1;
 
@@ -724,30 +747,32 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             if (aiOutput.newProductStage && aiOutput.newProductStage !== newSandboxState.product.stage) {
               newSandboxState.product.stage = aiOutput.newProductStage;
               newSandboxState.product.developmentProgress = 0;
-              newSandboxState.keyEvents.push(`(Sandbox M${simulatedSandboxDisplayMonth}) Product advanced to ${newSandboxState.product.stage} stage!`);
+              newSandboxKeyEvents.push(createStructuredEvent(simulatedSandboxDisplayMonth, `(Sandbox) Product advanced to ${newSandboxState.product.stage} stage!`, "Product", "Positive"));
             } else if (newSandboxState.product.developmentProgress >= 100 && newSandboxState.product.stage !== 'mature') {
                  const stagesList: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
                 const currentStageIndex = stagesList.indexOf(newSandboxState.product.stage);
                 if (currentStageIndex < stagesList.length - 1) {
                   newSandboxState.product.stage = stagesList[currentStageIndex + 1];
                   newSandboxState.product.developmentProgress %= 100;
-                  newSandboxState.keyEvents.push(`(Sandbox M${simulatedSandboxDisplayMonth}) Product advanced to ${newSandboxState.product.stage} stage!`);
+                  newSandboxKeyEvents.push(createStructuredEvent(simulatedSandboxDisplayMonth, `(Sandbox) Product advanced to ${newSandboxState.product.stage} stage!`, "Product", "Positive"));
                 } else {
                     newSandboxState.product.stage = 'mature';
                     newSandboxState.product.developmentProgress = 100;
-                     newSandboxState.keyEvents.push(`(Sandbox M${simulatedSandboxDisplayMonth}) Product reached maturity!`);
+                    newSandboxKeyEvents.push(createStructuredEvent(simulatedSandboxDisplayMonth, `(Sandbox) Product reached maturity!`, "Product", "Positive"));
                 }
             }
              newSandboxState.product.developmentProgress = Math.min(100, Math.max(0,newSandboxState.product.developmentProgress));
 
 
-            aiOutput.keyEventsGenerated.forEach(event => newSandboxState.keyEvents.push(`(Sandbox M${simulatedSandboxDisplayMonth}) ${event}`));
-            newSandboxState.keyEvents.push(`(Sandbox M${simulatedSandboxDisplayMonth} Sim): Revenue ${newSandboxState.financials.currencySymbol}${newSandboxState.financials.revenue.toLocaleString()}, Users ${newSandboxState.userMetrics.activeUsers.toLocaleString()}, Cash ${newSandboxState.financials.currencySymbol}${newSandboxState.financials.cashOnHand.toLocaleString()}`);
+            aiOutput.keyEventsGenerated.forEach(event => newSandboxKeyEvents.push(createStructuredEvent(simulatedSandboxDisplayMonth, `(Sandbox) ${event.description}`, event.category, event.impact)));
+            newSandboxKeyEvents.push(createStructuredEvent(simulatedSandboxDisplayMonth, `(Sandbox M${simulatedSandboxDisplayMonth} Sim): Revenue ${newSandboxState.financials.currencySymbol}${newSandboxState.financials.revenue.toLocaleString()}, Users ${newSandboxState.userMetrics.activeUsers.toLocaleString()}, Cash ${newSandboxState.financials.currencySymbol}${newSandboxState.financials.cashOnHand.toLocaleString()}`, "System", "Neutral"));
             
             newSandboxState.startupScore = Math.max(0, Math.min(100, newSandboxState.startupScore + aiOutput.startupScoreAdjustment));
              if (newSandboxState.financials.cashOnHand <= 0 && state.sandboxState.financials.cashOnHand > 0) {
-                newSandboxState.keyEvents.push(`(Sandbox) Critical: Ran out of cash!`);
+                newSandboxKeyEvents.push(createStructuredEvent(simulatedSandboxDisplayMonth, `(Sandbox) Critical: Ran out of cash!`, "Financial", "Negative"));
             }
+            
+            newSandboxState.keyEvents = [...state.sandboxState.keyEvents, ...newSandboxKeyEvents];
 
             const sandboxMonthLabel = `SB M${simulatedSandboxDisplayMonth}`;
             newSandboxState.historicalRevenue.push({ month: sandboxMonthLabel, revenue: newSandboxState.financials.revenue, desktop: newSandboxState.financials.revenue });
@@ -773,7 +798,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
                 ...state,
                 sandboxState: state.sandboxState ? {
                     ...state.sandboxState,
-                    keyEvents: [...state.sandboxState.keyEvents, userFriendlyMessage],
+                    keyEvents: [...state.sandboxState.keyEvents, createStructuredEvent(state.sandboxRelativeMonth +1, userFriendlyMessage, "System", "Negative")],
                     currentAiReasoning: `Error in sandbox simulation: ${error instanceof Error ? error.message : "Unknown error"}`,
                 } : null,
                  currentAiReasoning: (state.currentAiReasoning || "") + `\n[Sandbox Error]: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -787,6 +812,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         isSandboxing: false,
         sandboxRelativeMonth: 0,
         currentAiReasoning: (state.currentAiReasoning || "") + "\nSandbox experiment discarded.",
+        keyEvents: [...state.keyEvents, createStructuredEvent(state.simulationMonth, "Sandbox experiment discarded.", "System", "Neutral")]
       })),
       
       applySandboxDecisionsToMain: () => set(state => {
@@ -813,7 +839,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
       
         updatedMainState.keyEvents = [
           ...state.keyEvents, 
-          `Decisions and product state from a sandbox experiment (which ran for ${state.sandboxRelativeMonth} month(s)) applied to the main simulation.`
+          createStructuredEvent(state.simulationMonth, `Decisions and product state from a sandbox experiment (which ran for ${state.sandboxRelativeMonth} month(s)) applied to the main simulation.`, "System", "Positive")
         ];
       
         updatedMainState.currentAiReasoning = (state.currentAiReasoning || "") + 
@@ -892,7 +918,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           isSandboxing: false,
           sandboxRelativeMonth: 0,
           savedSimulations: currentFullState.savedSimulations,
-          keyEvents: [...loadedSimState.keyEvents, `Simulation loaded from snapshot: ${snapshotToLoad.name}`],
+          keyEvents: [...loadedSimState.keyEvents, createStructuredEvent(loadedSimState.simulationMonth, `Simulation loaded from snapshot: ${snapshotToLoad.name}`, "System", "Positive")],
           currentAiReasoning: `Simulation state loaded from snapshot: "${snapshotToLoad.name}". Main simulation month is now ${loadedSimState.simulationMonth}.`,
         };
         
@@ -927,7 +953,17 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         mergedState.historicalCAC = Array.isArray(mergedState.historicalCAC) ? mergedState.historicalCAC : defaultStateArrays.historicalCAC;
         mergedState.historicalChurnRate = Array.isArray(mergedState.historicalChurnRate) ? mergedState.historicalChurnRate : defaultStateArrays.historicalChurnRate;
         mergedState.historicalProductProgress = Array.isArray(mergedState.historicalProductProgress) ? mergedState.historicalProductProgress : defaultStateArrays.historicalProductProgress;
-        mergedState.keyEvents = Array.isArray(mergedState.keyEvents) ? mergedState.keyEvents : defaultStateArrays.keyEvents;
+        
+        // Ensure keyEvents is an array of StructuredKeyEvent
+        mergedState.keyEvents = Array.isArray(mergedState.keyEvents) 
+        ? mergedState.keyEvents.map(event => 
+            typeof event === 'string' 
+            ? createStructuredEvent(mergedState.simulationMonth || 0, event, "General", "Neutral") // Convert old string events
+            : event
+          ) 
+        : defaultStateArrays.keyEvents;
+
+
         mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : defaultStateArrays.rewards;
         mergedState.savedSimulations = Array.isArray(mergedState.savedSimulations) ? mergedState.savedSimulations : defaultStateArrays.savedSimulations;
         mergedState.missions = Array.isArray(mergedState.missions) ? mergedState.missions : defaultStateArrays.missions;
@@ -991,7 +1027,13 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         }
         
         if (mergedState.sandboxState) { 
-            mergedState.sandboxState.keyEvents = Array.isArray(mergedState.sandboxState.keyEvents) ? mergedState.sandboxState.keyEvents : [];
+           mergedState.sandboxState.keyEvents = Array.isArray(mergedState.sandboxState.keyEvents) 
+            ? mergedState.sandboxState.keyEvents.map(event => 
+                typeof event === 'string' 
+                ? createStructuredEvent(mergedState.sandboxState?.simulationMonth || 0, event, "General", "Neutral") 
+                : event
+              )
+            : [];
             mergedState.sandboxState.historicalRevenue = Array.isArray(mergedState.sandboxState.historicalRevenue) ? mergedState.sandboxState.historicalRevenue : [];
             mergedState.sandboxState.historicalUserGrowth = Array.isArray(mergedState.sandboxState.historicalUserGrowth) ? mergedState.sandboxState.historicalUserGrowth : [];
             mergedState.sandboxState.historicalCAC = Array.isArray(mergedState.sandboxState.historicalCAC) ? mergedState.sandboxState.historicalCAC : [];

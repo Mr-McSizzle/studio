@@ -93,39 +93,6 @@ export type ExpenseBreakdownDataPoint = ExpenseBreakdown & {
 };
 
 
-export interface DigitalTwinState {
-  simulationMonth: number;
-  companyName: string;
-  financials: FinancialMetrics;
-  userMetrics: UserMetrics;
-  product: ProductDetails;
-  resources: Resources;
-  market: MarketConditions;
-  startupScore: number;
-  keyEvents: string[];
-  rewards: Reward[];
-  initialGoals: string[];
-  missions: Mission[]; // Added for dynamic missions
-  suggestedChallenges: string[];
-  isInitialized: boolean;
-  currentAiReasoning: string | null;
-
-  historicalRevenue: RevenueDataPoint[];
-  historicalUserGrowth: UserDataPoint[];
-  historicalBurnRate: HistoricalDataPoint[];
-  historicalNetProfitLoss: HistoricalDataPoint[];
-  historicalExpenseBreakdown: ExpenseBreakdownDataPoint[];
-  historicalCAC: HistoricalDataPoint[];
-  historicalChurnRate: HistoricalDataPoint[];
-  historicalProductProgress: HistoricalDataPoint[];
-
-
-  // Sandbox specific state
-  sandboxState: DigitalTwinState | null; // Holds a copy of the state for sandboxing
-  isSandboxing: boolean; // Flag to indicate if a sandbox experiment is active
-  sandboxRelativeMonth: number; // Tracks months *within* the current sandbox session
-}
-
 export const RewardSchema = z.object({
   name: z.string().describe("The name or title of the reward."),
   description: z.string().describe("A brief description of what the reward signifies or provides."),
@@ -145,13 +112,59 @@ export const MissionSchema = z.object({
 });
 export type Mission = z.infer<typeof MissionSchema>;
 
+export const KeyEventCategoryEnum = z.enum(['Financial', 'Product', 'Market', 'Team', 'User', 'System', 'General']);
+export type KeyEventCategory = z.infer<typeof KeyEventCategoryEnum>;
+
+export const KeyEventImpactEnum = z.enum(['Positive', 'Negative', 'Neutral']);
+export type KeyEventImpact = z.infer<typeof KeyEventImpactEnum>;
+
+export interface StructuredKeyEvent {
+  id: string;
+  timestamp: string; // ISO date string
+  month: number; // Simulation month this event pertains to
+  description: string;
+  category: KeyEventCategory;
+  impact: KeyEventImpact;
+}
+
+
+export interface DigitalTwinState {
+  simulationMonth: number;
+  companyName: string;
+  financials: FinancialMetrics;
+  userMetrics: UserMetrics;
+  product: ProductDetails;
+  resources: Resources;
+  market: MarketConditions;
+  startupScore: number;
+  keyEvents: StructuredKeyEvent[]; // Changed from string[]
+  rewards: Reward[];
+  initialGoals: string[];
+  missions: Mission[]; 
+  suggestedChallenges: string[];
+  isInitialized: boolean;
+  currentAiReasoning: string | null;
+
+  historicalRevenue: RevenueDataPoint[];
+  historicalUserGrowth: UserDataPoint[];
+  historicalBurnRate: HistoricalDataPoint[];
+  historicalNetProfitLoss: HistoricalDataPoint[];
+  historicalExpenseBreakdown: ExpenseBreakdownDataPoint[];
+  historicalCAC: HistoricalDataPoint[];
+  historicalChurnRate: HistoricalDataPoint[];
+  historicalProductProgress: HistoricalDataPoint[];
+
+  sandboxState: DigitalTwinState | null; 
+  isSandboxing: boolean; 
+  sandboxRelativeMonth: number; 
+}
 
 export interface AIInitialConditions {
   market?: {
     estimatedSize?: number;
     growthRate?: number;
     keySegments?: string[] | string;
-    targetMarketDescription?: string; // Added
+    targetMarketDescription?: string; 
   };
   resources?: {
     initialFunding?: number | string;
@@ -160,16 +173,16 @@ export interface AIInitialConditions {
     marketingSpend?: number | string;
     rndSpend?: number | string;
   };
-  productService?: { // Renamed from product for clarity
+  productService?: { 
     initialDevelopmentStage?: string;
     name?: string;
     pricePerUser?: number | string;
-    features?: string[]; // Added
+    features?: string[]; 
   };
   financials?: {
     startingCash?: number | string;
     estimatedInitialMonthlyBurnRate?: number | string;
-    currencyCode?: string; // AI can suggest or confirm
+    currencyCode?: string; 
   };
   initialGoals?: string[] | string;
   companyName?: string;
@@ -178,17 +191,17 @@ export interface AIInitialConditions {
 // AI Agent Profile
 export interface AIAgentProfile {
   id: string;
-  name: string; // Full name, e.g., "Alex, the Accountant"
-  shortName: string; // e.g., "Alex"
-  title: string; // e.g., "AI Accountant"
+  name: string; 
+  shortName: string; 
+  title: string; 
   icon: ComponentType<LucideProps>;
-  iconColorClass: string; // Tailwind class for icon color e.g. "text-primary", "text-accent"
-  gradientFromClass: string; // Tailwind class for button gradient e.g. "from-primary", "from-accent"
-  gradientToClass: string; // Tailwind class for button gradient e.g. "to-secondary", "to-yellow-400"
+  iconColorClass: string; 
+  gradientFromClass: string; 
+  gradientToClass: string; 
   description: string;
   specialties: string[];
   actionText: string;
-  actionLink?: string; // e.g., "/app/mentor?focus=alex"
+  actionLink?: string; 
 }
 
 // Snapshot type for saving simulation states
@@ -352,6 +365,12 @@ const ExpenseBreakdownSchema = z.object({
   operational: z.number().describe("Other operational costs for the month (rent, utilities, software, etc.)."),
 });
 
+const AIKeyEventSchema = z.object({
+  description: z.string().describe("A concise description of the event. Do NOT include impact text like '(Positive)' here; use the 'impact' field instead."),
+  category: KeyEventCategoryEnum.describe("The most relevant category for this event (e.g., Financial, Product, Market, Team, User, General)."),
+  impact: KeyEventImpactEnum.describe("The overall impact of the event (Positive, Negative, or Neutral).")
+});
+
 export const SimulateMonthOutputSchema = z.object({
   simulatedMonthNumber: z.number().describe("The month number that was just simulated (should be currentSimulationMonth + 1)."),
   calculatedRevenue: z.number().describe("Total revenue generated in this simulated month."),
@@ -363,7 +382,7 @@ export const SimulateMonthOutputSchema = z.object({
   newUserAcquisition: z.number().describe("Number of new users acquired during this month."),
   productDevelopmentDelta: z.number().describe("The percentage points by which product development progressed this month (e.g., 10 for 10% progress). This will be added to existing progress."),
   newProductStage: z.enum(['idea', 'prototype', 'mvp', 'growth', 'mature']).optional().describe("If the product advanced to a new stage this month, specify the new stage. Otherwise, omit this field."),
-  keyEventsGenerated: z.array(z.string()).length(2).describe("An array of exactly two significant, context-aware events (positive, negative, or neutral) that occurred during the month. One event should be related to internal decisions/outcomes, the other more external/market-based. Each event string should state its impact (e.g., '...(Positive)')."),
+  keyEventsGenerated: z.array(AIKeyEventSchema).length(2).describe("An array of exactly two significant, context-aware events that occurred during the month. Each event must be an object with 'description', 'category', and 'impact' fields."),
   rewardsGranted: z.array(RewardSchema).optional().describe("List of rewards granted this month if a significant milestone was achieved. These rewards should be thematic to the achievement."),
   startupScoreAdjustment: z.number().int().describe("An integer representing the change to the startup score based on this month's performance, achievements, and rewards."),
   aiReasoning: z.string().optional().describe("A brief, 1-2 sentence explanation from the AI about its key considerations or calculations for this month's simulation outcomes, especially if they were influenced by nuanced logic or dynamic events."),

@@ -6,10 +6,12 @@ import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, TrendingDown, PiggyBank, Brain, Loader2, Activity, PercentSquare, LineChart } from "lucide-react";
+import { DollarSign, Users, TrendingUp, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, TrendingDown, PiggyBank, Brain, Loader2, Activity } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import type { StructuredKeyEvent } from "@/types/simulation";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -68,6 +70,8 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  const isLowCash = isInitialized && financials.cashOnHand > 0 && financials.burnRate > 0 && financials.cashOnHand < (2 * financials.burnRate);
 
 
   return (
@@ -143,27 +147,38 @@ export default function DashboardPage() {
             <Users className="h-5 w-5 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">
+            <div className="text-2xl font-bold text-foreground flex items-center">
               {isInitialized ? userMetrics.activeUsers.toLocaleString() : "N/A"}
+              {isInitialized && userMetrics.newUserAcquisitionRate < 0 && (
+                <TrendingDown className="h-5 w-5 text-destructive ml-2" />
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className={cn("text-xs text-muted-foreground", isInitialized && userMetrics.newUserAcquisitionRate < 0 && "text-destructive")}>
               New this month: {isInitialized ? userMetrics.newUserAcquisitionRate.toLocaleString() : "N/A"}
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-lg">
+        <Card className={cn("shadow-lg", isLowCash && "border-yellow-500/70")}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Cash on Hand
             </CardTitle>
-            <PiggyBank className="h-5 w-5 text-accent" />
+            <div className="flex items-center gap-1">
+              {isLowCash && <AlertTriangle className="h-4 w-4 text-yellow-500" />}
+              <PiggyBank className="h-5 w-5 text-accent" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${financials.cashOnHand < 0 && isInitialized ? 'text-destructive' : 'text-foreground'}`}>
+            <div className={cn(
+                "text-2xl font-bold", 
+                financials.cashOnHand <= 0 && isInitialized ? 'text-destructive' : 
+                isLowCash ? 'text-yellow-500' : 'text-foreground'
+            )}>
                {isInitialized ? `${currencySymbol}${financials.cashOnHand.toLocaleString()}` : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
               Monthly Burn: {isInitialized ? `${currencySymbol}${financials.burnRate.toLocaleString()}` : "N/A"}
+              {isLowCash && <span className="text-yellow-600 font-semibold ml-1">(Low Runway!)</span>}
             </p>
           </CardContent>
         </Card>
@@ -214,7 +229,7 @@ export default function DashboardPage() {
         <PerformanceChart title="Monthly Churn Rate (%)" description="Percentage of users lost per month." dataKey="value" data={isInitialized ? historicalChurnRate : []} />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1 mt-8"> {/* Changed to 1 column for better fit */}
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1 mt-8"> 
         <PerformanceChart title={`Product: ${product.name} (${product.stage})`} description="Development progress towards next stage (0-100%)." dataKey="value" data={isInitialized ? historicalProductProgress : []} />
       </div>
       
@@ -225,14 +240,18 @@ export default function DashboardPage() {
       <Card className="mt-8 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Activity className="h-6 w-6 text-primary"/>Key Simulation Events</CardTitle>
-           <CardDescription>Chronological log of major occurrences in your simulation.</CardDescription>
+           <CardDescription>Chronological log of major occurrences in your simulation. (Newest first)</CardDescription>
         </CardHeader>
         <CardContent>
           {isInitialized && keyEvents.length > 0 ? (
-            <ScrollArea className="h-48">
+            <ScrollArea className="h-60">
               <ul className="text-sm space-y-1 text-muted-foreground">
-                {keyEvents.slice().reverse().map((event, index) => (
-                  <li key={index} className="border-b border-border/50 pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0">{event}</li>
+                {keyEvents.slice().reverse().map((event: StructuredKeyEvent) => (
+                  <li key={event.id} className="border-b border-border/50 pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0">
+                    {/* M{event.month}: [{event.category} - {event.impact}] {event.description} */}
+                    <span className="font-semibold text-foreground/80">M{event.month}: </span>{event.description}
+                    {/* Add badges for category/impact here later if desired */}
+                  </li>
                 ))}
               </ul>
             </ScrollArea>

@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { SimulateMonthInputSchema, SimulateMonthOutputSchema, type SimulateMonthInput, type SimulateMonthOutput } from '@/types/simulation';
+import { SimulateMonthInputSchema, SimulateMonthOutputSchema, type SimulateMonthInput, type SimulateMonthOutput, KeyEventCategoryEnum, KeyEventImpactEnum } from '@/types/simulation';
 
 export async function simulateMonth(input: SimulateMonthInput): Promise<SimulateMonthOutput> {
   return simulateMonthGenkitFlow(input);
@@ -22,7 +22,7 @@ const prompt = ai.definePrompt({
   input: { schema: SimulateMonthInputSchema },
   output: { schema: SimulateMonthOutputSchema },
   config: {
-    temperature: 0.75, // Slightly increased temperature for more varied and creative event generation
+    temperature: 0.75, 
      safetySettings: [ 
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
       { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
@@ -80,7 +80,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
         *   'marketing': Current {{{resources.marketingSpend}}}.
         *   'rnd': Current {{{resources.rndSpend}}}.
         *   'operational': Estimate realistic costs for a startup of this nature. Consider team size.
-        *   **Cash Flow Management:** If 'cashOnHand' is very low (e.g., < 2 months of typical burn rate), the startup MUST implement emergency cost-cutting. Reflect this by significantly reducing 'expenseBreakdown.operational'. If cash is extremely low (< 1 month burn), consider if marketing or R&D spend should be realistically frozen or drastically reduced in 'expenseBreakdown.marketing'/'expenseBreakdown.rnd' for this month, and reflect this in a key event if it occurs (e.g., "Emergency cost-cutting: Marketing budget frozen due to low cash reserves.").
+        *   **Cash Flow Management:** If 'cashOnHand' is very low (e.g., < 2 months of typical burn rate), the startup MUST implement emergency cost-cutting. Reflect this by significantly reducing 'expenseBreakdown.operational'. If cash is extremely low (< 1 month burn), consider if marketing or R&D spend should be realistically frozen or drastically reduced in 'expenseBreakdown.marketing'/'expenseBreakdown.rnd' for this month, and reflect this in a key event if it occurs (e.g., event description: "Emergency cost-cutting: Marketing budget frozen due to low cash reserves.", category: 'Financial', impact: 'Negative').
         *   'calculatedExpenses': MUST be sum of 'expenseBreakdown' components.
     *   Profit Or Loss = Calculated Revenue - CalculatedExpenses.
     *   Updated Cash On Hand = Current Cash On Hand + Profit OrLoss.
@@ -93,11 +93,15 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Total Progress = Current Development Progress + Progress Delta.
     *   Stage Advancement: If Total Progress >= 100 and current stage is not 'mature': advance to next stage ('idea' -> 'prototype' -> 'mvp' -> 'growth' -> 'mature'). Reset progress to 0. Set 'newProductStage'.
 
-4.  **Key Events Generated (Exactly 2):**
-    *   Generate two distinct, context-aware events.
-    *   **Event 1 (Internal/Decision-Related):** Should be directly tied to the company's current situation, recent decisions, or significant outcomes this month. E.g., If R&D spend was high and progress was good: "Breakthrough in R&D: Feature X development completed ahead of schedule. (Positive)". If marketing spend was high but user acquisition low: "Marketing Campaign Ineffective: High spend yielded minimal user growth this month. (Negative)". If cash became critically low: "Financial Distress: Emergency measures implemented due to critically low cash reserves. (Negative)".
-    *   **Event 2 (External/Market-Related):** Can be a more general market, operational, or competitor-related event. E.g., "Key competitor Y launched a new product, increasing market competition. (Neutral/Negative)", "Unexpected positive media mention boosted brand visibility. (Positive)", "Minor server outage caused temporary service disruption. (Negative)".
-    *   For each event, briefly state its impact (Positive, Negative, Neutral) in parentheses at the end of the event string.
+4.  **Key Events Generated (Exactly 2, structured objects):**
+    *   Generate two distinct, context-aware events. Each event must be an object with 'description', 'category', and 'impact'.
+    *   Valid categories: ${KeyEventCategoryEnum.options.join(', ')}.
+    *   Valid impacts: ${KeyEventImpactEnum.options.join(', ')}.
+    *   **Event 1 (Internal/Decision-Related):** Tied to the company's current situation, recent decisions, or significant outcomes this month.
+        Example: { description: "Feature X development completed ahead of schedule.", category: "Product", impact: "Positive" }
+    *   **Event 2 (External/Market-Related):** Can be a general market, operational, or competitor event.
+        Example: { description: "Key competitor Y launched a new product.", category: "Market", impact: "Negative" }
+    *   Do NOT include the impact text like '(Positive)' within the event 'description' field.
 
 5.  **Rewards Granted (Optional):**
     *   If a major milestone was achieved (significant user growth, product stage advancement, first profitability, successful navigation of a crisis revealed in events), grant 1-2 thematic rewards.
@@ -183,6 +187,41 @@ const simulateMonthGenkitFlow = ai.defineFlow(
         output.profitOrLoss = output.calculatedRevenue - output.calculatedExpenses;
         output.updatedCashOnHand = input.financials.cashOnHand + output.profitOrLoss;
     }
+    
+    // Validate AI-generated events structure
+    if (output.keyEventsGenerated && Array.isArray(output.keyEventsGenerated)) {
+        output.keyEventsGenerated.forEach(event => {
+            if (!event.description || !event.category || !event.impact) {
+                console.warn("AI returned a malformed key event:", event);
+                // Attempt to fix or default malformed event
+                event.description = event.description || "Unspecified event from AI";
+                event.category = KeyEventCategoryEnum.Values.General; // Default category
+                event.impact = KeyEventImpactEnum.Values.Neutral; // Default impact
+            }
+            if (typeof event.description !== 'string' || !KeyEventCategoryEnum.safeParse(event.category).success || !KeyEventImpactEnum.safeParse(event.impact).success) {
+                console.warn("AI returned an event with invalid category or impact type:", event);
+                event.category = KeyEventCategoryEnum.Values.General;
+                event.impact = KeyEventImpactEnum.Values.Neutral;
+            }
+        });
+         if (output.keyEventsGenerated.length !== 2) {
+            console.warn(`AI returned ${output.keyEventsGenerated.length} events, expected 2. Padding/truncating if necessary.`);
+            // Basic padding/truncating - could be more sophisticated
+            while(output.keyEventsGenerated.length < 2) {
+                output.keyEventsGenerated.push({description: "Placeholder event due to AI under-generation.", category: "General", impact: "Neutral"});
+            }
+            if(output.keyEventsGenerated.length > 2) {
+                output.keyEventsGenerated = output.keyEventsGenerated.slice(0, 2);
+            }
+        }
+    } else {
+        console.error("AI did not return keyEventsGenerated or it was not an array. Creating default events.");
+        output.keyEventsGenerated = [
+            {description: "AI failed to generate primary event for the month.", category: "System", impact: "Neutral"},
+            {description: "AI failed to generate secondary event for the month.", category: "System", impact: "Neutral"}
+        ];
+    }
+
 
     return output;
   }
