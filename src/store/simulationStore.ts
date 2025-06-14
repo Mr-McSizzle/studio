@@ -34,6 +34,49 @@ const createStructuredEvent = (
   impact,
 });
 
+const onboardingMissions: Mission[] = [
+  {
+    id: "onboarding-1",
+    title: "Explore Your Dashboard",
+    description: "Visit the Dashboard to get an overview of your startup's initial state: financials, user metrics, and startup score.",
+    rewardText: "+2 Startup Score, Quick Tip from EVE",
+    isCompleted: false,
+    difficulty: "easy",
+  },
+  {
+    id: "onboarding-2",
+    title: "Meet Your AI Team",
+    description: "Navigate to the 'AI Agent Team' page. These AI specialists are here to help you. Click on one to see their profile.",
+    rewardText: "+3 Startup Score",
+    isCompleted: false,
+    difficulty: "easy",
+  },
+  {
+    id: "onboarding-3",
+    title: "Consult EVE, Your Hive Mind",
+    description: "Go to the 'Hive Mind Assistant' page and ask EVE her first question. Try 'What should be my first focus?' or 'Tell me about my initial burn rate.'",
+    rewardText: "+5 Startup Score, Unlock 'Market Analysis Basics' Tip",
+    isCompleted: false,
+    difficulty: "easy",
+  },
+  {
+    id: "onboarding-4",
+    title: "Adjust Your First Decision",
+    description: "Go to 'Decision Controls'. Try slightly increasing your marketing spend or R&D spend. These changes take effect next month.",
+    rewardText: "+3 Startup Score",
+    isCompleted: false,
+    difficulty: "easy",
+  },
+  {
+    id: "onboarding-5",
+    title: "Simulate Your First Month",
+    description: "Return to the Dashboard and click 'Simulate Next Month' to see the impact of your initial setup and any decisions made.",
+    rewardText: "+5 Startup Score, First Month Milestone Badge",
+    isCompleted: false,
+    difficulty: "medium",
+  },
+];
+
 
 const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'missions'> = {
   simulationMonth: 0,
@@ -92,7 +135,7 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
   historicalCAC: [],
   historicalChurnRate: [],
   historicalProductProgress: [],
-  missions: [],
+  missions: [...onboardingMissions], // Start with onboarding missions
   currentAiReasoning: "AI log awaiting initialization.",
   sandboxState: null,
   isSandboxing: false,
@@ -329,7 +372,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           suggestedChallenges: processedSuggestedChallenges,
           keyEvents: [createStructuredEvent(0, `Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month.`, "System", "Positive")],
           rewards: [],
-          missions: [], // Initialize missions as empty
+          missions: [...onboardingMissions], // Initialize with onboarding missions
           historicalRevenue: [{ month: "M0", revenue: 0, desktop: 0 }],
           historicalUserGrowth: [{ month: "M0", users: 0, desktop: 0 }],
           historicalBurnRate: [{ month: "M0", value: finalInitialBurnRate, desktop: finalInitialBurnRate }],
@@ -933,6 +976,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           savedSimulations: currentFullState.savedSimulations, // Preserve the list of all saved simulations
           keyEvents: [...loadedSimState.keyEvents, createStructuredEvent(loadedSimState.simulationMonth, `Simulation loaded from snapshot: ${snapshotToLoad.name}`, "System", "Positive")],
           currentAiReasoning: `Simulation state loaded from snapshot: "${snapshotToLoad.name}". Main simulation month is now ${loadedSimState.simulationMonth}.`,
+          // Ensure missions are loaded from snapshot, or default to onboarding if snapshot has none.
+          missions: Array.isArray(loadedSimState.missions) && loadedSimState.missions.length > 0 ? loadedSimState.missions : [...onboardingMissions],
         };
         
         set(newStateFromSnapshot);
@@ -978,7 +1023,11 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
         mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : defaultStateArrays.rewards;
         mergedState.savedSimulations = Array.isArray(mergedState.savedSimulations) ? mergedState.savedSimulations : defaultStateArrays.savedSimulations;
-        mergedState.missions = Array.isArray(mergedState.missions) ? mergedState.missions : defaultStateArrays.missions;
+        
+        // Handle missions: if persisted missions exist, use them; otherwise, use onboarding.
+        mergedState.missions = Array.isArray(mergedState.missions) && mergedState.missions.length > 0 
+                                ? mergedState.missions 
+                                : [...onboardingMissions];
 
 
         if (!mergedState.financials || !mergedState.financials.currencyCode) {
@@ -1058,5 +1107,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     }
   )
 );
+
 
 
