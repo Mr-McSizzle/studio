@@ -102,15 +102,22 @@ export type Reward = z.infer<typeof RewardSchema> & {
   dateEarned: string; // ISO date string
 };
 
-export const MissionSchema = z.object({
-  id: z.string().describe("Unique ID for the mission."),
+// This is the schema for AI output for a single mission
+export const GeneratedMissionSchema = z.object({
   title: z.string().describe("The main title or objective of the mission."),
   description: z.string().describe("A brief explanation of what needs to be done."),
   rewardText: z.string().describe("Textual description of the reward upon completion (e.g., '+10 Score, Unlock Feature X')."),
-  isCompleted: z.boolean().default(false).describe("Whether the mission has been completed."),
   difficulty: z.enum(['easy', 'medium', 'hard']).optional().describe("Optional difficulty rating."),
 });
-export type Mission = z.infer<typeof MissionSchema>;
+export type GeneratedMission = z.infer<typeof GeneratedMissionSchema>;
+
+
+// This is the type stored in the client-side simulation store
+export interface Mission extends GeneratedMission {
+  id: string;
+  isCompleted: boolean;
+}
+
 
 export const KeyEventCategoryEnum = z.enum(['Financial', 'Product', 'Market', 'Team', 'User', 'System', 'General']);
 export type KeyEventCategory = z.infer<typeof KeyEventCategoryEnum>;
@@ -137,7 +144,7 @@ export interface DigitalTwinState {
   resources: Resources;
   market: MarketConditions;
   startupScore: number;
-  keyEvents: StructuredKeyEvent[]; // Changed from string[]
+  keyEvents: StructuredKeyEvent[];
   rewards: Reward[];
   initialGoals: string[];
   missions: Mission[]; 
@@ -358,13 +365,6 @@ export const SimulateMonthInputSchema = z.object({
 });
 export type SimulateMonthInput = z.infer<typeof SimulateMonthInputSchema>;
 
-const ExpenseBreakdownSchema = z.object({
-  salaries: z.number().describe("Total salaries expense for the month."),
-  marketing: z.number().describe("Total marketing spend for the month."),
-  rnd: z.number().describe("Total R&D spend for the month."),
-  operational: z.number().describe("Other operational costs for the month (rent, utilities, software, etc.)."),
-});
-
 const AIKeyEventSchema = z.object({
   description: z.string().describe("A concise description of the event. Do NOT include impact text like '(Positive)' here; use the 'impact' field instead."),
   category: KeyEventCategoryEnum.describe("The most relevant category for this event (e.g., Financial, Product, Market, Team, User, General)."),
@@ -491,13 +491,13 @@ export type SuggestNamesOutput = z.infer<typeof SuggestNamesOutputSchema>;
 // Generate Dynamic Missions Flow
 export const GenerateDynamicMissionsInputSchema = z.object({
   simulationStateJSON: z.string().describe("The full current DigitalTwinState of the simulation, serialized as a JSON string."),
-  recentEvents: z.array(z.string()).optional().describe("A summary of the last few significant events in the simulation."),
-  currentGoals: z.array(z.string()).optional().describe("User's stated or AI-derived current strategic goals."),
+  recentEvents: z.array(z.string()).optional().describe("A summary of the last few significant events in the simulation (e.g., descriptions from StructuredKeyEvents)."),
+  currentGoals: z.array(z.string()).optional().describe("User's stated or AI-derived current strategic goals (e.g., from initial setup or strategic recommendations)."),
 });
 export type GenerateDynamicMissionsInput = z.infer<typeof GenerateDynamicMissionsInputSchema>;
 
 export const GenerateDynamicMissionsOutputSchema = z.object({
-  generatedMissions: z.array(MissionSchema.omit({ id: true, isCompleted: true })).describe("An array of 2-3 dynamically generated missions relevant to the current simulation state. IDs and completion status will be handled by the client."),
+  generatedMissions: z.array(GeneratedMissionSchema).describe("An array of 2-3 dynamically generated missions relevant to the current simulation state."),
 });
 export type GenerateDynamicMissionsOutput = z.infer<typeof GenerateDynamicMissionsOutputSchema>;
 
@@ -554,4 +554,5 @@ export const CompetitorAnalysisOutputSchema = z.object({
   strategicRecommendations: z.array(z.string()).describe("High-level strategic recommendations for the user's startup to navigate the competitive environment."),
 });
 export type CompetitorAnalysisOutput = z.infer<typeof CompetitorAnalysisOutputSchema>;
+
 

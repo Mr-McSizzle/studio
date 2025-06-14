@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact } from '@/types/simulation';
+import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission } from '@/types/simulation';
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
 
@@ -108,6 +108,7 @@ interface SimulationActions {
   setRndSpend: (amount: number) => void;
   setPricePerUser: (price: number) => void;
   adjustTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => void;
+  setMissions: (generatedMissionsFromAI: GeneratedMission[]) => void; // For new missions
   // Sandbox actions
   startSandboxExperiment: () => void;
   setSandboxMarketingSpend: (amount: number) => void;
@@ -328,7 +329,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           suggestedChallenges: processedSuggestedChallenges,
           keyEvents: [createStructuredEvent(0, `Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month.`, "System", "Positive")],
           rewards: [],
-          missions: [],
+          missions: [], // Initialize missions as empty
           historicalRevenue: [{ month: "M0", revenue: 0, desktop: 0 }],
           historicalUserGrowth: [{ month: "M0", users: 0, desktop: 0 }],
           historicalBurnRate: [{ month: "M0", value: finalInitialBurnRate, desktop: finalInitialBurnRate }],
@@ -381,6 +382,15 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           team.push({ role: roleToAdjust, count: change, salary: salaryPerMember || (roleToAdjust.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : DEFAULT_ENGINEER_SALARY) });
         }
         return { resources: { ...state.resources, team } };
+      }),
+
+      setMissions: (generatedMissionsFromAI: GeneratedMission[]) => set(state => {
+        const newMissions: Mission[] = generatedMissionsFromAI.map(genMission => ({
+          ...genMission,
+          id: `mission-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          isCompleted: false,
+        }));
+        return { ...state, missions: newMissions };
       }),
 
       advanceMonth: async () => {
@@ -488,7 +498,20 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
                 newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Critical: Ran out of cash! Simulation unstable.`, "Financial", "Negative"));
             }
             
-            newState.keyEvents = [...state.keyEvents, ...newKeyEvents];
+            let currentRewards = [...state.rewards];
+            if (aiOutput.rewardsGranted && aiOutput.rewardsGranted.length > 0) {
+              const newRewardsFromAI: Reward[] = aiOutput.rewardsGranted.map(rewardBase => ({
+                ...rewardBase,
+                id: `reward-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                dateEarned: new Date().toISOString(),
+              }));
+              currentRewards.push(...newRewardsFromAI);
+              newRewardsFromAI.forEach(nr => newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Reward Earned: ${nr.name} - ${nr.description}`, "General", "Positive")));
+            }
+            newState.rewards = currentRewards;
+
+
+            newState.keyEvents = [...state.keyEvents, ...newKeyEvents.filter(e => !state.keyEvents.find(se => se.id === e.id))];
 
 
             const monthLabel = `M${newState.simulationMonth}`;
@@ -517,18 +540,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             } else {
                 console.warn("AI did not provide expense breakdown for month " + newState.simulationMonth + ". This should not happen.");
             }
-
-            if (aiOutput.rewardsGranted && aiOutput.rewardsGranted.length > 0) {
-              const newRewards: Reward[] = aiOutput.rewardsGranted.map(rewardBase => ({
-                ...rewardBase,
-                id: `reward-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-                dateEarned: new Date().toISOString(),
-              }));
-              newState.rewards.push(...newRewards);
-              newRewards.forEach(nr => newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Reward Earned: ${nr.name} - ${nr.description}`, "General", "Positive")));
-            }
             
-            newState.keyEvents = [...state.keyEvents, ...newKeyEvents.filter(e => !state.keyEvents.find(se => se.id === e.id))]; // Add only new unique events by ID
+            newState.keyEvents = [...state.keyEvents, ...newKeyEvents.filter(e => !state.keyEvents.find(se => se.id === e.id))]; 
 
 
             newState.currentAiReasoning = aiOutput.aiReasoning || "AI completed simulation. Reasoning not explicitly provided.";
@@ -597,7 +610,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         sandboxCopy.historicalProductProgress = [];
         sandboxCopy.keyEvents = [createStructuredEvent(state.simulationMonth, `Sandbox started from main sim month ${state.simulationMonth}. Initial state copied.`, "System", "Neutral")];
         sandboxCopy.rewards = []; 
-        sandboxCopy.missions = [];
+        sandboxCopy.missions = []; // Sandbox starts with no missions
         sandboxCopy.simulationMonth = state.simulationMonth; 
         
         return {
@@ -917,7 +930,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           sandboxState: null,
           isSandboxing: false,
           sandboxRelativeMonth: 0,
-          savedSimulations: currentFullState.savedSimulations,
+          savedSimulations: currentFullState.savedSimulations, // Preserve the list of all saved simulations
           keyEvents: [...loadedSimState.keyEvents, createStructuredEvent(loadedSimState.simulationMonth, `Simulation loaded from snapshot: ${snapshotToLoad.name}`, "System", "Positive")],
           currentAiReasoning: `Simulation state loaded from snapshot: "${snapshotToLoad.name}". Main simulation month is now ${loadedSimState.simulationMonth}.`,
         };
@@ -954,11 +967,10 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         mergedState.historicalChurnRate = Array.isArray(mergedState.historicalChurnRate) ? mergedState.historicalChurnRate : defaultStateArrays.historicalChurnRate;
         mergedState.historicalProductProgress = Array.isArray(mergedState.historicalProductProgress) ? mergedState.historicalProductProgress : defaultStateArrays.historicalProductProgress;
         
-        // Ensure keyEvents is an array of StructuredKeyEvent
         mergedState.keyEvents = Array.isArray(mergedState.keyEvents) 
         ? mergedState.keyEvents.map(event => 
             typeof event === 'string' 
-            ? createStructuredEvent(mergedState.simulationMonth || 0, event, "General", "Neutral") // Convert old string events
+            ? createStructuredEvent(mergedState.simulationMonth || 0, event, "General", "Neutral") 
             : event
           ) 
         : defaultStateArrays.keyEvents;
@@ -1046,4 +1058,5 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     }
   )
 );
+
 

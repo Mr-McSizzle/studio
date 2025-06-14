@@ -2,6 +2,7 @@
 // This file is no longer used and can be deleted.
 // Keeping it for now to avoid breaking imports if any were missed,
 // but it should be removed in a future cleanup.
+// The GamificationPage now directly renders missions from the store.
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -63,3 +64,4 @@ export function MissionsCard({ missions }: MissionsCardProps) {
     </Card>
   );
 }
+
