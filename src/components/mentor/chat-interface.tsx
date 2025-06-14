@@ -30,14 +30,19 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const simState = useSimulationStore(state => ({
-    isInitialized: state.isInitialized,
-    simulationMonth: state.simulationMonth,
-    financials: state.financials,
-    product: state.product,
-    resources: state.resources,
-    market: state.market,
-  }));
+  const simStore = useSimulationStore(); // Get the whole store instance
+  const {
+    isInitialized,
+    simulationMonth,
+    financials,
+    product,
+    resources,
+    market,
+    setMarketingSpend, // Action from store
+    setRndSpend,       // Action from store
+    setPricePerUser    // Action from store
+  } = simStore;
+
   const pathname = usePathname();
 
   const currentChatContext = useMemo(() => focusedAgentId || EVE_MAIN_CHAT_CONTEXT_ID, [focusedAgentId]);
@@ -50,15 +55,15 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [displayedMessages]); // Scroll when displayed messages for the current context change
+  }, [displayedMessages]);
 
   useEffect(() => {
-    initializeGreeting(focusedAgentId, focusedAgentName); // Store handles context-specific greeting logic
-    if (focusedAgentId && focusedAgentName && displayedMessages.length <= 1) { 
+    initializeGreeting(currentChatContext, focusedAgentId, focusedAgentName); 
+    if (focusedAgentId && focusedAgentName && allMessages.filter(m => m.agentContextId === currentChatContext).length <= 1) { 
        setUserInput(`My question for ${focusedAgentName} is about `);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusedAgentId, focusedAgentName, initializeGreeting]);
+  }, [currentChatContext, focusedAgentId, focusedAgentName, initializeGreeting]);
 
 
   const handleSubmit = async (e: FormEvent) => {
@@ -70,7 +75,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
       role: "user",
       content: userInput.trim(),
       timestamp: new Date(),
-      agentContextId: currentChatContext, // Tag user message with current context
+      agentContextId: currentChatContext,
     };
     addMessage(newUserMessage); 
     const currentInput = userInput; 
@@ -78,46 +83,86 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     setIsLoading(true);
 
     try {
-      // EVE gets the FULL conversation history from all contexts for maximum awareness
       const conversationHistoryForAI = [...useAiMentorStore.getState().messages].map(msg => ({
-        role: msg.role as 'user' | 'assistant' | 'tool_response', // Ensure role is correctly typed
+        role: msg.role as 'user' | 'assistant' | 'tool_response',
         content: msg.content
       }));
 
       const mentorInput: MentorConversationInput = {
         userInput: currentInput.trim(),
         conversationHistory: conversationHistoryForAI,
-        simulationMonth: simState.isInitialized ? simState.simulationMonth : undefined,
-        financials: simState.isInitialized ? {
-          cashOnHand: simState.financials.cashOnHand,
-          burnRate: simState.financials.burnRate,
-          revenue: simState.financials.revenue,
-          expenses: simState.financials.expenses,
-          currencyCode: simState.financials.currencyCode,
-          currencySymbol: simState.financials.currencySymbol,
+        simulationMonth: isInitialized ? simulationMonth : undefined,
+        financials: isInitialized ? {
+          cashOnHand: financials.cashOnHand,
+          burnRate: financials.burnRate,
+          revenue: financials.revenue,
+          expenses: financials.expenses,
+          currencyCode: financials.currencyCode,
+          currencySymbol: financials.currencySymbol,
         } : undefined,
-        product: simState.isInitialized ? {
-          name: simState.product.name,
-          stage: simState.product.stage,
-          pricePerUser: simState.product.pricePerUser
+        product: isInitialized ? {
+          name: product.name,
+          stage: product.stage,
+          pricePerUser: product.pricePerUser
         } : undefined,
-        resources: simState.isInitialized ? {
-          marketingSpend: simState.resources.marketingSpend,
-          team: simState.resources.team,
-          rndSpend: simState.resources.rndSpend,
+        resources: isInitialized ? {
+          marketingSpend: resources.marketingSpend,
+          team: resources.team,
+          rndSpend: resources.rndSpend,
         } : undefined,
-        market: simState.isInitialized ? {
-          targetMarketDescription: simState.market.targetMarketDescription,
-          competitionLevel: simState.market.competitionLevel,
+        market: isInitialized ? {
+          targetMarketDescription: market.targetMarketDescription,
+          competitionLevel: market.competitionLevel,
         } : undefined,
         currentSimulationPage: pathname,
-        isSimulationInitialized: simState.isInitialized,
+        isSimulationInitialized: isInitialized,
       };
 
       const result: MentorConversationOutput = await mentorConversation(mentorInput);
       
-      // EVE's response is tagged with the current chat context for UI display
       setGuidance(result.response, currentChatContext, result.suggestedNextAction);
+
+      // Client-side parsing of EVE's response for confirmed actions
+      if (isInitialized && result.response) {
+        const responseLower = result.response.toLowerCase();
+        const currencySymbolRegex = `(?:${financials.currencySymbol.replace('$', '\\$')}|\\$|€|£|¥)`; // Be flexible with symbol
+
+        // Marketing Budget
+        const marketingRegex = new RegExp(`marketing budget.*? to ${currencySymbolRegex}?\\s*([\\d,]+(?:\\.\\d{2})?)`, "i");
+        const marketingMatch = result.response.match(marketingRegex);
+        if (marketingMatch && marketingMatch[1]) {
+          const newBudgetValue = parseFloat(marketingMatch[1].replace(/,/g, ''));
+          if (!isNaN(newBudgetValue)) {
+            setMarketingSpend(newBudgetValue);
+            toast({ title: "Marketing Budget Updated by EVE", description: `Set to ${financials.currencySymbol}${newBudgetValue.toLocaleString()}.` });
+            addMessage({id: `system-update-${Date.now()}`, role: "system", content: `[System] EVE set Marketing Budget to ${financials.currencySymbol}${newBudgetValue.toLocaleString()}.`, timestamp: new Date(), agentContextId: currentChatContext});
+          }
+        }
+
+        // R&D Budget
+        const rndRegex = new RegExp(`r&d budget.*? to ${currencySymbolRegex}?\\s*([\\d,]+(?:\\.\\d{2})?)`, "i");
+        const rndMatch = result.response.match(rndRegex);
+        if (rndMatch && rndMatch[1]) {
+          const newBudgetValue = parseFloat(rndMatch[1].replace(/,/g, ''));
+          if (!isNaN(newBudgetValue)) {
+            setRndSpend(newBudgetValue);
+            toast({ title: "R&D Budget Updated by EVE", description: `Set to ${financials.currencySymbol}${newBudgetValue.toLocaleString()}.` });
+            addMessage({id: `system-update-${Date.now()+1}`, role: "system", content: `[System] EVE set R&D Budget to ${financials.currencySymbol}${newBudgetValue.toLocaleString()}.`, timestamp: new Date(), agentContextId: currentChatContext});
+          }
+        }
+
+        // Product Price
+        const priceRegex = new RegExp(`product price.*? to ${currencySymbolRegex}?\\s*([\\d,]+(?:\\.\\d{2})?)`, "i");
+        const priceMatch = result.response.match(priceRegex);
+        if (priceMatch && priceMatch[1]) {
+          const newPriceValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          if (!isNaN(newPriceValue)) {
+            setPricePerUser(newPriceValue);
+            toast({ title: "Product Price Updated by EVE", description: `Set to ${financials.currencySymbol}${newPriceValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}.` });
+            addMessage({id: `system-update-${Date.now()+2}`, role: "system", content: `[System] EVE set Product Price to ${financials.currencySymbol}${newPriceValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}.`, timestamp: new Date(), agentContextId: currentChatContext});
+          }
+        }
+      }
 
     } catch (error) {
       console.error("Error getting EVE's response:", error);
@@ -131,7 +176,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
         role: "system",
         content: "Sorry, I encountered an error connecting to EVE. Please try your request again.",
         timestamp: new Date(),
-        agentContextId: currentChatContext, // Tag error message with current context
+        agentContextId: currentChatContext,
       };
       addMessage(errorResponseMessage); 
     } finally {
@@ -140,8 +185,8 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
   };
 
   const placeholderText = focusedAgentName
-    ? `Ask EVE about ${focusedAgentName}'s domain...`
-    : "Ask EVE, your AI Hive Mind...";
+    ? `Ask EVE about ${focusedAgentName}'s domain... (e.g., 'Set marketing to $5000')`
+    : "Ask EVE, your AI Hive Mind... (e.g., 'Change product price to $19.99')";
 
   return (
     <div className="flex flex-col h-[calc(100vh-20rem)] max-h-[700px] bg-card shadow-lg rounded-lg">
@@ -194,3 +239,4 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
   );
 }
     
+

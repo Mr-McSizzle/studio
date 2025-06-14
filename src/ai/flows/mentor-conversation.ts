@@ -7,7 +7,7 @@
  * strategic guidance, and coordinates insights from a team of specialized AI expert agents:
  * Alex (Accountant), Maya (Marketing Guru), Ty (Social Media Strategist), 
  * Zara (Focus Group Leader), Leo (Expansion Expert), The Advisor, and Brand Lab
- * within the ForgeSim simulation.
+ * within the ForgeSim simulation. EVE can also adjust simulation parameters upon request.
  *
  * - mentorConversation - A function that handles the conversation with EVE.
  * - MentorConversationInput - The input type for the mentorConversation function.
@@ -23,6 +23,10 @@ import { tyTheSocialMediaStrategistTool } from '@/ai/tools/ty-the-social-media-s
 import { zaraTheFocusGroupLeaderTool } from '@/ai/tools/zara-the-focus-group-leader-tool';
 import { theAdvisorTool } from '@/ai/tools/the-advisor-tool';
 import { brandLabTool } from '@/ai/tools/brand-lab-tool';
+import { setMarketingBudgetTool } from '@/ai/tools/set-marketing-budget-tool';
+import { setRnDBudgetTool } from '@/ai/tools/set-rnd-budget-tool';
+import { setProductPriceTool } from '@/ai/tools/set-product-price-tool';
+
 
 import type { AlexTheAccountantToolInput } from '@/types/simulation'; 
 
@@ -71,6 +75,7 @@ const SuggestedNextActionSchema = z.object({
 const MentorConversationOutputSchema = z.object({
   response: z.string().describe('EVE\'s response to the user input, potentially synthesizing information from her specialized AI agents or tools.'),
   suggestedNextAction: SuggestedNextActionSchema.optional().nullable().describe("A suggested next action or page for the user to navigate to. If no suggestion, this can be omitted or null."),
+  // No direct tool call output here, EVE synthesizes or confirms in her text `response`.
 });
 
 export type MentorConversationOutput = z.infer<typeof MentorConversationOutputSchema>;
@@ -100,6 +105,9 @@ const prompt = ai.definePrompt({
     zaraTheFocusGroupLeaderTool,
     theAdvisorTool,
     brandLabTool,
+    setMarketingBudgetTool,
+    setRnDBudgetTool,
+    setProductPriceTool,
   ],
   input: {
     schema: PromptInputSchemaWithProcessedHistory,
@@ -117,14 +125,16 @@ You interface with a team of specialized AI expert agents:
 - The Advisor: Provides industry best practices and competitive analysis. Use 'theAdvisorTool'.
 - Brand Lab: Offers feedback on branding concepts and product descriptions. Use 'brandLabTool'.
 
-When responding, synthesize information and insights as if you are actively consulting these agents. For example:
+You can also directly adjust simulation parameters if the user requests it:
+- To change the monthly marketing budget, use 'setMarketingBudgetTool'. Provide 'newBudget' and 'currencyCode'.
+- To change the monthly R&D budget, use 'setRnDBudgetTool'. Provide 'newBudget' and 'currencyCode'.
+- To change the product's monthly price per user, use 'setProductPriceTool'. Provide 'newPrice' and 'currencyCode'.
+When using these parameter-adjusting tools, ALWAYS confirm the action and the new value in your textual response to the user (e.g., "Okay, I've set your marketing budget to {{financials.currencySymbol}}5000.").
+
+When responding, synthesize information and insights as if you are actively consulting these agents or performing actions. For example:
 - "Alex, our AI Accountant, after reviewing your numbers, suggests..."
 - "Maya, the Marketing Guru, believes focusing on content marketing for '{{#if product.name}}{{product.name}}{{else}}your product{{/if}}' could be beneficial because..."
-- "Ty, our Social Media Strategist, mocked up a campaign targeting '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}your audience{{/if}}'..."
-- "Zara ran a simulated focus group on your new feature, and the feedback suggests..."
-- "Leo, our Expansion Expert, notes that scaling to enter the '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}target market{{/if}}' requires..."
-- "The Advisor highlighted that in the '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}current market{{/if}}', a key best practice is..."
-- "The Brand Lab reviewed your concept for '{{#if product.name}}{{product.name}}{{else}}your product{{/if}}' and feels..."
+- "Alright, I'm setting your R&D budget to {{financials.currencySymbol}}2000 as requested. This will allow more focus on feature development."
 
 Your tone should be knowledgeable, insightful, supportive, proactive, and slightly futuristic, befitting an advanced AI coordinator. You are guiding them through the ForgeSim simulation.
 
@@ -132,7 +142,7 @@ Current simulation context (if available):
 - Simulation Month: {{simulationMonth}} (Month 0 is pre-simulation setup)
 - Is Simulation Initialized: {{isSimulationInitialized}}
 - User is on page: {{currentSimulationPage}}
-- Company Financials (Currency: {{financials.currencyCode}} {{financials.currencySymbol}}):
+- Company Financials (Currency: {{{financials.currencyCode}}} {{{financials.currencySymbol}}}):
   - Cash on Hand: {{financials.currencySymbol}}{{financials.cashOnHand}}
   - Monthly Burn Rate: {{financials.currencySymbol}}{{financials.burnRate}}
   - Monthly Revenue: {{financials.currencySymbol}}{{financials.revenue}}
@@ -143,20 +153,24 @@ Current simulation context (if available):
 - Market: Target: '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}Undetermined Target Market{{/if}}', Competition: {{market.competitionLevel}}
 
 Based on the user's query and the simulation context:
-1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents.
-   - Finances, budget, runway, profit: Consult Alex. Pass key financials and query.
-   - Marketing, GTM, brand, campaigns: Consult Maya. Pass product/market context, marketing spend.
-   - Social media, virality, online campaigns: Consult Ty. Pass product/brand info, target audience.
-   - Customer feedback, product validation: Consult Zara. Specify item to test, target persona.
-   - Scaling, new markets, partnerships: Consult Leo. Provide current scale, expansion goals.
-   - Industry best practices, competitive analysis: Consult The Advisor. Provide industry, competitors.
-   - Branding concepts, product descriptions: Consult Brand Lab. Provide concept, product info.
+1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents or by taking actions with your tools.
+   - Finances, budget, runway, profit: Consult Alex.
+   - Marketing, GTM, brand, campaigns: Consult Maya.
+   - Social media, virality, online campaigns: Consult Ty.
+   - Customer feedback, product validation: Consult Zara.
+   - Scaling, new markets, partnerships: Consult Leo.
+   - Industry best practices, competitive analysis: Consult The Advisor.
+   - Branding concepts, product descriptions: Consult Brand Lab.
+   - Adjusting marketing budget: Use 'setMarketingBudgetTool'.
+   - Adjusting R&D budget: Use 'setRnDBudgetTool'.
+   - Adjusting product price: Use 'setProductPriceTool'.
+   Pass relevant context (like 'financials.currencyCode') to tools when needed.
 2. Proactively suggest a next logical step or page within ForgeSim if relevant.
    Navigation suggestions should be in 'suggestedNextAction'. Only provide if it's a clear, helpful next step.
 
 The entire response MUST be a JSON object adhering to the MentorConversationOutputSchema.
 Include 'response' and optionally 'suggestedNextAction'. If 'suggestedNextAction' is not relevant, it must be null or omitted.
-Ensure the 'response' field contains your complete textual answer.
+Ensure the 'response' field contains your complete textual answer, including any confirmations of actions taken via tools.
 `,
   prompt: `{{{userInput}}}
   
@@ -189,7 +203,7 @@ const mentorConversationFlow = ai.defineFlow(
       isUser: msg.role === 'user',
       isAssistant: msg.role === 'assistant',
       isToolResponse: msg.role === 'tool_response',
-    })).reverse();
+    })).reverse(); // Keep reverse for Handlebars "most recent first"
     
     const flowInputForPrompt = {
       userInput: input.userInput,
@@ -203,33 +217,37 @@ const mentorConversationFlow = ai.defineFlow(
       isSimulationInitialized: input.isSimulationInitialized,
     };
     
-    // Prepare specific input for AlexTheAccountantTool if financials are available
-    const alexToolInputContext: AlexTheAccountantToolInput | undefined = input.financials ? {
+    const toolContexts: Record<string, any> = {};
+    if (input.financials) {
+      toolContexts[alexTheAccountantTool.name] = { // Context for Alex
         simulationMonth: input.simulationMonth,
         cashOnHand: input.financials.cashOnHand,
         burnRate: input.financials.burnRate,
         monthlyRevenue: input.financials.revenue,
         monthlyExpenses: input.financials.expenses,
         currencySymbol: input.financials.currencySymbol,
-        // EVE will formulate Alex's 'query' field based on the main userInput and context.
-    } : undefined;
-
-    const toolContexts: Record<string, any> = {};
-    if (alexToolInputContext) {
-      toolContexts[alexTheAccountantTool.name] = alexToolInputContext;
+      };
+      // Context for decision control tools
+      toolContexts[setMarketingBudgetTool.name] = { currencyCode: input.financials.currencyCode };
+      toolContexts[setRnDBudgetTool.name] = { currencyCode: input.financials.currencyCode };
+      toolContexts[setProductPriceTool.name] = { currencyCode: input.financials.currencyCode };
     }
-    // For other tools (Maya, Ty, Zara, Leo, TheAdvisor, BrandLab), 
-    // the LLM will pick relevant fields from the main `flowInputForPrompt` based on their inputSchema.
-    // E.g., if Maya's tool needs 'targetMarketDescription', the LLM can pick `flowInputForPrompt.market.targetMarketDescription`.
-    // If TheAdvisorTool needs `currentIndustry`, EVE will need to infer this from the conversation or `market.targetMarketDescription`.
+    // Other tools (Maya, Ty, Zara, Leo, TheAdvisor, BrandLab) will have their inputs
+    // inferred by the LLM from the main `flowInputForPrompt` based on their inputSchema.
 
-    const {output} = await prompt(flowInputForPrompt, {toolInput: toolContexts});
+    const {output, usage} = await prompt(flowInputForPrompt, {toolInput: toolContexts});
+
 
     if (!output || !output.response) {
       console.error("EVE (AI) did not return a valid response structure.", output);
       return { response: "I seem to be having trouble formulating a complete response at the moment. Could you try rephrasing or asking again shortly?", suggestedNextAction: null };
     }
     
+    // For now, we're not explicitly handling tool call outputs on the server side to pass back to client.
+    // The client-side ChatInterface will parse EVE's text response for confirmations of parameter changes.
+    // Genkit v1.x `usage.toolCalls` can be logged here for debugging if needed.
+    // console.log("Tool calls made by EVE (if any):", usage?.toolCalls);
+
     return {
       response: output.response,
       suggestedNextAction: output.suggestedNextAction === undefined ? null : output.suggestedNextAction,

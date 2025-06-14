@@ -18,9 +18,16 @@ import '@/ai/tools/zara-the-focus-group-leader-tool.ts';
 import '@/ai/tools/the-advisor-tool.ts'; 
 import '@/ai/tools/brand-lab-tool.ts'; 
 
+// Decision Control Tools
+import '@/ai/tools/set-marketing-budget-tool.ts';
+import '@/ai/tools/set-rnd-budget-tool.ts';
+import '@/ai/tools/set-product-price-tool.ts';
+
+
 // aiOperationsManagerTool is removed to align with new PRD
 
     
 
     
+
 

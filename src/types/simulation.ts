@@ -8,6 +8,7 @@ export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
+  agentContextId?: string; // ID to scope messages to a specific agent chat or main EVE chat
 }
 
 export interface FinancialMetrics {
@@ -375,6 +376,53 @@ export const SuggestScenariosOutputSchema = z.object({
 export type SuggestScenariosOutput = z.infer<typeof SuggestScenariosOutputSchema>;
 
 
+// --- Decision Control Tools ---
+// SetMarketingBudgetTool
+export const SetMarketingBudgetToolInputSchema = z.object({
+  newBudget: z.number().describe("The new monthly marketing budget to set."),
+  currencyCode: z.string().optional().describe("The currency code for the budget, e.g., USD.")
+});
+export type SetMarketingBudgetToolInput = z.infer<typeof SetMarketingBudgetToolInputSchema>;
+
+export const SetMarketingBudgetToolOutputSchema = z.object({
+  success: z.boolean().describe("Whether the budget adjustment was acknowledged by the tool."),
+  message: z.string().describe("A confirmation message, e.g., 'Marketing budget acknowledged to be set to $5000 USD.'"),
+  newBudget: z.number().describe("The acknowledged new budget."),
+  currencyCode: z.string().optional().describe("The currency code.")
+});
+export type SetMarketingBudgetToolOutput = z.infer<typeof SetMarketingBudgetToolOutputSchema>;
+
+// SetRnDBudgetTool
+export const SetRnDBudgetToolInputSchema = z.object({
+  newBudget: z.number().describe("The new monthly R&D budget to set."),
+  currencyCode: z.string().optional().describe("The currency code for the budget, e.g., USD.")
+});
+export type SetRnDBudgetToolInput = z.infer<typeof SetRnDBudgetToolInputSchema>;
+
+export const SetRnDBudgetToolOutputSchema = z.object({
+  success: z.boolean().describe("Whether the R&D budget adjustment was acknowledged by the tool."),
+  message: z.string().describe("A confirmation message, e.g., 'R&D budget acknowledged to be set to $3000 USD.'"),
+  newBudget: z.number().describe("The acknowledged new budget."),
+  currencyCode: z.string().optional().describe("The currency code.")
+});
+export type SetRnDBudgetToolOutput = z.infer<typeof SetRnDBudgetToolOutputSchema>;
+
+// SetProductPriceTool
+export const SetProductPriceToolInputSchema = z.object({
+  newPrice: z.number().describe("The new monthly price per user for the product."),
+  currencyCode: z.string().optional().describe("The currency code for the price, e.g., USD.")
+});
+export type SetProductPriceToolInput = z.infer<typeof SetProductPriceToolInputSchema>;
+
+export const SetProductPriceToolOutputSchema = z.object({
+  success: z.boolean().describe("Whether the product price adjustment was acknowledged by the tool."),
+  message: z.string().describe("A confirmation message, e.g., 'Product price acknowledged to be set to $12.99 USD.'"),
+  newPrice: z.number().describe("The acknowledged new price."),
+  currencyCode: z.string().optional().describe("The currency code.")
+});
+export type SetProductPriceToolOutput = z.infer<typeof SetProductPriceToolOutputSchema>;
+
+
 // DEPRECATED AccountantTool Schemas - Replaced by AlexTheAccountantTool
 export const AccountantToolInputZodSchema = z.object({}).optional();
 export type AccountantToolInput = z.infer<typeof AccountantToolInputZodSchema>;
@@ -385,4 +433,5 @@ export type AccountantToolOutput = z.infer<typeof AccountantToolOutputZodSchema>
     
 
     
+
 
