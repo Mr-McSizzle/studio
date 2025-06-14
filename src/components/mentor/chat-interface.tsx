@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore";
 import { useSimulationStore } from "@/store/simulationStore";
-import { usePathname, useRouter } from "next/navigation"; // Removed useSearchParams
+import { usePathname } from "next/navigation";
 
 interface ChatInterfaceProps {
   focusedAgentId?: string;
@@ -22,12 +22,11 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<ChatMessageType[]>([]);
+  const { messages, addMessage, setGuidance, initializeGreeting } = useAiMentorStore();
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { setGuidance, getInitialGreeting } = useAiMentorStore();
 
   const simState = useSimulationStore(state => ({
     isInitialized: state.isInitialized,
@@ -38,35 +37,20 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     market: state.market,
   }));
   const pathname = usePathname();
-  const router = useRouter();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages]);
-  
+
   useEffect(() => {
-    if (messages.length === 0) { // Only set initial greeting if chat is empty
-      let initialMessageText: string;
-      if (focusedAgentId && focusedAgentName) {
-        initialMessageText = `EVE: Hello! I see you're looking to chat with ${focusedAgentName}. I can help facilitate that. What specific questions do you have for ${focusedAgentName} regarding their expertise?`;
-        setUserInput(`My question for ${focusedAgentName} is about `);
-      } else {
-        initialMessageText = getInitialGreeting();
-      }
-      
-      const initialMessage: ChatMessageType = {
-        id: "initial-eve-greeting-" + (focusedAgentId || "general"),
-        role: "assistant",
-        content: initialMessageText,
-        timestamp: new Date(),
-      };
-      setMessages([initialMessage]);
-      setGuidance(initialMessageText);
+    initializeGreeting(focusedAgentId, focusedAgentName);
+    if (focusedAgentId && focusedAgentName && messages.length <=1) { // <=1 to account for potentially just the greeting
+       setUserInput(`My question for ${focusedAgentName} is about `);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusedAgentId, focusedAgentName, messages.length, getInitialGreeting, setGuidance]);
+  }, [focusedAgentId, focusedAgentName, initializeGreeting]);
 
 
   const handleSubmit = async (e: FormEvent) => {
@@ -79,18 +63,20 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
       content: userInput.trim(),
       timestamp: new Date(),
     };
-    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
+    addMessage(newUserMessage); // Add user message to store
+    const currentInput = userInput; // Capture before clearing
     setUserInput("");
     setIsLoading(true);
 
     try {
-      const conversationHistoryForAI = [...messages, newUserMessage].map(msg => ({
+      // Use messages from the store for conversation history
+      const conversationHistoryForAI = [...useAiMentorStore.getState().messages].map(msg => ({
         role: msg.role as 'user' | 'assistant' | 'tool_response',
         content: msg.content
       }));
-      
+
       const mentorInput: MentorConversationInput = {
-        userInput: newUserMessage.content,
+        userInput: currentInput.trim(), // Use the captured input
         conversationHistory: conversationHistoryForAI,
         simulationMonth: simState.isInitialized ? simState.simulationMonth : undefined,
         financials: simState.isInitialized ? {
@@ -115,19 +101,13 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
           targetMarketDescription: simState.market.targetMarketDescription,
           competitionLevel: simState.market.competitionLevel,
         } : undefined,
-        currentSimulationPage: pathname, // This will be /app/agents/[agentId] or /app/mentor
+        currentSimulationPage: pathname,
         isSimulationInitialized: simState.isInitialized,
       };
-      
+
       const result: MentorConversationOutput = await mentorConversation(mentorInput);
 
-      const newMentorMessage: ChatMessageType = {
-        id: `mentor-${Date.now()}`,
-        role: "assistant",
-        content: result.response,
-        timestamp: new Date(),
-      };
-      setMessages((prevMessages) => [...prevMessages, newMentorMessage]);
+      // setGuidance in the store will add the assistant's message to the store
       setGuidance(result.response, result.suggestedNextAction);
 
     } catch (error) {
@@ -137,20 +117,19 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
         description: "Failed to get response from EVE. Please try again.",
         variant: "destructive",
       });
-       const errorResponseMessage: ChatMessageType = {
+      const errorResponseMessage: ChatMessageType = {
         id: `error-${Date.now()}`,
-        role: "system",
+        role: "system", // System message for errors
         content: "Sorry, I encountered an error connecting to EVE. Please try your request again.",
         timestamp: new Date(),
       };
-      setMessages((prevMessages) => [...prevMessages, errorResponseMessage]);
-      setGuidance("Sorry, I encountered an error. Please try again.");
+      addMessage(errorResponseMessage); // Add error message to store
     } finally {
       setIsLoading(false);
     }
   };
 
-  const placeholderText = focusedAgentName 
+  const placeholderText = focusedAgentName
     ? `Ask EVE about ${focusedAgentName}'s domain...`
     : "Ask EVE, your AI Hive Mind...";
 
@@ -204,3 +183,4 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     </div>
   );
 }
+    

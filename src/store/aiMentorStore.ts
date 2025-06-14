@@ -1,6 +1,7 @@
 
 import { create } from 'zustand';
-import { useSimulationStore } from './simulationStore'; // To get currency info
+import type { ChatMessage as ChatMessageType } from '@/types'; // Ensure ChatMessageType is imported
+import { useSimulationStore } from './simulationStore';
 
 interface SuggestedNextAction {
   page: string;
@@ -8,29 +9,64 @@ interface SuggestedNextAction {
 }
 
 interface AiMentorState {
-  lastMessage: string | null;
+  lastMessageText: string | null; // Renamed to avoid confusion with messages array
   suggestedNextAction: SuggestedNextAction | null;
-  setGuidance: (message: string, suggestion?: SuggestedNextAction | null) => void;
-  clearGuidance: () => void;
+  messages: ChatMessageType[];
+  setGuidance: (messageContent: string, suggestion?: SuggestedNextAction | null) => void;
+  addMessage: (message: ChatMessageType) => void;
+  initializeGreeting: (focusedAgentId?: string, focusedAgentName?: string) => void;
   clearSuggestion: () => void;
-  getInitialGreeting: () => string; // Function to generate greeting
+  clearChatHistory: () => void;
 }
 
 export const useAiMentorStore = create<AiMentorState>((set, get) => ({
-  lastMessage: null,
+  lastMessageText: null,
   suggestedNextAction: null,
-  setGuidance: (message, suggestion = null) => set({ lastMessage: message, suggestedNextAction: suggestion }),
-  clearGuidance: () => set({ lastMessage: null, suggestedNextAction: null }),
-  clearSuggestion: () => set(state => ({ ...state, suggestedNextAction: null })),
-  getInitialGreeting: () => {
-    // Access simulation store state directly here if needed, or pass as param if used outside component context
+  messages: [],
+  setGuidance: (messageContent, suggestion = null) => {
+    const newAssistantMessage: ChatMessageType = {
+      id: `assistant-${Date.now()}`,
+      role: "assistant",
+      content: messageContent,
+      timestamp: new Date(),
+    };
+    set(state => ({
+      messages: [...state.messages, newAssistantMessage],
+      lastMessageText: messageContent,
+      suggestedNextAction: suggestion,
+    }));
+  },
+  addMessage: (message: ChatMessageType) => {
+    set(state => ({ messages: [...state.messages, message] }));
+    // If the message being added is from the assistant, also update lastMessageText
+    if (message.role === 'assistant') {
+      set({ lastMessageText: message.content });
+    }
+  },
+  initializeGreeting: (focusedAgentId?: string, focusedAgentName?: string) => {
+    if (get().messages.length > 0) return; // Don't add greeting if history exists
+
     const simState = useSimulationStore.getState();
-    const currencyInfo = simState.isInitialized 
+    const currencyInfo = simState.isInitialized
       ? `Your current simulation currency is ${simState.financials.currencySymbol} (${simState.financials.currencyCode}). `
       : "Please initialize your simulation to get started. ";
-      
-    return `Hi, I’m EVE, your AI Queen Hive Mind assistant for ForgeSim. ${currencyInfo}I coordinate our team of specialized AI agents—Alex (Accountant), Maya (Marketing Guru), Ty (Social Media Strategist), Zara (Focus Group Leader), and Leo (Expansion Expert)—to provide you with synthesized insights and personalized guidance. How can I direct our collective intelligence to assist you today?`;
-  }
-}));
 
+    let initialMessageText: string;
+    if (focusedAgentId && focusedAgentName) {
+      initialMessageText = `EVE: Hello! I see you're looking to chat with ${focusedAgentName}. I can help facilitate that. What specific questions do you have for ${focusedAgentName} regarding their expertise?`;
+    } else {
+      initialMessageText = `Hi, I’m EVE, your AI Queen Hive Mind assistant for ForgeSim. ${currencyInfo}I coordinate our team of specialized AI agents—Alex (Accountant), Maya (Marketing Guru), Ty (Social Media Strategist), Zara (Focus Group Leader), Leo (Expansion Expert), The Advisor, and Brand Lab—to provide you with synthesized insights and personalized guidance. How can I direct our collective intelligence to assist you today?`;
+    }
+
+    const initialMessage: ChatMessageType = {
+      id: "initial-eve-greeting-" + (focusedAgentId || "general"),
+      role: "assistant",
+      content: initialMessageText,
+      timestamp: new Date(),
+    };
+    set({ messages: [initialMessage], lastMessageText: initialMessageText });
+  },
+  clearSuggestion: () => set(state => ({ ...state, suggestedNextAction: null })),
+  clearChatHistory: () => set({ messages: [], lastMessageText: null, suggestedNextAction: null }),
+}));
     

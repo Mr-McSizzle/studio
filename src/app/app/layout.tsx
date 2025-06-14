@@ -27,7 +27,7 @@ import { useAuthStore } from "@/store/authStore";
 
 // HiveMindGuidanceBar component
 function HiveMindGuidanceBar() {
-  const { lastMessage, suggestedNextAction, clearSuggestion } = useAiMentorStore();
+  const { lastMessageText, suggestedNextAction, clearSuggestion } = useAiMentorStore(); // Use lastMessageText
   const router = useRouter();
 
   const handleSuggestionClick = () => {
@@ -41,7 +41,7 @@ function HiveMindGuidanceBar() {
     router.push('/app/mentor'); 
   };
 
-  if (!lastMessage && !suggestedNextAction) {
+  if (!lastMessageText && !suggestedNextAction) { // Use lastMessageText
     return null; 
   }
 
@@ -54,7 +54,7 @@ function HiveMindGuidanceBar() {
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4 text-sm">
-        {lastMessage && <p className="text-muted-foreground mb-3 whitespace-pre-wrap leading-relaxed">{lastMessage}</p>}
+        {lastMessageText && <p className="text-muted-foreground mb-3 whitespace-pre-wrap leading-relaxed">{lastMessageText}</p>} {/* Use lastMessageText */}
         <div className="flex items-center gap-3 flex-wrap">
           {suggestedNextAction?.label && suggestedNextAction?.page && (
             <Button 
@@ -84,9 +84,10 @@ function HiveMindGuidanceBar() {
 function UserProfileDropdown() {
   const router = useRouter();
   const { userName, userEmail, logout } = useAuthStore();
+  const { clearChatHistory } = useAiMentorStore(); // Get clearChatHistory
   
   const handleLogout = () => {
-    logout();
+    logout(); // This already calls clearChatHistory from authStore
     router.push('/login');
   };
 
@@ -138,7 +139,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   const closeMobileSheet = () => setIsMobileSheetOpen(false);
   
-  if (!isAuthenticated && userEmail !== undefined) { // Only show loading if auth state is resolved but not authenticated
+  if (!isAuthenticated && userEmail !== undefined) { 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
             <ForgeSimLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
@@ -216,3 +217,4 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </TooltipProvider>
   );
 }
+    

@@ -4,6 +4,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { useSimulationStore } from './simulationStore';
+import { useAiMentorStore } from './aiMentorStore'; // Import AI Mentor store
 
 // !!! THIS IS A MOCK USER DATABASE AND IS NOT SECURE !!!
 // !!! FOR DEMONSTRATION PURPOSES ONLY !!!
@@ -38,6 +39,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('simulation-storage'); 
         useSimulationStore.getState().resetSimulation(); 
+        useAiMentorStore.getState().clearChatHistory(); // Clear chat history on logout
         set({ isAuthenticated: false, userEmail: null, userName: null });
       },
       signUp: (name, email, passwordAttempt) => {
@@ -56,15 +58,10 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage', 
       storage: createJSONStorage(() => localStorage),
-      // onRehydrateStorage: () => (state) => { // To debug rehydration
-      //   console.log("AuthStore rehydrated:", state);
-      // }
     }
   )
 );
 
-// Function to add a default user if none exists (useful for testing)
-// This is outside the store to be callable, but be careful with direct manipulation.
 export const ensureDefaultUser = () => {
   const email = "founder@forgesim.ai";
   if (!mockUsers[email.toLowerCase()]) {
@@ -72,7 +69,4 @@ export const ensureDefaultUser = () => {
     console.log("Default mock user created for testing.");
   }
 };
-
-// Call it once, e.g. in a layout or a global setup file if needed for easier testing.
-// ensureDefaultUser(); // Or call from a relevant part of your app initialization if desired.
-
+    
