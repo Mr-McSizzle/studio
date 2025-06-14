@@ -9,6 +9,7 @@ import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target, DollarSign, TrendingUp, Percent, Users, MessageSquare, FileSignature, Brain, Wand2 } from "lucide-react"; // Added Wand2 for name suggestions
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -418,6 +419,29 @@ export default function SetupSimulationPage() {
           <AlertTitle>Error Generating Scenario</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+      )}
+
+      {isLoading && !simulationOutput && (
+        <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2 mt-8">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <Skeleton className="h-6 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-full" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-48 w-full" />
+            </CardContent>
+          </Card>
+          <Card className="shadow-lg">
+            <CardHeader>
+              <Skeleton className="h-6 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-full" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-48 w-full" />
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {simulationOutput && !isLoading && (

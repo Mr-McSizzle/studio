@@ -10,6 +10,7 @@ import { RecommendationCard } from "@/components/strategy/recommendation-card";
 import { Loader2, AlertTriangle, Lightbulb, Brain } from "lucide-react"; 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
 export default function StrategyPage() {
@@ -160,7 +161,23 @@ export default function StrategyPage() {
         </Alert>
       )}
 
-      {recommendations && (
+      {isLoading && !recommendations && (
+        <Card className="shadow-lg">
+          <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <Skeleton className="h-6 w-1/2" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-full mt-2" />
+            <Skeleton className="h-4 w-5/6" />
+          </CardContent>
+        </Card>
+      )}
+
+      {recommendations && !isLoading && (
         <div className="space-y-6">
           <RecommendationCard
             title="Strategic Insights & Predictions"
