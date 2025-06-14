@@ -153,6 +153,8 @@ Current simulation context (if available):
 - Team: {{#each resources.team}}{{{count}}}x {{{role}}} (Salary: {{../financials.currencySymbol}}{{{salary}}}){{#unless @last}}, {{/unless}}{{/each}}
 - Market: Target: '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}Undetermined Target Market{{/if}}', Competition: {{market.competitionLevel}}
 
+**Always consider the full conversation history provided, including your previous statements, advice given, and tools used, to ensure continuity and avoid redundancy. Refer back to past points if relevant to the current query.**
+
 Based on the user's query and the simulation context:
 1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents or by taking actions with your tools.
    - Finances, budget, runway, profit: Consult Alex. Pass current financials and specific query.
@@ -301,3 +303,4 @@ const mentorConversationFlow = ai.defineFlow(
     
 
     
+
