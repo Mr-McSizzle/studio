@@ -22,8 +22,8 @@ const prompt = ai.definePrompt({
   input: { schema: SimulateMonthInputSchema },
   output: { schema: SimulateMonthOutputSchema },
   config: {
-    temperature: 0.7, // Increased temperature for more varied outcomes
-     safetySettings: [ // Adjusted safety settings for broader content generation
+    temperature: 0.75, // Slightly increased temperature for more varied and creative event generation
+     safetySettings: [ 
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
       { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
@@ -46,7 +46,7 @@ Current State (Month {{{currentSimulationMonth}}}):
   - Churn Rate (monthly): {{{userMetrics.churnRate}}} (e.g., 0.05 means 5%)
 - Product:
   - Name: (Implicit from company name)
-  - Current Stage: {{{product.stage}}}
+  - Current Stage: {{{product.stage}}} (idea, prototype, mvp, growth, mature)
   - Development Progress towards next stage: {{{product.developmentProgress}}}%
   - Price Per User (monthly): {{{financials.currencySymbol}}}{{{product.pricePerUser}}}
 - Resources:
@@ -57,59 +57,62 @@ Current State (Month {{{currentSimulationMonth}}}):
     - {{{count}}}x {{{role}}} (Salary: {{{../financials.currencySymbol}}}{{{salary}}}/month each)
     {{/each}}
 - Market:
-  - Competition Level: {{{market.competitionLevel}}}
+  - Competition Level: {{{market.competitionLevel}}} (low, moderate, high)
   - Target Market: {{{market.targetMarketDescription}}}
 - Current Startup Score: {{{currentStartupScore}}}/100
 
 Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}}} + 1):
 
 1.  **User Base Calculation:**
-    *   Users Lost to Churn: Round (Current Active Users * Churn Rate) to the nearest whole number.
-    *   New User Acquisition: Nuanced.
-        *   Base acquisition: Consider marketing spend (e.g., Marketing Spend / 50, adjusted for currency purchasing power if details known).
-        *   Product appeal: Modify by product stage (idea=0.2, prototype=0.5, mvp=1.0, growth=1.5, mature=1.2).
-        *   Word-of-mouth: e.g., Current Active Users / 1000 * product appeal.
-        *   Price Impact: A higher 'product.pricePerUser' relative to perceived value or competitor pricing (which you must infer) can negatively impact new user acquisition. A lower price might positively impact it. Modulate acquisition slightly based on this.
-        *   Competition: High competition reduces acquisition, low increases it.
-        *   Ensure 'newUserAcquisition' is a whole number. If marketing spend is zero, acquisition should be minimal, relying mostly on word-of-mouth.
-    *   Updated Active Users = Current Active Users - Churned Users + New User Acquisition. Cannot be negative.
+    *   Users Lost to Churn: Round (Current Active Users * Churn Rate) to the nearest whole number. Churn can slightly increase if the product stage is very early (idea/prototype) or if sustained financial distress is apparent (low cash for multiple months).
+    *   New User Acquisition: This is nuanced.
+        *   Base Acquisition: Factor in marketing spend. Higher spend generally means more reach, but effectiveness (Cost Per Acquisition) can decrease if the product is not mature (idea/prototype) or if competition ({{{market.competitionLevel}}}) is high. A very high spend on an 'idea' stage product might yield poor ROI.
+        *   Product Appeal: A more mature product (mvp, growth) with good development progress ({{{product.developmentProgress}}}%) should have better appeal than an 'idea' or 'prototype' stage product. Word-of-mouth (e.g., Current Active Users / 1000 * product appeal factor) should also reflect this.
+        *   Price Impact: Higher price ({{{financials.currencySymbol}}}{{{product.pricePerUser}}}) might reduce acquisition if perceived value is low or competition offers similar value for less. Lower price might boost it.
+        *   Market Conditions: If '{{{market.targetMarketDescription}}}' suggests a rapidly growing market, slightly boost acquisition. High '{{{market.competitionLevel}}}' should slightly dampen it.
+        *   Ensure 'newUserAcquisition' is a whole number. Minimal acquisition if marketing spend is zero.
 
 2.  **Financial Calculations:**
     *   Calculated Revenue = Updated Active Users * Price Per User.
     *   Expense Breakdown & Total Expenses:
-        *   Provide a detailed 'expenseBreakdown' with 'salaries', 'marketing', 'rnd', and 'operational' costs.
-        *   'expenseBreakdown.salaries': Sum of (count * salary) for all team members.
-        *   'expenseBreakdown.marketing': Current {{{resources.marketingSpend}}}.
-        *   'expenseBreakdown.rnd': Current {{{resources.rndSpend}}}.
-        *   'expenseBreakdown.operational': Estimate other operational costs (rent, utilities, software, etc.) appropriate for a startup of this nature, scale, team size, and current activities.
-        *   **Crucially, be mindful of 'cashOnHand'. If 'cashOnHand' is very low (e.g., less than 2-3 months of typical burn rate *before* new revenue), the startup would implement emergency cost-cutting. Reflect this by significantly reducing 'expenseBreakdown.operational'. If cash is extremely low (e.g., less than 1 month's typical burn), consider if marketing or R&D spend should be realistically reduced or frozen for this month in your calculation of 'expenseBreakdown.marketing'/'expenseBreakdown.rnd', and reflect this in a key event if it occurs.**
-        *   'calculatedExpenses': This MUST be the sum of 'expenseBreakdown.salaries' + 'expenseBreakdown.marketing' + 'expenseBreakdown.rnd' + 'expenseBreakdown.operational'.
+        *   Provide 'expenseBreakdown' (salaries, marketing, rnd, operational).
+        *   'salaries': Sum of (count * salary) for all team members.
+        *   'marketing': Current {{{resources.marketingSpend}}}.
+        *   'rnd': Current {{{resources.rndSpend}}}.
+        *   'operational': Estimate realistic costs for a startup of this nature. Consider team size.
+        *   **Cash Flow Management:** If 'cashOnHand' is very low (e.g., < 2 months of typical burn rate), the startup MUST implement emergency cost-cutting. Reflect this by significantly reducing 'expenseBreakdown.operational'. If cash is extremely low (< 1 month burn), consider if marketing or R&D spend should be realistically frozen or drastically reduced in 'expenseBreakdown.marketing'/'expenseBreakdown.rnd' for this month, and reflect this in a key event if it occurs (e.g., "Emergency cost-cutting: Marketing budget frozen due to low cash reserves.").
+        *   'calculatedExpenses': MUST be sum of 'expenseBreakdown' components.
     *   Profit Or Loss = Calculated Revenue - CalculatedExpenses.
-    *   Updated Cash On Hand = Current Cash On Hand + Profit Or Loss.
+    *   Updated Cash On Hand = Current Cash On Hand + Profit OrLoss.
 
 3.  **Product Development:**
-    *   Progress Delta: (R&D Spend / 200) + (Number of 'Engineer' roles * 2). Cap delta at 25% per month. If R&D spend is zero, progress comes mainly from engineers.
+    *   Progress Delta: (R&D Spend / (200 + ({{{product.stage}}} === 'idea' || {{{product.stage}}} === 'prototype' ? 100 : 0) ) ) + (Number of 'Engineer' roles * (2 + ({{{product.stage}}} === 'mvp' || {{{product.stage}}} === 'growth' ? 1 : 0) ) ).
+        *   R&D on early-stage products ('idea', 'prototype') is less efficient. Engineer effectiveness increases slightly for 'mvp' and 'growth' stages.
+        *   High R&D spend with few engineers might be inefficient. Low R&D spend might still see progress if many engineers are present.
+        *   Cap monthly delta at 20-25% to prevent unrealistic jumps. If R&D spend is zero, progress is mainly from engineers but slower.
     *   Total Progress = Current Development Progress + Progress Delta.
-    *   Stage Advancement: If Total Progress >= 100 and current stage is not 'mature': advance to next stage ('idea' -> 'prototype' -> 'mvp' -> 'growth' -> 'mature'). Reset progress to 0 (or cap at 100 for 'mature'). Set 'newProductStage' if advancement occurs.
+    *   Stage Advancement: If Total Progress >= 100 and current stage is not 'mature': advance to next stage ('idea' -> 'prototype' -> 'mvp' -> 'growth' -> 'mature'). Reset progress to 0. Set 'newProductStage'.
 
 4.  **Key Events Generated (Exactly 2):**
-    *   Generate two distinct, plausible short string events (positive, negative, neutral). One should highlight a key achievement/milestone if one occurred (e.g., "Reached 1000 active users!", "Product successfully advanced to MVP stage.").
-    *   If 'cashOnHand' becomes critically low or negative, one event MUST clearly reflect this financial distress.
-    *   Examples: "Unexpected viral mention.", "Key supplier increased prices.", "Competitor X launched a similar product."
+    *   Generate two distinct, context-aware events.
+    *   **Event 1 (Internal/Decision-Related):** Should be directly tied to the company's current situation, recent decisions, or significant outcomes this month. E.g., If R&D spend was high and progress was good: "Breakthrough in R&D: Feature X development completed ahead of schedule. (Positive)". If marketing spend was high but user acquisition low: "Marketing Campaign Ineffective: High spend yielded minimal user growth this month. (Negative)". If cash became critically low: "Financial Distress: Emergency measures implemented due to critically low cash reserves. (Negative)".
+    *   **Event 2 (External/Market-Related):** Can be a more general market, operational, or competitor-related event. E.g., "Key competitor Y launched a new product, increasing market competition. (Neutral/Negative)", "Unexpected positive media mention boosted brand visibility. (Positive)", "Minor server outage caused temporary service disruption. (Negative)".
+    *   For each event, briefly state its impact (Positive, Negative, Neutral) in parentheses at the end of the event string.
 
 5.  **Rewards Granted (Optional):**
-    *   If a major milestone was achieved (e.g., significant user growth, product stage advancement, first profitability), grant 1-2 thematic rewards (name, description). Reflected in Startup Score.
+    *   If a major milestone was achieved (significant user growth, product stage advancement, first profitability, successful navigation of a crisis revealed in events), grant 1-2 thematic rewards.
 
 6.  **Startup Score Adjustment:**
-    *   Integer adjustment based on overall performance (profitability, cash flow, user growth, product milestones, rewards).
+    *   Integer adjustment based on overall performance (profitability, cash flow, user growth, product milestones, event impacts).
     *   Positive profit = +1 to +3. Significant loss = -1 to -3.
-    *   Critically low cash (<1 month burn) = -5 to -10. Significant cash increase = +1 to +2. Negative cash = substantial penalty (-10 or more).
-    *   Strong user growth = +1 to +3. Stagnation/loss = -1.
+    *   Critically low cash (<1 month burn) OR negative cash = -5 to -15. Significant cash increase = +1 to +3.
+    *   Strong user growth (relative to stage/spend) = +1 to +3. Stagnation/loss = -1 to -2.
     *   Product Milestones/Rewards = +3 to +5.
+    *   Negative impact events should reduce score (-1 to -3 per significant negative event). Positive impact events can slightly boost it (+1 to +2).
     *   Max score 100, min 0.
 
 7.  **AI Reasoning (Optional):**
-    *   Provide a brief, 1-2 sentence explanation in the 'aiReasoning' field summarizing your key considerations or calculations for this month's outcomes. Example: "Increased marketing led to strong user growth, but R&D was constrained due to cash flow, slowing product development." This should be a high-level overview.
+    *   Provide a brief, 1-2 sentence explanation summarizing your key considerations for *user acquisition rates*, *product development speed*, or *financial calculations* this month, especially if they were significantly influenced by the new nuanced logic. Example: "User growth was modest despite marketing spend due to high competition and early product stage. R&D progress was solid thanks to focused engineering effort."
 
 Output MUST be a single, valid JSON object matching the SimulateMonthOutputSchema.
 The 'simulatedMonthNumber' in your output should be {{{currentSimulationMonth}}} + 1.
@@ -163,20 +166,12 @@ const simulateMonthGenkitFlow = ai.defineFlow(
         if (Math.abs(breakdownSum - output.calculatedExpenses) > 0.01) { // Allow for small floating point differences
             console.warn(`AI expenseBreakdown sum (${breakdownSum}) does not match AI's calculatedExpenses (${output.calculatedExpenses}). Overriding calculatedExpenses with breakdown sum.`);
         }
-        // Set calculatedExpenses to the sum of the breakdown for consistency
         output.calculatedExpenses = breakdownSum;
-
-        // Recalculate profitOrLoss based on the authoritative calculatedExpenses
         output.profitOrLoss = output.calculatedRevenue - output.calculatedExpenses;
-
-        // Recalculate updatedCashOnHand based on the authoritative profitOrLoss
-        // Note: cashOnHand from input is currentState.financials.cashOnHand
         output.updatedCashOnHand = input.financials.cashOnHand + output.profitOrLoss;
 
     } else {
         console.error("AI simulateMonthFlow did not return expenseBreakdown. This is required.");
-        // If AI fails to provide breakdown, construct a placeholder to avoid total failure,
-        // though this indicates a flaw in AI's adherence to schema.
         const placeholderSalaries = input.resources.team.reduce((acc, member) => acc + (member.count * member.salary), 0);
         const placeholderOperational = Math.max(0, output.calculatedExpenses - (placeholderSalaries + input.resources.marketingSpend + input.resources.rndSpend));
         output.expenseBreakdown = {
@@ -185,8 +180,6 @@ const simulateMonthGenkitFlow = ai.defineFlow(
             rnd: input.resources.rndSpend,
             operational: placeholderOperational
         };
-        // Recalculate profitOrLoss and updatedCashOnHand if we had to create a placeholder breakdown
-        // Total expenses remains whatever AI said or what we could piece together
         output.profitOrLoss = output.calculatedRevenue - output.calculatedExpenses;
         output.updatedCashOnHand = input.financials.cashOnHand + output.profitOrLoss;
     }
@@ -194,3 +187,4 @@ const simulateMonthGenkitFlow = ai.defineFlow(
     return output;
   }
 );
+
