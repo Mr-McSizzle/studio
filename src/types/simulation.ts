@@ -227,8 +227,8 @@ export const AlexTheAccountantToolInputSchema = z.object({
   burnRate: z.number().optional().describe("Current monthly burn rate."),
   monthlyRevenue: z.number().optional().describe("Current monthly revenue."),
   monthlyExpenses: z.number().optional().describe("Current monthly expenses."),
-  currencySymbol: z.string().optional().describe("The currency symbol for financial figures (e.g., $)."),
-  query: z.string().optional().describe("A specific financial query for Alex if the context is not fully covered by standard fields, e.g., 'advice on budget allocation for Q2'.")
+  currencySymbol: z.string().optional().default("$").describe("The currency symbol for financial figures (e.g., $)."),
+  query: z.string().optional().describe("A specific financial query for Alex if the context is not fully covered by standard fields, e.g., 'advice on budget allocation for Q2', 'what's our current runway?'.")
 });
 export type AlexTheAccountantToolInput = z.infer<typeof AlexTheAccountantToolInputSchema>;
 
@@ -239,10 +239,10 @@ export type AlexTheAccountantToolOutput = z.infer<typeof AlexTheAccountantToolOu
 
 // Maya the Marketing Guru Tool
 export const MayaTheMarketingGuruToolInputSchema = z.object({
-  query: z.string().describe("Specific question, topic, or context for Maya the Marketing Guru to provide advice on (e.g., 'How to improve user acquisition?', 'Critique my current marketing spend given product stage X and target market Y'). EVE should synthesize relevant details from the conversation into this query."),
+  query: z.string().describe("Specific question, topic, or context for Maya the Marketing Guru to provide advice on (e.g., 'How to improve user acquisition?', 'Critique my current marketing spend given product stage X and target market Y', 'Suggest some campaign ideas for a new feature launch'). EVE should synthesize relevant details from the conversation into this query."),
   currentMarketingSpend: z.number().optional().describe("Current monthly marketing spend for context."),
   targetMarketDescription: z.string().optional().describe("Description of the target market."),
-  productStage: z.string().optional().describe("Current stage of the product (e.g., MVP, Growth).")
+  productStage: z.string().optional().describe("Current stage of the product (e.g., 'idea', 'mvp', 'growth').")
 });
 export type MayaTheMarketingGuruToolInput = z.infer<typeof MayaTheMarketingGuruToolInputSchema>;
 
@@ -253,7 +253,7 @@ export type MayaTheMarketingGuruToolOutput = z.infer<typeof MayaTheMarketingGuru
 
 // Ty the Social Media Strategist Tool
 export const TyTheSocialMediaStrategistToolInputSchema = z.object({
-  query: z.string().describe("Specific question or topic for Ty the Social Media Strategist, e.g., 'Suggest organic social media strategies for a B2B SaaS product', 'Predict virality for a campaign targeting Gen Z on TikTok for an eco-friendly brand.'"),
+  query: z.string().describe("Specific question or topic for Ty the Social Media Strategist, e.g., 'Suggest organic social media strategies for a B2B SaaS product', 'Draft a mockup campaign for our summer sale', 'Predict virality for a campaign targeting Gen Z on TikTok for an eco-friendly brand.'"),
   productName: z.string().optional().describe("Name of the product/service."),
   targetAudience: z.string().optional().describe("Description of the target audience for social media."),
   brandVoice: z.string().optional().describe("Brief description of the brand's voice/style (e.g., playful, professional, edgy).")
@@ -268,8 +268,8 @@ export type TyTheSocialMediaStrategistToolOutput = z.infer<typeof TyTheSocialMed
 // Zara the Focus Group Leader Tool
 export const ZaraTheFocusGroupLeaderToolInputSchema = z.object({
   query: z.string().describe("Specific product, feature, branding concept, or marketing message to get simulated customer feedback on. E.g., 'How would early-adopter tech enthusiasts react to this new pricing model?' or 'Simulate focus group feedback on our new logo design for a luxury brand.'"),
-  itemToTest: z.string().describe("Clear description of the item/concept Zara should run a simulated focus group on."),
-  targetAudiencePersona: z.string().optional().describe("Detailed persona of the target customer for the focus group simulation.")
+  itemToTest: z.string().describe("Clear description of the item/concept Zara should run a simulated focus group on (e.g., 'Our new subscription pricing tiers', 'The proposed logo design for Project X', 'The main feature of our upcoming MVP: AI-powered scheduling')."),
+  targetAudiencePersona: z.string().optional().describe("Detailed persona of the target customer for the focus group simulation (e.g., 'Busy professionals aged 30-45 who value convenience', 'Students interested in sustainable products').")
 });
 export type ZaraTheFocusGroupLeaderToolInput = z.infer<typeof ZaraTheFocusGroupLeaderToolInputSchema>;
 
@@ -280,9 +280,9 @@ export type ZaraTheFocusGroupLeaderToolOutput = z.infer<typeof ZaraTheFocusGroup
 
 // Leo the Expansion Expert Tool
 export const LeoTheExpansionExpertToolInputSchema = z.object({
-  query: z.string().describe("Specific question, topic, or context for Leo the Expansion Expert (e.g., 'Feasibility of expanding to Z market?', 'Risks of international expansion with current product?','Advice on scaling operations for 10x user growth.'). EVE should synthesize relevant details into this query."),
-  currentScale: z.string().optional().describe("Current operational scale or user base."),
-  targetExpansion: z.string().optional().describe("Desired expansion goal (e.g., new geography, new market segment, 10x growth).")
+  query: z.string().describe("Specific question, topic, or context for Leo the Expansion Expert (e.g., 'Feasibility of expanding to the European market?', 'Risks of international expansion with our current product?','Advice on scaling operations for 10x user growth.', 'Should we consider a partnership with Company Y?'). EVE should synthesize relevant details into this query."),
+  currentScale: z.string().optional().describe("Current operational scale or user base (e.g., '1000 active users', 'small team of 5')."),
+  targetExpansion: z.string().optional().describe("Desired expansion goal (e.g., 'new geography: Europe', 'new market segment: enterprise clients', '10x user growth in 12 months').")
 });
 export type LeoTheExpansionExpertToolInput = z.infer<typeof LeoTheExpansionExpertToolInputSchema>;
 
@@ -293,10 +293,10 @@ export type LeoTheExpansionExpertToolOutput = z.infer<typeof LeoTheExpansionExpe
 
 // The Advisor Tool
 export const TheAdvisorToolInputSchema = z.object({
-    query: z.string().describe("The user's specific query about industry best practices, competitive landscape, or strategic positioning."),
-    currentIndustry: z.string().optional().describe("The startup's industry or niche."),
-    competitors: z.array(z.string()).optional().describe("A list of known competitors."),
-    startupStage: z.string().optional().describe("The current stage of the startup (e.g., Idea, Pre-launch, Growth)."),
+    query: z.string().describe("The user's specific query about industry best practices, competitive landscape, or strategic positioning. E.g., 'What are key best practices for SaaS startups in their first year?', 'How do we position ourselves against Competitor X?', 'Analyze the competitive landscape for AI-powered productivity tools.'"),
+    currentIndustry: z.string().optional().describe("The startup's industry or niche (e.g., 'B2B SaaS for small businesses', 'EdTech for K-12')."),
+    competitors: z.array(z.string()).optional().describe("A list of known competitors' names."),
+    startupStage: z.string().optional().describe("The current stage of the startup (e.g., 'Idea', 'Pre-launch', 'Growth', 'Seed Stage')."),
 });
 export type TheAdvisorToolInput = z.infer<typeof TheAdvisorToolInputSchema>;
 
@@ -307,10 +307,10 @@ export type TheAdvisorToolOutput = z.infer<typeof TheAdvisorToolOutputSchema>;
 
 // Brand Lab Tool
 export const BrandLabToolInputSchema = z.object({
-    productDescription: z.string().describe("A description of the product or service being analyzed."),
-    brandingConcept: z.string().describe("The branding concept, slogan, or visual identity elements to be reviewed."),
-    targetAudience: z.string().optional().describe("The primary target audience for the brand."),
-    brandVoice: z.string().optional().describe("The desired brand voice or tone (e.g., 'innovative and disruptive', 'friendly and approachable')."),
+    productDescription: z.string().describe("A description of the product or service being analyzed for branding."),
+    brandingConcept: z.string().describe("The branding concept, slogan, visual identity elements, or general brand idea to be reviewed. E.g., 'A minimalist and modern brand identity', 'Slogan: Innovate Smarter, Not Harder', 'Logo concept using a stylized gear and brain icon.'"),
+    targetAudience: z.string().optional().describe("The primary target audience for the brand (e.g., 'Tech-savvy millennials', 'Small business owners in creative industries')."),
+    brandVoice: z.string().optional().describe("The desired brand voice or tone (e.g., 'innovative and disruptive', 'friendly and approachable', 'authoritative and expert')."),
 });
 export type BrandLabToolInput = z.infer<typeof BrandLabToolInputSchema>;
 
@@ -504,8 +504,15 @@ export const GenerateDynamicMissionsInputSchema = z.object({
 });
 export type GenerateDynamicMissionsInput = z.infer<typeof GenerateDynamicMissionsInputSchema>;
 
+export const MissionSchema = z.object({
+  title: z.string().describe("The main title or objective of the mission."),
+  description: z.string().describe("A brief explanation of what needs to be done."),
+  rewardText: z.string().describe("Textual description of the reward upon completion (e.g., '+10 Score, Unlock Feature X')."),
+  difficulty: z.enum(['easy', 'medium', 'hard']).optional().describe("Optional difficulty rating."),
+});
+
 export const GenerateDynamicMissionsOutputSchema = z.object({
-  generatedMissions: z.array(GeneratedMissionSchema).describe("An array of 2-3 dynamically generated missions relevant to the current simulation state."),
+  generatedMissions: z.array(MissionSchema).describe("An array of 2-3 dynamically generated missions relevant to the current simulation state."),
 });
 export type GenerateDynamicMissionsOutput = z.infer<typeof GenerateDynamicMissionsOutputSchema>;
 

@@ -32,7 +32,23 @@ export const alexTheAccountantTool = ai.defineTool(
         summary += "For budget allocation, prioritize areas driving growth while managing cash flow. Consider the 50/30/20 rule for core/growth/buffer as a starting point, adjusted for your startup stage. ";
       } else if (query.toLowerCase().includes("cash flow")) {
         summary += "Maintaining positive cash flow is critical. Regularly review your inflows and outflows, and forecast diligently. ";
-      } else {
+      } else if (query.toLowerCase().includes("runway")) {
+        if (typeof cashOnHand === 'number' && typeof burnRate === 'number' && burnRate > 0) {
+            const runwayMonths = Math.floor(cashOnHand / burnRate);
+            summary += `Based on current figures, your estimated runway is approximately ${runwayMonths} months. `;
+        } else {
+            summary += "To calculate runway, I need current cash on hand and a consistent monthly burn rate. ";
+        }
+      } else if (query.toLowerCase().includes("profit margin")) {
+         if (typeof monthlyRevenue === 'number' && monthlyRevenue > 0 && typeof monthlyExpenses === 'number') {
+            const profit = monthlyRevenue - monthlyExpenses;
+            const profitMargin = (profit / monthlyRevenue) * 100;
+            summary += `Your current profit margin is ${profitMargin.toFixed(1)}%. `;
+        } else {
+            summary += "I need current revenue and expenses to calculate the profit margin. ";
+        }
+      }
+      else {
         summary += "I'm analyzing that specific request. ";
       }
     }
@@ -43,7 +59,7 @@ export const alexTheAccountantTool = ai.defineTool(
       summary += `With ${currencySymbol}${cashOnHand.toLocaleString()} cash and a ${currencySymbol}${burnRate.toLocaleString()} monthly burn rate, your estimated runway is approximately ${runwayMonths} months. `;
     } else if (typeof cashOnHand === 'number') {
       summary += `You have ${currencySymbol}${cashOnHand.toLocaleString()} cash on hand. Burn rate information is needed for a full runway calculation. `;
-    } else {
+    } else if (!query || !query.toLowerCase().includes("runway")) { // Only add this if not already handled by query
         summary += `Cash on hand or burn rate information is incomplete for runway calculation. `;
     }
 
@@ -54,13 +70,13 @@ export const alexTheAccountantTool = ai.defineTool(
       } else {
         summary += `This month, you have a net loss of ${currencySymbol}${Math.abs(profit).toLocaleString()}. `;
       }
-      if (monthlyRevenue > 0) { 
+      if (monthlyRevenue > 0 && (!query || !query.toLowerCase().includes("profit margin"))) { 
         const profitMargin = (profit / monthlyRevenue) * 100;
         summary += `Your profit margin is ${profitMargin.toFixed(1)}%. `;
-      } else if (profit < 0) {
+      } else if (profit < 0 && (!query || !query.toLowerCase().includes("profit margin"))) {
         summary += `No revenue to calculate a profit margin against the loss. `;
       }
-    } else {
+    } else if (!query || (!query.toLowerCase().includes("profit") && !query.toLowerCase().includes("loss"))) {
         summary += `Monthly revenue or expense data is incomplete for profit analysis. `;
     }
     

@@ -28,7 +28,7 @@ import { setRnDBudgetTool } from '@/ai/tools/set-rnd-budget-tool';
 import { setProductPriceTool } from '@/ai/tools/set-product-price-tool';
 
 
-import type { AlexTheAccountantToolInput } from '@/types/simulation'; 
+import type { AlexTheAccountantToolInput, MayaTheMarketingGuruToolInput, TyTheSocialMediaStrategistToolInput, ZaraTheFocusGroupLeaderToolInput, LeoTheExpansionExpertToolInput, TheAdvisorToolInput, BrandLabToolInput } from '@/types/simulation'; 
 
 const MentorConversationInputSchema = z.object({
   userInput: z
@@ -51,6 +51,7 @@ const MentorConversationInputSchema = z.object({
     name: z.string().optional().describe("Name of the startup's product/service."),
     stage: z.string().optional().describe("Current development stage of the product (e.g., 'idea', 'mvp', 'growth')."),
     pricePerUser: z.number().optional().describe("Current monthly price per user for the product."),
+    description: z.string().optional().describe("Brief description of the product/service for context."),
   }).optional().describe("Current product details."),
   resources: z.object({
     marketingSpend: z.number().optional().describe("Current monthly marketing spend."),
@@ -117,13 +118,13 @@ const prompt = ai.definePrompt({
   },
   system: `You are EVE, the AI "Queen Hive Mind" for ForgeSim, a sophisticated business simulation platform. Your primary role is to act as a personalized strategic assistant and coordinator for the user (a startup founder).
 You interface with a team of specialized AI expert agents:
-- Alex, the Accountant: Handles budget, cash flow, financial planning. Use 'alexTheAccountantTool'.
-- Maya, the Marketing Guru: Advises on go-to-market, brand, campaigns. Use 'mayaTheMarketingGuruTool'.
-- Ty, the Social Media Strategist: Guides on social strategies, campaign mockups, virality. Use 'tyTheSocialMediaStrategistTool'.
-- Zara, the Focus Group Leader: Simulates customer feedback on products, features, branding. Use 'zaraTheFocusGroupLeaderTool'.
-- Leo, the Expansion Expert: Advises on scaling, new markets, partnerships. Use 'leoTheExpansionExpertTool'.
-- The Advisor: Provides industry best practices and competitive analysis. Use 'theAdvisorTool'.
-- Brand Lab: Offers feedback on branding concepts and product descriptions. Use 'brandLabTool'.
+- Alex, the Accountant: Handles financial health checks, budget allocation, cash flow, financial planning queries. Use 'alexTheAccountantTool'. Pass relevant financial figures (cash, burn, revenue, expenses, currencySymbol) and the user's specific query.
+- Maya, the Marketing Guru: Advises on go-to-market, brand, campaigns. Use 'mayaTheMarketingGuruTool'. Pass the user's marketing query, current marketing spend, target market, and product stage.
+- Ty, the Social Media Strategist: Guides on social strategies, campaign mockups, virality. Use 'tyTheSocialMediaStrategistTool'. Pass the user's social media query, product name, target audience, and brand voice.
+- Zara, the Focus Group Leader: Simulates customer feedback on products, features, branding. Use 'zaraTheFocusGroupLeaderTool'. Pass the user's query, a clear description of the item to test, and the target audience persona.
+- Leo, the Expansion Expert: Advises on scaling, new markets, partnerships. Use 'leoTheExpansionExpertTool'. Pass the user's expansion query, current scale, and target expansion goal.
+- The Advisor: Provides industry best practices and competitive analysis. Use 'theAdvisorTool'. Pass the user's query, current industry, known competitors, and startup stage.
+- Brand Lab: Offers feedback on branding concepts and product descriptions. Use 'brandLabTool'. Pass the product description, the branding concept/slogan to review, target audience, and desired brand voice.
 
 You can also directly adjust simulation parameters if the user requests it:
 - To change the monthly marketing budget, use 'setMarketingBudgetTool'. Provide 'newBudget' and 'currencyCode'.
@@ -147,20 +148,20 @@ Current simulation context (if available):
   - Monthly Burn Rate: {{financials.currencySymbol}}{{financials.burnRate}}
   - Monthly Revenue: {{financials.currencySymbol}}{{financials.revenue}}
   - Monthly Expenses: {{financials.currencySymbol}}{{financials.expenses}}
-- Product: '{{#if product.name}}{{product.name}}{{else}}Unnamed Product{{/if}}' (Stage: {{product.stage}}, Price: {{financials.currencySymbol}}{{product.pricePerUser}}/user)
+- Product: '{{#if product.name}}{{product.name}}{{else}}Unnamed Product{{/if}}' (Stage: {{product.stage}}, Price: {{financials.currencySymbol}}{{product.pricePerUser}}/user, Description: {{product.description}})
 - Resources: Marketing Spend: {{financials.currencySymbol}}{{resources.marketingSpend}}/month, R&D Spend: {{financials.currencySymbol}}{{resources.rndSpend}}/month
 - Team: {{#each resources.team}}{{{count}}}x {{{role}}} (Salary: {{../financials.currencySymbol}}{{{salary}}}){{#unless @last}}, {{/unless}}{{/each}}
 - Market: Target: '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}Undetermined Target Market{{/if}}', Competition: {{market.competitionLevel}}
 
 Based on the user's query and the simulation context:
 1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents or by taking actions with your tools.
-   - Finances, budget, runway, profit: Consult Alex.
-   - Marketing, GTM, brand, campaigns: Consult Maya.
-   - Social media, virality, online campaigns: Consult Ty.
-   - Customer feedback, product validation: Consult Zara.
-   - Scaling, new markets, partnerships: Consult Leo.
-   - Industry best practices, competitive analysis: Consult The Advisor.
-   - Branding concepts, product descriptions: Consult Brand Lab.
+   - Finances, budget, runway, profit: Consult Alex. Pass current financials and specific query.
+   - Marketing, GTM, brand, campaigns: Consult Maya. Pass marketing query, marketing spend, target market, product stage.
+   - Social media, virality, online campaigns: Consult Ty. Pass social query, product name, target audience, brand voice.
+   - Customer feedback, product validation: Consult Zara. Pass query, item to test, target audience persona.
+   - Scaling, new markets, partnerships: Consult Leo. Pass expansion query, current scale, target expansion.
+   - Industry best practices, competitive analysis: Consult The Advisor. Pass query, industry, competitors, startup stage.
+   - Branding concepts, product descriptions: Consult Brand Lab. Pass product description, branding concept, target audience, brand voice.
    - Adjusting marketing budget: Use 'setMarketingBudgetTool'.
    - Adjusting R&D budget: Use 'setRnDBudgetTool'.
    - Adjusting product price: Use 'setProductPriceTool'.
@@ -217,7 +218,9 @@ const mentorConversationFlow = ai.defineFlow(
       isSimulationInitialized: input.isSimulationInitialized,
     };
     
+    // Prepare context for tools that require specific fields not just inferred from the general prompt.
     const toolContexts: Record<string, any> = {};
+    
     if (input.financials) {
       toolContexts[alexTheAccountantTool.name] = { // Context for Alex
         simulationMonth: input.simulationMonth,
@@ -226,14 +229,54 @@ const mentorConversationFlow = ai.defineFlow(
         monthlyRevenue: input.financials.revenue,
         monthlyExpenses: input.financials.expenses,
         currencySymbol: input.financials.currencySymbol,
-      };
+        // query will be part of the main user input for EVE to parse
+      } as AlexTheAccountantToolInput;
+
       // Context for decision control tools
       toolContexts[setMarketingBudgetTool.name] = { currencyCode: input.financials.currencyCode };
       toolContexts[setRnDBudgetTool.name] = { currencyCode: input.financials.currencyCode };
       toolContexts[setProductPriceTool.name] = { currencyCode: input.financials.currencyCode };
     }
-    // Other tools (Maya, Ty, Zara, Leo, TheAdvisor, BrandLab) will have their inputs
-    // inferred by the LLM from the main `flowInputForPrompt` based on their inputSchema.
+
+    if (input.product) {
+        toolContexts[mayaTheMarketingGuruTool.name] = {
+            ...(toolContexts[mayaTheMarketingGuruTool.name] || {}),
+            productStage: input.product.stage,
+        } as Partial<MayaTheMarketingGuruToolInput>;
+        toolContexts[tyTheSocialMediaStrategistTool.name] = {
+             ...(toolContexts[tyTheSocialMediaStrategistTool.name] || {}),
+            productName: input.product.name,
+        } as Partial<TyTheSocialMediaStrategistToolInput>;
+         toolContexts[brandLabTool.name] = {
+             ...(toolContexts[brandLabTool.name] || {}),
+            productDescription: input.product.description || input.product.name,
+        } as Partial<BrandLabToolInput>;
+         toolContexts[theAdvisorTool.name] = {
+             ...(toolContexts[theAdvisorTool.name] || {}),
+            startupStage: input.product.stage,
+        } as Partial<TheAdvisorToolInput>;
+    }
+    if (input.resources) {
+        toolContexts[mayaTheMarketingGuruTool.name] = {
+            ...(toolContexts[mayaTheMarketingGuruTool.name] || {}),
+            currentMarketingSpend: input.resources.marketingSpend,
+        } as Partial<MayaTheMarketingGuruToolInput>;
+    }
+     if (input.market) {
+        toolContexts[mayaTheMarketingGuruTool.name] = {
+            ...(toolContexts[mayaTheMarketingGuruTool.name] || {}),
+            targetMarketDescription: input.market.targetMarketDescription,
+        } as Partial<MayaTheMarketingGuruToolInput>;
+        toolContexts[tyTheSocialMediaStrategistTool.name] = {
+            ...(toolContexts[tyTheSocialMediaStrategistTool.name] || {}),
+            targetAudience: input.market.targetMarketDescription, // Assuming target market is also social audience
+        } as Partial<TyTheSocialMediaStrategistToolInput>;
+         toolContexts[zaraTheFocusGroupLeaderTool.name] = {
+            ...(toolContexts[zaraTheFocusGroupLeaderTool.name] || {}),
+            targetAudiencePersona: input.market.targetMarketDescription,
+        } as Partial<ZaraTheFocusGroupLeaderToolInput>;
+    }
+
 
     const {output, usage} = await prompt(flowInputForPrompt, {toolInput: toolContexts});
 
