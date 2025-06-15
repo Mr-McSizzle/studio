@@ -105,9 +105,9 @@ export default function SimulationPage() {
   const [localPricePerUser, setLocalPricePerUser] = useState(product.pricePerUser);
 
   // State for new team member form
-  const [newMemberName, setNewMemberName] = useState(""); // Optional name field
-  const [roleInputValue, setRoleInputValue] = useState(""); // For typing in combobox
-  const [finalRoleValue, setFinalRoleValue] = useState<string>(""); // The actual role string to be submitted
+  const [newMemberName, setNewMemberName] = useState(""); 
+  const [roleInputValue, setRoleInputValue] = useState(""); 
+  const [finalRoleValue, setFinalRoleValue] = useState<string>(""); 
   const [newMemberSalary, setNewMemberSalary] = useState("");
   const [roleComboboxOpen, setRoleComboboxOpen] = useState(false);
 
@@ -162,7 +162,7 @@ export default function SimulationPage() {
       return;
     }
     if (!finalRoleValue.trim()) {
-      toast({ title: "Role Required", description: "Please select or type a role for the new team member.", variant: "destructive" });
+      toast({ title: "Role Required", description: "Please select or add a role for the new team member.", variant: "destructive" });
       return;
     }
     const salaryNum = parseFloat(newMemberSalary);
@@ -302,8 +302,8 @@ export default function SimulationPage() {
               <div className="space-y-4">
                 <Label className="flex items-center gap-2 font-semibold text-base"><Users className="h-5 w-5"/>Team Management</Label>
                 
-                {/* Dynamic Team Display */}
-                <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                <ScrollArea className="max-h-48 pr-2">
+                <div className="space-y-3">
                   {isInitialized && resources.team.length > 0 ? resources.team.map(member => (
                     <div key={member.role} className="flex items-center justify-between p-2 border border-border/70 rounded-md bg-card/50">
                       <div>
@@ -339,10 +339,10 @@ export default function SimulationPage() {
                      </p>
                   )}
                 </div>
+                </ScrollArea>
 
                 <Separator className="my-4"/>
 
-                {/* New Team Member Form */}
                 <form onSubmit={handleAddTeamMember} className="space-y-3 p-3 border border-dashed rounded-md bg-muted/30">
                   <h4 className="text-sm font-medium flex items-center gap-2"><UserPlus className="h-4 w-4"/>Add New Team Member</h4>
                   <div className="space-y-1">
@@ -368,31 +368,22 @@ export default function SimulationPage() {
                           className="w-full justify-between font-normal text-sm"
                           disabled={!isInitialized || financials.cashOnHand <= 0}
                         >
-                          {roleInputValue || finalRoleValue
-                            ? jobRoles.find((role) => role.value.toLowerCase() === (finalRoleValue || roleInputValue).toLowerCase())?.label || finalRoleValue || roleInputValue
+                          {finalRoleValue
+                            ? (jobRoles.find((role) => role.value.toLowerCase() === finalRoleValue.toLowerCase())?.label || finalRoleValue)
                             : "Select or type role..."}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command filter={(value, search) => {
-                            const predefined = jobRoles.find(role => role.label.toLowerCase().includes(search.toLowerCase()) || role.value.toLowerCase().includes(search.toLowerCase()));
-                            if (predefined) return 1;
-                            if (search.length > 0) return 1; // Show typed value for potential custom role
-                            return 0;
-                          }}
-                        >
+                        <Command>
                           <CommandInput
                             placeholder="Search or type new role..."
                             value={roleInputValue}
                             onValueChange={(search) => {
-                              setRoleInputValue(search);
-                              // If typed value doesn't match a predefined one, set finalRoleValue to typed
-                              if (search.trim() && !jobRoles.some(r => r.label.toLowerCase() === search.trim().toLowerCase())) {
-                                setFinalRoleValue(search.trim());
-                              } else if (!search.trim()) {
-                                setFinalRoleValue(""); // Clear if input is empty
-                              }
+                                setRoleInputValue(search);
+                                if (!search.trim()) { // If input is cleared
+                                    setFinalRoleValue(""); // Also clear selected role
+                                }
                             }}
                           />
                           <CommandList>
@@ -422,10 +413,11 @@ export default function SimulationPage() {
                             </CommandGroup>
                              {roleInputValue.trim() && !jobRoles.some(jr => jr.label.toLowerCase() === roleInputValue.trim().toLowerCase() || jr.value.toLowerCase() === roleInputValue.trim().toLowerCase()) && (
                               <CommandItem
+                                key={roleInputValue.trim()}
                                 value={roleInputValue.trim()}
                                 onSelect={(currentValue) => {
                                   setFinalRoleValue(currentValue);
-                                  setRoleInputValue(currentValue);
+                                  setRoleInputValue(currentValue); 
                                   setRoleComboboxOpen(false);
                                 }}
                                 className="text-accent font-medium"
@@ -474,4 +466,6 @@ export default function SimulationPage() {
     </div>
   );
 }
+    
+
     
