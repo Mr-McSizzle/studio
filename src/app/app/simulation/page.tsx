@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,10 +18,12 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 
-const DEFAULT_ENGINEER_SALARY = 5000; // Existing default
+const DEFAULT_SALARY_FALLBACK = 4000; 
 
 const jobRoles = [
-  { value: "Software Engineer", label: "Software Engineer" },
+  { value: "Founder", label: "Founder" },
+  { value: "Software Engineer - Senior", label: "Software Engineer - Senior" },
+  { value: "Software Engineer - Junior", label: "Software Engineer - Junior" },
   { value: "Marketing Specialist", label: "Marketing Specialist" },
   { value: "Sales Representative", label: "Sales Representative" },
   { value: "UX Designer", label: "UX Designer" },
@@ -32,8 +34,6 @@ const jobRoles = [
   { value: "HR Manager", label: "HR Manager" },
   { value: "Financial Analyst", label: "Financial Analyst" },
   { value: "Business Development Manager", label: "Business Development Mgr." },
-  { value: "Founder", label: "Founder" }, // Include Founder if user wants to add more with salary
-  // Add more roles as needed
 ];
 
 
@@ -85,6 +85,7 @@ const ConceptualDigitalTwinVisual = () => {
 export default function SimulationPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const simState = useSimulationStore();
   const {
     isInitialized,
     resources,
@@ -95,7 +96,7 @@ export default function SimulationPage() {
     setRndSpend,
     setPricePerUser,
     adjustTeamMemberCount,
-  } = useSimulationStore();
+  } = simState;
 
   const currencySymbol = financials.currencySymbol || "$";
 
@@ -104,8 +105,9 @@ export default function SimulationPage() {
   const [localPricePerUser, setLocalPricePerUser] = useState(product.pricePerUser);
 
   // State for new team member form
-  const [newMemberName, setNewMemberName] = useState("");
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [newMemberName, setNewMemberName] = useState(""); // Optional name field
+  const [roleInputValue, setRoleInputValue] = useState(""); // For typing in combobox
+  const [finalRoleValue, setFinalRoleValue] = useState<string>(""); // The actual role string to be submitted
   const [newMemberSalary, setNewMemberSalary] = useState("");
   const [roleComboboxOpen, setRoleComboboxOpen] = useState(false);
 
@@ -153,26 +155,14 @@ export default function SimulationPage() {
     if(isInitialized) setPricePerUser(localPricePerUser);
   };
 
-
-  const getTeamMemberCount = (role: string): number => {
-    if(!isInitialized) return 0;
-    const member = resources.team.find(m => m.role === role);
-    return member ? member.count : 0;
-  };
-
-  const getTeamMemberSalary = (role: string): number => {
-    if(!isInitialized) return 0;
-    const member = resources.team.find(m => m.role === role);
-    return member ? member.salary : 0;
-  };
-
-  const handleAddTeamMember = () => {
+  const handleAddTeamMember = (e: FormEvent) => {
+    e.preventDefault();
     if (!isInitialized) {
       toast({ title: "Error", description: "Simulation not initialized.", variant: "destructive" });
       return;
     }
-    if (!selectedRole) {
-      toast({ title: "Role Required", description: "Please select a role for the new team member.", variant: "destructive" });
+    if (!finalRoleValue.trim()) {
+      toast({ title: "Role Required", description: "Please select or type a role for the new team member.", variant: "destructive" });
       return;
     }
     const salaryNum = parseFloat(newMemberSalary);
@@ -181,13 +171,14 @@ export default function SimulationPage() {
       return;
     }
 
-    adjustTeamMemberCount(selectedRole, 1, salaryNum);
+    adjustTeamMemberCount(finalRoleValue.trim(), 1, salaryNum);
     toast({
       title: "Team Member Added",
-      description: `${newMemberName || 'A new ' + selectedRole} (Role: ${selectedRole}) added with a salary of ${currencySymbol}${salaryNum.toLocaleString()}.`,
+      description: `${newMemberName || 'A new ' + finalRoleValue.trim()} (Role: ${finalRoleValue.trim()}) added with a salary of ${currencySymbol}${salaryNum.toLocaleString()}.`,
     });
     setNewMemberName("");
-    setSelectedRole(null);
+    setFinalRoleValue("");
+    setRoleInputValue("");
     setNewMemberSalary("");
   };
 
@@ -260,7 +251,7 @@ export default function SimulationPage() {
                     onChange={handlePricePerUserChange}
                     onBlur={applyPricePerUser}
                     min="0"
-                    step="0.01" // For currencies with decimals
+                    step="0.01" 
                     disabled={!isInitialized || financials.cashOnHand <= 0}
                     className="w-full"
                   />
@@ -311,47 +302,48 @@ export default function SimulationPage() {
               <div className="space-y-4">
                 <Label className="flex items-center gap-2 font-semibold text-base"><Users className="h-5 w-5"/>Team Management</Label>
                 
-                {/* Existing Team Adjustments */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">Engineers: {getTeamMemberCount("Engineer")}</p>
-                      <p className="text-xs text-muted-foreground">Salary: {currencySymbol}{DEFAULT_ENGINEER_SALARY.toLocaleString()}/mo each</p>
+                {/* Dynamic Team Display */}
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                  {isInitialized && resources.team.length > 0 ? resources.team.map(member => (
+                    <div key={member.role} className="flex items-center justify-between p-2 border border-border/70 rounded-md bg-card/50">
+                      <div>
+                        <p className="font-medium text-sm">{member.role}: {member.count}</p>
+                        <p className="text-xs text-muted-foreground">Salary: {currencySymbol}{member.salary.toLocaleString()}/mo each</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => adjustTeamMemberCount(member.role, -1)}
+                          disabled={!isInitialized || member.count === 0 || (member.role.toLowerCase() === 'founder' && member.count <=1) || financials.cashOnHand <= 0}
+                          aria-label={`Reduce ${member.role}`}
+                          className="h-7 w-7"
+                        >
+                          <MinusCircle className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => adjustTeamMemberCount(member.role, 1, member.salary || DEFAULT_SALARY_FALLBACK)}
+                          disabled={!isInitialized || financials.cashOnHand <= 0}
+                          aria-label={`Hire ${member.role}`}
+                          className="h-7 w-7"
+                        >
+                          <PlusCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => adjustTeamMemberCount("Engineer", -1)}
-                        disabled={!isInitialized || getTeamMemberCount("Engineer") === 0 || financials.cashOnHand <= 0}
-                        aria-label="Reduce engineers"
-                      >
-                        <MinusCircle className="h-5 w-5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => adjustTeamMemberCount("Engineer", 1, DEFAULT_ENGINEER_SALARY)}
-                        disabled={!isInitialized || financials.cashOnHand <= 0}
-                        aria-label="Hire engineer"
-                      >
-                        <PlusCircle className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </div>
-                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">Founders: {getTeamMemberCount("Founder")}</p>
-                      <p className="text-xs text-muted-foreground">Salary: {currencySymbol}{getTeamMemberSalary("Founder").toLocaleString()}/mo each</p>
-                    </div>
-                    {/* No +/- for founders usually, salary might be adjusted via AI or specific events */}
-                  </div>
+                  )) : (
+                     <p className="text-xs text-muted-foreground text-center py-2">
+                       {isInitialized ? "No team members defined yet. Add some below." : "Initialize simulation to manage team."}
+                     </p>
+                  )}
                 </div>
 
                 <Separator className="my-4"/>
 
                 {/* New Team Member Form */}
-                <div className="space-y-3 p-3 border border-dashed rounded-md bg-muted/30">
+                <form onSubmit={handleAddTeamMember} className="space-y-3 p-3 border border-dashed rounded-md bg-muted/30">
                   <h4 className="text-sm font-medium flex items-center gap-2"><UserPlus className="h-4 w-4"/>Add New Team Member</h4>
                   <div className="space-y-1">
                     <Label htmlFor="new-member-name" className="text-xs">Name (Optional)</Label>
@@ -365,47 +357,82 @@ export default function SimulationPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="new-member-role" className="text-xs">Role</Label>
+                    <Label htmlFor="new-member-role-trigger" className="text-xs">Role</Label>
                     <Popover open={roleComboboxOpen} onOpenChange={setRoleComboboxOpen}>
                       <PopoverTrigger asChild>
                         <Button
+                          id="new-member-role-trigger"
                           variant="outline"
                           role="combobox"
                           aria-expanded={roleComboboxOpen}
-                          className="w-full justify-between font-normal"
+                          className="w-full justify-between font-normal text-sm"
                           disabled={!isInitialized || financials.cashOnHand <= 0}
                         >
-                          {selectedRole
-                            ? jobRoles.find((role) => role.value === selectedRole)?.label
-                            : "Select role..."}
+                          {roleInputValue || finalRoleValue
+                            ? jobRoles.find((role) => role.value.toLowerCase() === (finalRoleValue || roleInputValue).toLowerCase())?.label || finalRoleValue || roleInputValue
+                            : "Select or type role..."}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command>
-                          <CommandInput placeholder="Search role..." />
-                          <CommandEmpty>No role found.</CommandEmpty>
+                        <Command filter={(value, search) => {
+                            const predefined = jobRoles.find(role => role.label.toLowerCase().includes(search.toLowerCase()) || role.value.toLowerCase().includes(search.toLowerCase()));
+                            if (predefined) return 1;
+                            if (search.length > 0) return 1; // Show typed value for potential custom role
+                            return 0;
+                          }}
+                        >
+                          <CommandInput
+                            placeholder="Search or type new role..."
+                            value={roleInputValue}
+                            onValueChange={(search) => {
+                              setRoleInputValue(search);
+                              // If typed value doesn't match a predefined one, set finalRoleValue to typed
+                              if (search.trim() && !jobRoles.some(r => r.label.toLowerCase() === search.trim().toLowerCase())) {
+                                setFinalRoleValue(search.trim());
+                              } else if (!search.trim()) {
+                                setFinalRoleValue(""); // Clear if input is empty
+                              }
+                            }}
+                          />
                           <CommandList>
-                            <ScrollArea className="h-48">
-                            {jobRoles.map((role) => (
+                            <CommandEmpty>
+                              {roleInputValue.trim() ? `Press Enter or click to add "${roleInputValue.trim()}"` : "No role found."}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {jobRoles.map((role) => (
+                                <CommandItem
+                                  key={role.value}
+                                  value={role.value}
+                                  onSelect={(currentValue) => {
+                                    setFinalRoleValue(currentValue);
+                                    setRoleInputValue(jobRoles.find(r => r.value === currentValue)?.label || currentValue);
+                                    setRoleComboboxOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      finalRoleValue === role.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {role.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                             {roleInputValue.trim() && !jobRoles.some(jr => jr.label.toLowerCase() === roleInputValue.trim().toLowerCase() || jr.value.toLowerCase() === roleInputValue.trim().toLowerCase()) && (
                               <CommandItem
-                                key={role.value}
-                                value={role.value}
+                                value={roleInputValue.trim()}
                                 onSelect={(currentValue) => {
-                                  setSelectedRole(currentValue === selectedRole ? null : currentValue);
+                                  setFinalRoleValue(currentValue);
+                                  setRoleInputValue(currentValue);
                                   setRoleComboboxOpen(false);
                                 }}
+                                className="text-accent font-medium"
                               >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedRole === role.value ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {role.label}
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add new role: "{roleInputValue.trim()}"
                               </CommandItem>
-                            ))}
-                            </ScrollArea>
+                            )}
                           </CommandList>
                         </Command>
                       </PopoverContent>
@@ -418,20 +445,20 @@ export default function SimulationPage() {
                       type="number"
                       value={newMemberSalary}
                       onChange={(e) => setNewMemberSalary(e.target.value)}
-                      placeholder="e.g., 4500"
+                      placeholder={`e.g., ${DEFAULT_SALARY_FALLBACK}`}
                       min="0"
                       disabled={!isInitialized || financials.cashOnHand <= 0}
                     />
                   </div>
                   <Button 
-                    onClick={handleAddTeamMember} 
-                    disabled={!isInitialized || financials.cashOnHand <= 0 || !selectedRole || !newMemberSalary}
+                    type="submit"
+                    disabled={!isInitialized || financials.cashOnHand <= 0 || !finalRoleValue.trim() || !newMemberSalary.trim()}
                     className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     size="sm"
                   >
                     <UserPlus className="mr-2 h-4 w-4"/> Add to Team
                   </Button>
-                </div>
+                </form>
               </div>
 
               <div className="flex items-start gap-2 p-3 bg-secondary/50 rounded-md border border-secondary mt-4">
@@ -447,4 +474,4 @@ export default function SimulationPage() {
     </div>
   );
 }
-
+    
