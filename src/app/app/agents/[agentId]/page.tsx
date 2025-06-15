@@ -48,7 +48,7 @@ export default function AgentChatPage() {
   const IconComponent = agentProfile.icon;
 
   return (
-    <div className="container mx-auto py-8 px-4 md:px-0">
+    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <header className="mb-8 flex items-start gap-4">
         <div className={`p-3 rounded-lg bg-gradient-to-br ${agentProfile.gradientFromClass} ${agentProfile.gradientToClass} shadow-lg`}>
           <IconComponent className={`h-10 w-10 ${agentProfile.iconColorClass}`} />
@@ -67,4 +67,5 @@ export default function AgentChatPage() {
   );
 }
 
+    
     
