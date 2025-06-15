@@ -9,10 +9,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { SlidersHorizontal, Info, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle, Activity, Tag } from "lucide-react";
+import { SlidersHorizontal, Info, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle, Activity, Tag, Briefcase, Check, ChevronsUpDown, UserPlus } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-const DEFAULT_ENGINEER_SALARY = 5000;
+
+const DEFAULT_ENGINEER_SALARY = 5000; // Existing default
+
+const jobRoles = [
+  { value: "Software Engineer", label: "Software Engineer" },
+  { value: "Marketing Specialist", label: "Marketing Specialist" },
+  { value: "Sales Representative", label: "Sales Representative" },
+  { value: "UX Designer", label: "UX Designer" },
+  { value: "Product Manager", label: "Product Manager" },
+  { value: "Operations Manager", label: "Operations Manager" },
+  { value: "Customer Support Agent", label: "Customer Support Agent" },
+  { value: "Data Analyst", label: "Data Analyst" },
+  { value: "HR Manager", label: "HR Manager" },
+  { value: "Financial Analyst", label: "Financial Analyst" },
+  { value: "Business Development Manager", label: "Business Development Mgr." },
+  { value: "Founder", label: "Founder" }, // Include Founder if user wants to add more with salary
+  // Add more roles as needed
+];
+
 
 const ConceptualDigitalTwinVisual = () => {
   return (
@@ -61,6 +84,7 @@ const ConceptualDigitalTwinVisual = () => {
 
 export default function SimulationPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const {
     isInitialized,
     resources,
@@ -78,6 +102,12 @@ export default function SimulationPage() {
   const [localMarketingSpend, setLocalMarketingSpend] = useState(resources.marketingSpend);
   const [localRndSpend, setLocalRndSpend] = useState(resources.rndSpend);
   const [localPricePerUser, setLocalPricePerUser] = useState(product.pricePerUser);
+
+  // State for new team member form
+  const [newMemberName, setNewMemberName] = useState("");
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [newMemberSalary, setNewMemberSalary] = useState("");
+  const [roleComboboxOpen, setRoleComboboxOpen] = useState(false);
 
 
   useEffect(() => {
@@ -134,6 +164,31 @@ export default function SimulationPage() {
     if(!isInitialized) return 0;
     const member = resources.team.find(m => m.role === role);
     return member ? member.salary : 0;
+  };
+
+  const handleAddTeamMember = () => {
+    if (!isInitialized) {
+      toast({ title: "Error", description: "Simulation not initialized.", variant: "destructive" });
+      return;
+    }
+    if (!selectedRole) {
+      toast({ title: "Role Required", description: "Please select a role for the new team member.", variant: "destructive" });
+      return;
+    }
+    const salaryNum = parseFloat(newMemberSalary);
+    if (isNaN(salaryNum) || salaryNum < 0) {
+      toast({ title: "Invalid Salary", description: "Please enter a valid, non-negative salary.", variant: "destructive" });
+      return;
+    }
+
+    adjustTeamMemberCount(selectedRole, 1, salaryNum);
+    toast({
+      title: "Team Member Added",
+      description: `${newMemberName || 'A new ' + selectedRole} (Role: ${selectedRole}) added with a salary of ${currencySymbol}${salaryNum.toLocaleString()}.`,
+    });
+    setNewMemberName("");
+    setSelectedRole(null);
+    setNewMemberSalary("");
   };
 
 
@@ -254,7 +309,9 @@ export default function SimulationPage() {
               <Separator />
 
               <div className="space-y-4">
-                <Label className="flex items-center gap-2"><Users className="h-4 w-4"/>Team Management</Label>
+                <Label className="flex items-center gap-2 font-semibold text-base"><Users className="h-5 w-5"/>Team Management</Label>
+                
+                {/* Existing Team Adjustments */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
@@ -287,7 +344,93 @@ export default function SimulationPage() {
                       <p className="font-medium text-sm">Founders: {getTeamMemberCount("Founder")}</p>
                       <p className="text-xs text-muted-foreground">Salary: {currencySymbol}{getTeamMemberSalary("Founder").toLocaleString()}/mo each</p>
                     </div>
+                    {/* No +/- for founders usually, salary might be adjusted via AI or specific events */}
                   </div>
+                </div>
+
+                <Separator className="my-4"/>
+
+                {/* New Team Member Form */}
+                <div className="space-y-3 p-3 border border-dashed rounded-md bg-muted/30">
+                  <h4 className="text-sm font-medium flex items-center gap-2"><UserPlus className="h-4 w-4"/>Add New Team Member</h4>
+                  <div className="space-y-1">
+                    <Label htmlFor="new-member-name" className="text-xs">Name (Optional)</Label>
+                    <Input
+                      id="new-member-name"
+                      type="text"
+                      value={newMemberName}
+                      onChange={(e) => setNewMemberName(e.target.value)}
+                      placeholder="e.g., Jane Doe"
+                      disabled={!isInitialized || financials.cashOnHand <= 0}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="new-member-role" className="text-xs">Role</Label>
+                    <Popover open={roleComboboxOpen} onOpenChange={setRoleComboboxOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={roleComboboxOpen}
+                          className="w-full justify-between font-normal"
+                          disabled={!isInitialized || financials.cashOnHand <= 0}
+                        >
+                          {selectedRole
+                            ? jobRoles.find((role) => role.value === selectedRole)?.label
+                            : "Select role..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search role..." />
+                          <CommandEmpty>No role found.</CommandEmpty>
+                          <CommandList>
+                            <ScrollArea className="h-48">
+                            {jobRoles.map((role) => (
+                              <CommandItem
+                                key={role.value}
+                                value={role.value}
+                                onSelect={(currentValue) => {
+                                  setSelectedRole(currentValue === selectedRole ? null : currentValue);
+                                  setRoleComboboxOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedRole === role.value ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {role.label}
+                              </CommandItem>
+                            ))}
+                            </ScrollArea>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="new-member-salary" className="text-xs">Monthly Salary ({currencySymbol})</Label>
+                    <Input
+                      id="new-member-salary"
+                      type="number"
+                      value={newMemberSalary}
+                      onChange={(e) => setNewMemberSalary(e.target.value)}
+                      placeholder="e.g., 4500"
+                      min="0"
+                      disabled={!isInitialized || financials.cashOnHand <= 0}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleAddTeamMember} 
+                    disabled={!isInitialized || financials.cashOnHand <= 0 || !selectedRole || !newMemberSalary}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    size="sm"
+                  >
+                    <UserPlus className="mr-2 h-4 w-4"/> Add to Team
+                  </Button>
                 </div>
               </div>
 
@@ -304,3 +447,4 @@ export default function SimulationPage() {
     </div>
   );
 }
+
