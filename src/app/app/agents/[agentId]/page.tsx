@@ -28,7 +28,7 @@ export default function AgentChatPage() {
 
   if (!agentId) {
     return (
-      <div className="container mx-auto py-8 px-4 md:px-0 text-center">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
         <p>Loading agent information...</p>
       </div>
@@ -38,7 +38,7 @@ export default function AgentChatPage() {
   if (!agentProfile) {
     // This should ideally be caught by useEffect, but as a fallback
     return (
-      <div className="container mx-auto py-8 px-4 md:px-0 text-center">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
         <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-4" />
         <p className="text-destructive">Agent not found. You may be redirected.</p>
       </div>
@@ -48,7 +48,7 @@ export default function AgentChatPage() {
   const IconComponent = agentProfile.icon;
 
   return (
-    <div className="container mx-auto py-8 px-4 md:px-0">
+    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <header className="mb-8 flex items-start gap-4">
         <div className={`p-3 rounded-lg bg-gradient-to-br ${agentProfile.gradientFromClass} ${agentProfile.gradientToClass} shadow-lg`}>
           <IconComponent className={`h-10 w-10 ${agentProfile.iconColorClass}`} />
@@ -66,3 +66,5 @@ export default function AgentChatPage() {
     </div>
   );
 }
+
+    

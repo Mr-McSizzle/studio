@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { PanelLeft, MessagesSquare, ChevronRight, Lightbulb, LogOut, Settings } from "lucide-react";
+import { PanelLeft, LogOut, Settings } from "lucide-react"; // Removed MessagesSquare, ChevronRight, Lightbulb
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; 
 
@@ -20,74 +20,20 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Removed Card, CardContent, CardHeader, CardTitle from here as HiveMindGuidanceBar is removed
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore"; 
 import { useAuthStore } from "@/store/authStore"; 
 
-// HiveMindGuidanceBar component
-function HiveMindGuidanceBar() {
-  const { lastMessageText, suggestedNextAction, clearSuggestion } = useAiMentorStore(); // Use lastMessageText
-  const router = useRouter();
-
-  const handleSuggestionClick = () => {
-    if (suggestedNextAction?.page) {
-      router.push(suggestedNextAction.page);
-      clearSuggestion(); 
-    }
-  };
-  
-  const handleAskMentor = () => {
-    router.push('/app/mentor'); 
-  };
-
-  if (!lastMessageText && !suggestedNextAction) { // Use lastMessageText
-    return null; 
-  }
-
-  return (
-    <Card className="mb-6 shadow-accent-glow-sm border-primary/50 bg-card/80 backdrop-blur-sm card-glow-hover-primary animate-fadeInUp animation-delay-[0.2s]">
-      <CardHeader className="pb-3 pt-4 px-4">
-        <CardTitle className="text-base font-semibold text-primary flex items-center text-glow-primary">
-          <Lightbulb className="h-5 w-5 mr-2 text-primary animate-subtle-pulse" />
-          Hive Mind Channel
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-4 text-sm">
-        {lastMessageText && <p className="text-muted-foreground mb-3 whitespace-pre-wrap leading-relaxed">{lastMessageText}</p>} {/* Use lastMessageText */}
-        <div className="flex items-center gap-3 flex-wrap">
-          {suggestedNextAction?.label && suggestedNextAction?.page && (
-            <Button 
-              onClick={handleSuggestionClick} 
-              size="sm" 
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all transform hover:scale-105"
-            >
-              {suggestedNextAction.label}
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          )}
-           <Button 
-            onClick={handleAskMentor} 
-            size="sm" 
-            variant="outline"
-            className="border-accent/70 text-accent hover:bg-accent/10 hover:text-accent hover:border-accent"
-           >
-              Consult Hive Mind
-              <MessagesSquare className="h-4 w-4 ml-2" />
-            </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+// HiveMindGuidanceBar component is removed
 
 function UserProfileDropdown() {
   const router = useRouter();
   const { userName, userEmail, logout } = useAuthStore();
-  const { clearChatHistory } = useAiMentorStore(); // Get clearChatHistory
+  const { clearChatHistory } = useAiMentorStore(); 
   
   const handleLogout = () => {
-    logout(); // This already calls clearChatHistory from authStore
+    logout(); 
     router.push('/login');
   };
 
@@ -206,7 +152,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               </Sheet>
             </header>
             <SidebarInset className="p-4 sm:px-6 sm:py-0">
-             {pathname !== '/app/setup' && pathname !== '/app/profile' && <HiveMindGuidanceBar />} 
+             {/* HiveMindGuidanceBar was here and is now removed */}
               <main className="flex-1 overflow-auto py-6">
                 {children}
               </main>
@@ -217,4 +163,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </TooltipProvider>
   );
 }
+    
+
     
