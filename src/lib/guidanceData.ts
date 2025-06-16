@@ -11,7 +11,8 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     trigger: { type: "pageOpen", path: "/app/dashboard", delayMs: 700 },
     highlightSelector: ".container h1", // Example: Targets the main h1 on the dashboard
     targetElementAttachment: "bottom-start",
-    once: true
+    once: true,
+    xpValue: 2, // Award 2 XP for acknowledging this
   },
   {
     id: "setup-page-intro",
@@ -19,7 +20,8 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     trigger: { type: "pageOpen", path: "/app/setup", delayMs: 500 },
     highlightSelector: "header h1", // Example: Targets the h1 in the setup page header
     targetElementAttachment: "bottom-start",
-    once: true
+    once: true,
+    xpValue: 1,
   },
   {
     id: "mentor-chat-intro",
@@ -27,7 +29,8 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     trigger: { type: "pageOpen", path: "/app/mentor", delayMs: 600 },
     highlightSelector: ".flex.flex-col.h-\\\\[calc\\\\(100vh-20rem\\\\)\\\\]", // Correctly escaped selector
     targetElementAttachment: "top-center",
-    once: true
+    once: true,
+    xpValue: 2,
   },
   {
     id: "decision-controls-overview",
@@ -35,7 +38,8 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     trigger: { type: "pageOpen", path: "/app/simulation", delayMs: 600 },
     highlightSelector: ".lg\\:col-span-1 .shadow-lg", // Targets the 'Monthly Adjustments' card
     targetElementAttachment: "left-start",
-    once: true
+    once: true,
+    xpValue: 1,
   },
   {
     id: "strategy-page-generate-button",
@@ -43,17 +47,8 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     trigger: { type: "pageOpen", path: "/app/strategy", delayMs: 600 },
     highlightSelector: ".bg-accent.hover\\:bg-accent\\/90", // Targets the "Generate AI Strategic Insights" button
     targetElementAttachment: "bottom-center",
-    once: true
+    once: true,
+    xpValue: 1,
   }
   // Add more steps for other pages and triggers as needed.
-  // For example:
-  // {
-  //   id: "first-mission-generated",
-  //   message: "New missions are available! Check them out on the 'Milestones & Score' page.",
-  //   trigger: { type: "simulationState", condition: "newMissionsAvailable" }, // This trigger type needs more logic
-  //   highlightSelector: "a[href='/app/gamification']",
-  //   targetElementAttachment: "right-center",
-  //   once: true
-  // }
 ];
-

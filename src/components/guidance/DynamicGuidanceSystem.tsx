@@ -1,3 +1,4 @@
+
 // src/components/guidance/DynamicGuidanceSystem.tsx
 "use client";
 
@@ -15,7 +16,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
     steps,
     shownSteps,
     activeGuidance,
-    loadGuidanceSteps, // Changed from fetchGuidanceSteps
+    loadGuidanceSteps,
     setActiveGuidance,
     clearActiveGuidance,
   } = useGuidanceStore();
@@ -25,7 +26,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    loadGuidanceSteps(); // Load steps from local data on mount
+    loadGuidanceSteps();
   }, [loadGuidanceSteps]);
 
   const clearHighlight = useCallback(() => {
@@ -44,8 +45,6 @@ export const DynamicGuidanceSystem: React.FC = () => {
           element.classList.add(HIGHLIGHT_CLASS);
           highlightedElementRef.current = element;
           setTargetElement(element);
-          // Optional: scroll into view if desired, can be configured per step
-          // element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         } else {
           console.warn(`[GuidanceSystem] Highlight selector "${selector}" not found.`);
           setTargetElement(null);
@@ -60,6 +59,9 @@ export const DynamicGuidanceSystem: React.FC = () => {
   }, [clearHighlight]);
 
   const handleCloseGuidance = useCallback(() => {
+    // The ContextualGuidanceTip will handle its own XP animation based on currentStep.
+    // This function's main job is to tell the store to clear the active guidance,
+    // which in turn will update XP and mark as shown in the store.
     clearHighlight();
     clearActiveGuidance();
   }, [clearActiveGuidance, clearHighlight]);
@@ -68,7 +70,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
   useEffect(() => {
     if (activeGuidance) {
       applyHighlight(activeGuidance.highlightSelector);
-      
+
       if (timeoutIdRef.current) {
         clearTimeout(timeoutIdRef.current);
       }
@@ -84,29 +86,29 @@ export const DynamicGuidanceSystem: React.FC = () => {
 
 
   useEffect(() => {
-    if (steps.length === 0 || activeGuidance) { 
+    if (steps.length === 0 || activeGuidance) {
       return;
     }
 
     const matchedStep = steps.find(step => {
       if (step.trigger.type === 'pageOpen') {
         const isMatch = step.trigger.path === pathname;
-        const alreadyShown = step.once && shownSteps.includes(step.id);
-        return isMatch && !alreadyShown;
+        // Check against shownSteps for 'once' display logic
+        const alreadyShownForDisplay = step.once && shownSteps.includes(step.id);
+        return isMatch && !alreadyShownForDisplay;
       }
-      // Future: Add other trigger type evaluations (elementVisible, elementClick, etc.)
       return false;
     });
 
     if (matchedStep) {
-      if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current); 
+      if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
 
       const delay = matchedStep.trigger.delayMs || 0;
       timeoutIdRef.current = setTimeout(() => {
         setActiveGuidance(matchedStep);
       }, delay);
     }
-    
+
     return () => {
       if (timeoutIdRef.current) {
         clearTimeout(timeoutIdRef.current);
@@ -123,6 +125,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
       targetElement={targetElement}
       attachment={activeGuidance?.targetElementAttachment || 'bottom-center'}
       onClose={handleCloseGuidance}
+      currentStep={activeGuidance} // Pass the full step object
     />
   );
 };

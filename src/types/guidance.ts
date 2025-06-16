@@ -1,8 +1,8 @@
 
 // src/types/guidance.ts
 
-export type GuidanceTriggerType = 
-  | 'pageOpen' 
+export type GuidanceTriggerType =
+  | 'pageOpen'
   | 'elementVisible' // Future: requires IntersectionObserver
   | 'elementClick'   // Future: requires event delegation or component signals
   | 'simulationState'// Future: requires deeper sim store integration
@@ -32,12 +32,13 @@ export interface GuidanceStep {
   trigger: GuidanceTrigger; // The condition that activates this guide
   highlightSelector?: string; // Optional CSS selector for an element to highlight
   targetElementAttachment?: AttachmentPoint; // How to attach the tip to the highlighted element
-  once?: boolean; // If true, show this guide only once (tracked in localStorage)
+  once?: boolean; // If true, show this guide only once per user (tracked in localStorage for display)
+  xpValue?: number; // Optional XP awarded for acknowledging this tip (awarded only once)
   dependsOn?: string[]; // Optional: IDs of other steps that must be completed first
   priority?: number; // Optional: for resolving multiple triggered guides
 }
 
-export type AttachmentPoint = 
+export type AttachmentPoint =
   | 'top-start' | 'top-center' | 'top-end'
   | 'right-start' | 'right-center' | 'right-end'
   | 'bottom-start' | 'bottom-center' | 'bottom-end'
