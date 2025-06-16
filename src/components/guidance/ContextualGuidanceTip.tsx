@@ -32,6 +32,8 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
       return;
     }
     
+    const PADDING = 12; // Space between tip and element - DEFINED HERE
+
     let newTop = window.innerHeight / 2 - (tipRef.current?.offsetHeight || 0) / 2;
     let newLeft = window.innerWidth / 2 - (tipRef.current?.offsetWidth || 0) / 2;
     let transformOrigin = 'center center';
@@ -39,7 +41,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
     if (targetElement) {
       const targetRect = targetElement.getBoundingClientRect();
       const tipRect = tipRef.current.getBoundingClientRect();
-      const PADDING = 12; // Space between tip and element
+      
 
       switch (attachment) {
         case 'top-start':
