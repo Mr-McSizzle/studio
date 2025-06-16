@@ -34,9 +34,26 @@ export interface GuidanceStep {
   targetElementAttachment?: AttachmentPoint; // How to attach the tip to the highlighted element
   once?: boolean; // If true, show this guide only once per user (tracked in localStorage for display)
   xpValue?: number; // Optional XP awarded for acknowledging this tip (awarded only once)
-  dependsOn?: string[]; // Optional: IDs of other steps that must be completed first
-  priority?: number; // Optional: for resolving multiple triggered guides
+  
+  // Quest-related fields
+  questId?: string; // Identifier for the quest this step belongs to
+  questTitle?: string; // Display title for the quest
+  isQuestStart?: boolean; // True if this is the first step of a quest
+  isQuestEnd?: boolean; // True if this is the last step of a quest
+  nextStepId?: string; // ID of the next step in the quest sequence
+  previousStepId?: string; // ID of the previous step in the quest sequence
+  questTotalSteps?: number; // Total number of steps in this quest (for display)
+  currentStepNumber?: number; // The number of this step within its quest (for display)
 }
+
+export interface QuestCompletionReward {
+  questId: string;
+  xp: number;
+  badgeName: string;
+  badgeDescription: string;
+  badgeIcon?: string; // Optional: Lucide icon name or path to an SVG
+}
+
 
 export type AttachmentPoint =
   | 'top-start' | 'top-center' | 'top-end'

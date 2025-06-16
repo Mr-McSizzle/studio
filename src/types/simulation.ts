@@ -134,6 +134,15 @@ export interface StructuredKeyEvent {
   impact: KeyEventImpact;
 }
 
+// Interface for earned badges, now part of DigitalTwinState
+export interface EarnedBadge {
+  questId: string; // To link to the completed quest
+  name: string;
+  description: string;
+  icon?: string; // Lucide icon name or path
+  dateEarned: string; // ISO date string
+}
+
 
 export interface DigitalTwinState {
   simulationMonth: number;
@@ -146,6 +155,7 @@ export interface DigitalTwinState {
   startupScore: number;
   keyEvents: StructuredKeyEvent[];
   rewards: Reward[];
+  earnedBadges: EarnedBadge[]; // Added for quest completion badges
   initialGoals: string[];
   missions: Mission[];
   suggestedChallenges: string[];

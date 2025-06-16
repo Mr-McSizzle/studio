@@ -16,6 +16,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
     steps,
     shownSteps,
     activeGuidance,
+    completedQuests, // Need this to check if a quest is already done
     loadGuidanceSteps,
     setActiveGuidance,
     clearActiveGuidance,
@@ -59,18 +60,14 @@ export const DynamicGuidanceSystem: React.FC = () => {
   }, [clearHighlight]);
 
   const handleCloseGuidance = useCallback(() => {
-    // The ContextualGuidanceTip will handle its own XP animation based on currentStep.
-    // This function's main job is to tell the store to clear the active guidance,
-    // which in turn will update XP and mark as shown in the store.
     clearHighlight();
-    clearActiveGuidance();
+    clearActiveGuidance(); // Store now handles XP, marking shown, and quest completion
   }, [clearActiveGuidance, clearHighlight]);
 
 
   useEffect(() => {
     if (activeGuidance) {
       applyHighlight(activeGuidance.highlightSelector);
-
       if (timeoutIdRef.current) {
         clearTimeout(timeoutIdRef.current);
       }
@@ -87,16 +84,21 @@ export const DynamicGuidanceSystem: React.FC = () => {
 
   useEffect(() => {
     if (steps.length === 0 || activeGuidance) {
-      return;
+      return; // Don't look for new steps if one is already active or no steps loaded
     }
 
     const matchedStep = steps.find(step => {
-      if (step.trigger.type === 'pageOpen') {
-        const isMatch = step.trigger.path === pathname;
-        // Check against shownSteps for 'once' display logic
-        const alreadyShownForDisplay = step.once && shownSteps.includes(step.id);
-        return isMatch && !alreadyShownForDisplay;
+      if (shownSteps.includes(step.id) && step.once) {
+        return false; // Skip if 'once' step already shown
       }
+      if (step.questId && completedQuests.includes(step.questId) && step.isQuestStart) {
+        return false; // Skip starting a quest that's already completed
+      }
+
+      if (step.trigger.type === 'pageOpen') {
+        return step.trigger.path === pathname;
+      }
+      // Future: Add other trigger type evaluations here
       return false;
     });
 
@@ -105,7 +107,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
 
       const delay = matchedStep.trigger.delayMs || 0;
       timeoutIdRef.current = setTimeout(() => {
-        setActiveGuidance(matchedStep);
+        setActiveGuidance(matchedStep); // This will also set quest context in store if applicable
       }, delay);
     }
 
@@ -114,8 +116,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
         clearTimeout(timeoutIdRef.current);
       }
     };
-
-  }, [pathname, steps, shownSteps, setActiveGuidance, activeGuidance]);
+  }, [pathname, steps, shownSteps, activeGuidance, completedQuests, setActiveGuidance]);
 
 
   return (
@@ -125,7 +126,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
       targetElement={targetElement}
       attachment={activeGuidance?.targetElementAttachment || 'bottom-center'}
       onClose={handleCloseGuidance}
-      currentStep={activeGuidance} // Pass the full step object
+      currentStep={activeGuidance}
     />
   );
 };

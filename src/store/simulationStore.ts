@@ -77,8 +77,17 @@ const onboardingMissions: Mission[] = [
   },
 ];
 
+// Interface for earned badges, now part of DigitalTwinState
+export interface EarnedBadge {
+  questId: string; // To link to the completed quest
+  name: string;
+  description: string;
+  icon?: string; // Lucide icon name or path
+  dateEarned: string; // ISO date string
+}
 
-const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'missions'> = {
+
+const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'missions' | 'earnedBadges'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -126,6 +135,7 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
   ...initialBaseState,
   keyEvents: [createStructuredEvent(0, "Simulation not yet initialized. Set up your venture to begin!", "System", "Neutral")],
   rewards: [],
+  earnedBadges: [], // Initialize earnedBadges
   suggestedChallenges: [],
   historicalRevenue: [],
   historicalUserGrowth: [],
@@ -152,6 +162,7 @@ interface SimulationActions {
   setPricePerUser: (price: number) => void;
   adjustTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => void;
   setMissions: (generatedMissionsFromAI: GeneratedMission[]) => void; // For new missions
+  awardQuestBadge: (badgeName: string, badgeDescription: string, questId: string, icon?: string) => void; // New action for badges
   // Sandbox actions
   startSandboxExperiment: () => void;
   setSandboxMarketingSpend: (amount: number) => void;
@@ -188,6 +199,7 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     startupScore: state.startupScore,
     keyEvents: state.keyEvents,
     rewards: state.rewards,
+    earnedBadges: state.earnedBadges, // Include earnedBadges
     initialGoals: state.initialGoals,
     missions: state.missions,
     suggestedChallenges: state.suggestedChallenges,
@@ -372,6 +384,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           suggestedChallenges: processedSuggestedChallenges,
           keyEvents: [createStructuredEvent(0, `Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month.`, "System", "Positive")],
           rewards: [],
+          earnedBadges: [], // Ensure earnedBadges is initialized
           missions: [...onboardingMissions], // Initialize with onboarding missions
           historicalRevenue: [{ month: "M0", revenue: 0, desktop: 0 }],
           historicalUserGrowth: [{ month: "M0", users: 0, desktop: 0 }],
@@ -447,6 +460,27 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         }));
         return { ...state, missions: newMissions };
       }),
+      
+      awardQuestBadge: (badgeName: string, badgeDescription: string, questId: string, icon?: string) => {
+        set(state => {
+          const newBadge: EarnedBadge = {
+            questId,
+            name: badgeName,
+            description: badgeDescription,
+            icon: icon || 'Award', // Default icon if none provided
+            dateEarned: new Date().toISOString(),
+          };
+          // Prevent duplicate badges for the same quest
+          if (state.earnedBadges.some(b => b.questId === questId)) {
+            return state;
+          }
+          return {
+            ...state,
+            earnedBadges: [...state.earnedBadges, newBadge],
+            keyEvents: [...state.keyEvents, createStructuredEvent(state.simulationMonth, `Achievement Unlocked: ${badgeName}! (${badgeDescription})`, "General", "Positive")]
+          };
+        });
+      },
 
       advanceMonth: async () => {
         const currentState = get();
@@ -647,6 +681,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             isSandboxing: false,
             sandboxRelativeMonth: 0,
             savedSimulations: [], 
+            earnedBadges: [], // Reset earned badges
         }));
       },
 
@@ -665,6 +700,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         sandboxCopy.historicalProductProgress = [];
         sandboxCopy.keyEvents = [createStructuredEvent(state.simulationMonth, `Sandbox started from main sim month ${state.simulationMonth}. Initial state copied.`, "System", "Neutral")];
         sandboxCopy.rewards = []; 
+        sandboxCopy.earnedBadges = []; // Sandbox doesn't inherit main sim badges directly
         sandboxCopy.missions = []; // Sandbox starts with no missions
         sandboxCopy.simulationMonth = state.simulationMonth; 
         
@@ -925,6 +961,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           startupScore: updatedMainState.startupScore,
           keyEvents: updatedMainState.keyEvents,
           rewards: updatedMainState.rewards,
+          earnedBadges: updatedMainState.earnedBadges, // Persist earnedBadges
           initialGoals: updatedMainState.initialGoals,
           missions: updatedMainState.missions,
           suggestedChallenges: updatedMainState.suggestedChallenges,
@@ -985,11 +1022,11 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           sandboxState: null,
           isSandboxing: false,
           sandboxRelativeMonth: 0,
-          savedSimulations: currentFullState.savedSimulations, // Preserve the list of all saved simulations
+          savedSimulations: currentFullState.savedSimulations, 
           keyEvents: [...loadedSimState.keyEvents, createStructuredEvent(loadedSimState.simulationMonth, `Simulation loaded from snapshot: ${snapshotToLoad.name}`, "System", "Positive")],
           currentAiReasoning: `Simulation state loaded from snapshot: "${snapshotToLoad.name}". Main simulation month is now ${loadedSimState.simulationMonth}.`,
-          // Ensure missions are loaded from snapshot, or default to onboarding if snapshot has none.
           missions: Array.isArray(loadedSimState.missions) && loadedSimState.missions.length > 0 ? loadedSimState.missions : [...onboardingMissions],
+          earnedBadges: Array.isArray(loadedSimState.earnedBadges) ? loadedSimState.earnedBadges : [], // Load earnedBadges
         };
         
         set(newStateFromSnapshot);
@@ -1034,9 +1071,9 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
 
         mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : defaultStateArrays.rewards;
+        mergedState.earnedBadges = Array.isArray(mergedState.earnedBadges) ? mergedState.earnedBadges : defaultStateArrays.earnedBadges; // Merge earnedBadges
         mergedState.savedSimulations = Array.isArray(mergedState.savedSimulations) ? mergedState.savedSimulations : defaultStateArrays.savedSimulations;
         
-        // Handle missions: if persisted missions exist, use them; otherwise, use onboarding.
         mergedState.missions = Array.isArray(mergedState.missions) && mergedState.missions.length > 0 
                                 ? mergedState.missions 
                                 : [...onboardingMissions];
@@ -1112,6 +1149,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             mergedState.sandboxState.historicalCAC = Array.isArray(mergedState.sandboxState.historicalCAC) ? mergedState.sandboxState.historicalCAC : [];
             mergedState.sandboxState.historicalChurnRate = Array.isArray(mergedState.sandboxState.historicalChurnRate) ? mergedState.sandboxState.historicalChurnRate : [];
             mergedState.sandboxState.historicalProductProgress = Array.isArray(mergedState.sandboxState.historicalProductProgress) ? mergedState.sandboxState.historicalProductProgress : [];
+            mergedState.sandboxState.earnedBadges = Array.isArray(mergedState.sandboxState.earnedBadges) ? mergedState.sandboxState.earnedBadges : []; // Merge sandbox badges
         }
 
         return mergedState as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
@@ -1119,7 +1157,3 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     }
   )
 );
-
-
-
-

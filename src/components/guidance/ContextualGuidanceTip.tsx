@@ -3,19 +3,19 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Lightbulb, CheckCircle } from 'lucide-react';
+import { Lightbulb, CheckCircle, ArrowLeftCircle, ArrowRightCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AttachmentPoint, GuidanceStep } from '@/types/guidance';
 import { useGuidanceStore } from '@/store/guidanceStore';
 
 interface ContextualGuidanceTipProps {
-  message: string; // Current message, could be from activeGuidance
+  message: string;
   targetElement?: HTMLElement | null;
   attachment?: AttachmentPoint;
-  onClose: () => void; // This will trigger clearActiveGuidance in the store via DynamicGuidanceSystem
+  onClose: () => void;
   isVisible: boolean;
-  currentStep: GuidanceStep | null; // Pass the full step for XP logic
+  currentStep: GuidanceStep | null;
 }
 
 export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
@@ -24,13 +24,16 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
   attachment = 'bottom-center',
   onClose,
   isVisible,
-  currentStep, // Use this to access xpValue and id
+  currentStep,
 }) => {
   const tipRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0, opacity: 0 });
   const [xpAnimationAmount, setXpAnimationAmount] = useState<number | null>(null);
 
-  const awardedXpForSteps = useGuidanceStore(state => state.awardedXpForSteps);
+  const { awardedXpForSteps, navigateToQuestStep } = useGuidanceStore(state => ({
+    awardedXpForSteps: state.awardedXpForSteps,
+    navigateToQuestStep: state.navigateToQuestStep,
+  }));
 
   useEffect(() => {
     if (!isVisible || !tipRef.current) {
@@ -128,28 +131,43 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
     if (xpAnimationAmount !== null) {
       const timer = setTimeout(() => {
         setXpAnimationAmount(null);
-      }, 1500); // XP animation visible for 1.5 seconds
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [xpAnimationAmount]);
 
-  const handleGotItClick = () => {
+  const handlePrimaryActionClick = () => {
     if (currentStep && currentStep.xpValue && currentStep.xpValue > 0 && !awardedXpForSteps.includes(currentStep.id)) {
       setXpAnimationAmount(currentStep.xpValue);
     }
-    onClose(); // This will call clearActiveGuidance in the store, which handles actual XP update
+    onClose();
+  };
+
+  const handleNextStep = () => {
+    if (currentStep?.nextStepId) {
+      navigateToQuestStep(currentStep.nextStepId);
+    }
+  };
+
+  const handlePreviousStep = () => {
+    if (currentStep?.previousStepId) {
+      navigateToQuestStep(currentStep.previousStepId);
+    }
   };
 
   if (!isVisible || !currentStep) return null;
+
+  const isQuestStep = !!currentStep.questId;
+  const primaryButtonText = currentStep.isQuestEnd ? "Finish Quest" : "Got it!";
 
   return (
     <div
       ref={tipRef}
       className={cn(
-        "fixed z-[1000] w-72 max-w-[calc(100vw-32px)] p-4 rounded-lg shadow-xl bg-popover text-popover-foreground border border-accent",
+        "fixed z-[1000] w-80 max-w-[calc(100vw-32px)] p-4 rounded-lg shadow-xl bg-popover text-popover-foreground border border-accent",
         "transition-all duration-300 ease-out",
         "opacity-0 scale-95 data-[visible=true]:opacity-100 data-[visible=true]:scale-100",
-        "transform-gpu" // Added for potentially smoother animations
+        "transform-gpu"
       )}
       style={{
         top: `${position.top}px`,
@@ -170,20 +188,53 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
       <div className="flex items-start gap-3">
         <Lightbulb className="h-6 w-6 text-accent mt-1 shrink-0" />
         <div className="prose prose-sm dark:prose-invert max-w-none text-popover-foreground flex-grow">
-          <p className="text-xs font-semibold mb-1 text-accent">Hive Mind Tip:</p>
+          {isQuestStep && currentStep.questTitle && (
+            <p className="text-xs font-semibold mb-1 text-accent">
+              Quest: {currentStep.questTitle}
+              {currentStep.currentStepNumber && currentStep.questTotalSteps && (
+                ` (Step ${currentStep.currentStepNumber} of ${currentStep.questTotalSteps})`
+              )}
+            </p>
+          )}
           <p className="text-sm leading-relaxed">{message}</p>
         </div>
       </div>
-      <Button
-        variant="default" // Changed from ghost to default, or could be accent
-        size="sm"
-        className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground"
-        onClick={handleGotItClick}
-        aria-label="Got it, dismiss guidance tip"
-      >
-        <CheckCircle className="mr-2 h-4 w-4" />
-        Got it!
-      </Button>
+      <div className="mt-4 flex flex-col space-y-2">
+        {isQuestStep && (currentStep.previousStepId || currentStep.nextStepId) && (
+          <div className="flex justify-between items-center gap-2">
+            {currentStep.previousStepId ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={handlePreviousStep}
+              >
+                <ArrowLeftCircle className="mr-2 h-4 w-4" /> Previous
+              </Button>
+            ) : <div className="flex-1"></div> /* Placeholder for spacing */}
+            {currentStep.nextStepId ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={handleNextStep}
+              >
+                Next <ArrowRightCircle className="ml-2 h-4 w-4" />
+              </Button>
+            ) : <div className="flex-1"></div> /* Placeholder for spacing */}
+          </div>
+        )}
+        <Button
+          variant="default"
+          size="sm"
+          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+          onClick={handlePrimaryActionClick}
+          aria-label={primaryButtonText}
+        >
+          <CheckCircle className="mr-2 h-4 w-4" />
+          {primaryButtonText}
+        </Button>
+      </div>
        <style jsx global>{`
         @keyframes ping-once {
           0% {
