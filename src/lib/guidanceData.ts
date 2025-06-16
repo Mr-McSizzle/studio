@@ -12,7 +12,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     id: "dashboard-welcome-tip",
     message: "Welcome to your Dashboard! This is your startup's command center. Monitor key metrics like Cash, Users, and your Startup Score here.",
     trigger: { type: "pageOpen", path: "/app/dashboard", delayMs: 700 },
-    highlightSelector: ".container .text-3xl.font-headline", // Targets the main page title on dashboard
+    highlightSelector: ".container .text-3xl.font-headline", 
     targetElementAttachment: "bottom-start",
     once: true,
     xpValue: 2,
@@ -24,8 +24,9 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     currentStepNumber: 1,
     suggestedAction: {
       label: "Learn More About Dashboards (External Link Example)",
-      path: "https://example.com/dashboard-guides" // Example external link
-    }
+      path: "https://example.com/dashboard-guides" 
+    },
+    isDailyInsight: true, // Example of a daily insight
   },
   {
     id: "setup-page-intro-quest",
@@ -46,7 +47,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     id: "mentor-chat-intro-quest",
     message: "Meet EVE, your AI Hive Mind assistant. She's your primary contact for strategic advice and can tap into a team of specialized AI agents. Ask her anything!",
     trigger: { type: "pageOpen", path: "/app/mentor", delayMs: 600 },
-    highlightSelector: ".flex.flex-col.h-\\\\[calc\\\\(100vh-20rem\\\\)\\\\]", // Escaped selector for chat interface
+    highlightSelector: ".flex.flex-col.h-\\\\[calc\\\\(100vh-20rem\\\\)\\\\]", 
     targetElementAttachment: "top-center",
     once: true,
     xpValue: 2,
@@ -57,8 +58,8 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     questTotalSteps: 4,
     currentStepNumber: 3,
     suggestedAction: {
-      label: "Ask EVE for Startup Name Ideas", // More specific action
-      path: "/app/mentor" // Stays on the same page, user expected to interact
+      label: "Ask EVE for Startup Name Ideas", 
+      path: "/app/mentor" 
     }
   },
   {
@@ -87,29 +88,30 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     xpValue: 1,
     suggestedAction: {
       label: "Generate Insights Now",
-      path: "/app/strategy" // stays on page, user clicks button
-    }
+      path: "/app/strategy" 
+    },
+    isDailyInsight: true, // Another example for daily insight
   },
   {
     id: "lab-discovery-tip",
     message: "The Innovation Lab is your sandbox for bold ideas! Test scenarios or new decision levers here without impacting your main simulation. Great for risk-free experimentation.",
     trigger: { type: "pageOpen", path: "/app/lab", delayMs: 800 },
-    highlightSelector: "#sandbox-section", // Assuming a section for sandbox controls
+    highlightSelector: "#sandbox-section", 
     targetElementAttachment: "top-center",
     once: true,
     isDiscovery: true,
-    discoveryXpValue: 10, // Higher XP for discovery
-    xpValue: 0, // Standard XP not applicable if discovery XP is given
+    discoveryXpValue: 10, 
+    xpValue: 0, 
     suggestedAction: {
         label: "Start a Sandbox Experiment",
-        path: "/app/lab" // User needs to click the button on the page
+        path: "/app/lab" 
     }
   },
   {
     id: "first-time-todo-tip",
     message: "Welcome to your Quest Log! This is where you can track strategic tasks. Completing tasks earns you XP. Try adding your first one!",
     trigger: { type: "pageOpen", path: "/app/todo", delayMs: 500 },
-    highlightSelector: "form > div:first-child", // Highlights the task description input
+    highlightSelector: "form > div:first-child", 
     targetElementAttachment: "bottom-start",
     once: true,
     xpValue: 2,
@@ -125,7 +127,7 @@ export const questCompletionRewardsData: QuestCompletionReward[] = [
     badgeIcon: "Compass", 
   },
   {
-    questId: DISCOVERY_BADGE_QUEST_ID, // Conceptual - if we want a specific badge for N discoveries
+    questId: DISCOVERY_BADGE_QUEST_ID, 
     xp: 50,
     badgeName: "Sage of ForgeSim",
     badgeDescription: "Unlocked deep insights and discovered hidden wisdom within the simulation.",

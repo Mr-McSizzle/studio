@@ -57,6 +57,9 @@ export interface GuidanceStep {
 
   // Actionable Tip fields
   suggestedAction?: SuggestedAction; // Optional action button in the tip
+
+  // Daily Insight field
+  isDailyInsight?: boolean; // If true, this tip can be part of the "Tip of the Day" system
 }
 
 export interface QuestCompletionReward {

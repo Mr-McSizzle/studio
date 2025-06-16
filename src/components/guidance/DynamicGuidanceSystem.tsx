@@ -9,6 +9,7 @@ import { ContextualGuidanceTip } from './ContextualGuidanceTip';
 import type { GuidanceStep } from '@/types/guidance';
 
 const HIGHLIGHT_CLASS = 'guidance-highlight-active';
+const getTodayDateString = (): string => new Date().toISOString().split('T')[0];
 
 export const DynamicGuidanceSystem: React.FC = () => {
   const pathname = usePathname();
@@ -16,7 +17,8 @@ export const DynamicGuidanceSystem: React.FC = () => {
     steps,
     shownSteps,
     activeGuidance,
-    completedQuests, // Need this to check if a quest is already done
+    completedQuests,
+    lastDailyInsightShownDate, // Get this from the store
     loadGuidanceSteps,
     setActiveGuidance,
     clearActiveGuidance,
@@ -61,7 +63,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
 
   const handleCloseGuidance = useCallback(() => {
     clearHighlight();
-    clearActiveGuidance(); // Store now handles XP, marking shown, and quest completion
+    clearActiveGuidance(); 
   }, [clearActiveGuidance, clearHighlight]);
 
 
@@ -84,21 +86,36 @@ export const DynamicGuidanceSystem: React.FC = () => {
 
   useEffect(() => {
     if (steps.length === 0 || activeGuidance) {
-      return; // Don't look for new steps if one is already active or no steps loaded
+      return; 
     }
+    const today = getTodayDateString();
 
     const matchedStep = steps.find(step => {
       if (shownSteps.includes(step.id) && step.once) {
-        return false; // Skip if 'once' step already shown
+        return false; 
       }
       if (step.questId && completedQuests.includes(step.questId) && step.isQuestStart) {
-        return false; // Skip starting a quest that's already completed
+        return false; 
       }
+
+      // Daily Insight Check: If it's a daily insight and one has already been shown today, don't match.
+      if (step.isDailyInsight && lastDailyInsightShownDate === today) {
+          // Exception: If THIS specific daily insight is currently active (e.g. user navigated away and back), allow it.
+          // This simple check might not be enough if we want to cycle through multiple daily insights per day.
+          // For now, one daily insight shown (any) blocks others for the day if their trigger matches.
+          // To be more precise, we'd need to track *which* daily insight was shown, or if we only allow ONE per day total.
+          // Assuming for now: if *any* daily insight was shown via lastDailyInsightShownDate, don't trigger another *different* one.
+          // A better approach would be to store the ID of the daily insight shown, but this is simpler for now.
+          // If we want to allow *different* daily insights on the same day if their triggers match, this check needs refinement.
+          // For now, if a daily was already shown, this step (if it's daily) won't trigger.
+          return false;
+      }
+
 
       if (step.trigger.type === 'pageOpen') {
         return step.trigger.path === pathname;
       }
-      // Future: Add other trigger type evaluations here
+      
       return false;
     });
 
@@ -107,7 +124,14 @@ export const DynamicGuidanceSystem: React.FC = () => {
 
       const delay = matchedStep.trigger.delayMs || 0;
       timeoutIdRef.current = setTimeout(() => {
-        setActiveGuidance(matchedStep); // This will also set quest context in store if applicable
+        // If the matched step is a daily insight, and lastDailyInsightShownDate is NOT today, it's eligible.
+        // The store will handle marking lastDailyInsightShownDate upon dismissal.
+        if (matchedStep.isDailyInsight && lastDailyInsightShownDate === today) {
+            // This condition is now technically redundant due to the check above, but for safety:
+            console.log("[GuidanceSystem] Daily insight already shown today, not activating new one via this trigger.");
+        } else {
+            setActiveGuidance(matchedStep);
+        }
       }, delay);
     }
 
@@ -116,7 +140,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
         clearTimeout(timeoutIdRef.current);
       }
     };
-  }, [pathname, steps, shownSteps, activeGuidance, completedQuests, setActiveGuidance]);
+  }, [pathname, steps, shownSteps, activeGuidance, completedQuests, lastDailyInsightShownDate, setActiveGuidance]);
 
 
   return (

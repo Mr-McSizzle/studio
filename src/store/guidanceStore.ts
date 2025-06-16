@@ -9,28 +9,56 @@ import { useSimulationStore } from './simulationStore'; // For awarding badges
 const LOCALSTORAGE_SHOWN_STEPS_KEY = 'forgeSimShownGuidanceSteps';
 const LOCALSTORAGE_AWARDED_XP_STEPS_KEY = 'forgeSimAwardedXpSteps';
 const LOCALSTORAGE_COMPLETED_QUESTS_KEY = 'forgeSimCompletedQuests';
+const LOCALSTORAGE_FOUNDER_ACUMEN_SCORE_KEY = 'forgeSimFounderAcumenScore';
+const LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY = 'forgeSimFounderAcumenLevel';
+const LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY = 'forgeSimLastDailyInsightDate';
+const LOCALSTORAGE_DAILY_INSIGHT_STREAK_KEY = 'forgeSimDailyInsightStreak';
 
 
 interface GuidanceState {
   steps: GuidanceStep[];
   shownSteps: string[];
-  awardedXpForSteps: string[]; // Tracks IDs of steps for which any XP (step or discovery) has been awarded
-  completedQuests: string[]; // Array of quest IDs that have been completed
-  insightXp: number; // Total XP earned from all guidance interactions (step, discovery, quest completion)
+  awardedXpForSteps: string[]; 
+  completedQuests: string[]; 
+  insightXp: number; 
   activeGuidance: GuidanceStep | null;
-  activeQuestId: string | null; // ID of the currently active quest
-  activeQuestStepId: string | null; // ID of the current step within the active quest
+  activeQuestId: string | null; 
+  activeQuestStepId: string | null; 
+
+  // Phase 3: Gamification additions
+  founderAcumenScore: number;
+  founderAcumenLevel: string; // e.g., "Novice", "Adept", "Sage"
+  lastDailyInsightShownDate: string | null; // Stores "YYYY-MM-DD"
+  dailyInsightStreak: number;
 
   loadGuidanceSteps: () => void;
   markStepAsShown: (stepId: string) => void;
   setActiveGuidance: (step: GuidanceStep | null) => void;
   clearActiveGuidance: () => void;
   navigateToQuestStep: (stepId: string) => void; 
+  _updateAcumenMetrics: () => void; // Internal helper
   _loadPersistedData: () => void;
-  _persistShownSteps: () => void;
-  _persistAwardedXpSteps: () => void;
-  _persistCompletedQuests: () => void;
+  _persistAllGuidanceData: () => void; // Consolidated persistence
 }
+
+
+const calculateAcumenLevel = (xp: number): { score: number; level: string } => {
+  const score = xp;
+  let level = "Novice";
+  if (xp >= 101) level = "Sage";
+  else if (xp >= 51) level = "Adept";
+  else if (xp >= 21) level = "Apprentice";
+  return { score, level };
+};
+
+const getTodayDateString = (): string => new Date().toISOString().split('T')[0];
+
+const getYesterdayDateString = (): string => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday.toISOString().split('T')[0];
+};
+
 
 export const useGuidanceStore = create<GuidanceState>()(
   persist(
@@ -44,8 +72,19 @@ export const useGuidanceStore = create<GuidanceState>()(
       activeQuestId: null,
       activeQuestStepId: null,
 
+      founderAcumenScore: 0,
+      founderAcumenLevel: "Novice",
+      lastDailyInsightShownDate: null,
+      dailyInsightStreak: 0,
+
       loadGuidanceSteps: () => {
         set({ steps: predefinedGuidanceSteps });
+      },
+
+      _updateAcumenMetrics: () => {
+        const currentInsightXp = get().insightXp;
+        const { score, level } = calculateAcumenLevel(currentInsightXp);
+        set({ founderAcumenScore: score, founderAcumenLevel: level });
       },
 
       markStepAsShown: (stepId: string) => {
@@ -55,7 +94,7 @@ export const useGuidanceStore = create<GuidanceState>()(
           }
           return state;
         });
-        get()._persistShownSteps();
+        get()._persistAllGuidanceData();
       },
 
       setActiveGuidance: (step: GuidanceStep | null) => {
@@ -87,11 +126,13 @@ export const useGuidanceStore = create<GuidanceState>()(
       clearActiveGuidance: () => {
         const currentActiveGuidance = get().activeGuidance;
         const currentActiveQuestId = get().activeQuestId;
+        let currentInsightXp = get().insightXp; // Get current XP before modifications
+        let currentDailyStreak = get().dailyInsightStreak;
+        let lastShownDate = get().lastDailyInsightShownDate;
 
         if (currentActiveGuidance) {
           let awardedXpThisInteraction = 0;
           
-          // Check if XP for this specific step ID has already been awarded
           if (!get().awardedXpForSteps.includes(currentActiveGuidance.id)) {
             if (currentActiveGuidance.isDiscovery && currentActiveGuidance.discoveryXpValue && currentActiveGuidance.discoveryXpValue > 0) {
               awardedXpThisInteraction = currentActiveGuidance.discoveryXpValue;
@@ -100,25 +141,40 @@ export const useGuidanceStore = create<GuidanceState>()(
             }
 
             if (awardedXpThisInteraction > 0) {
+              currentInsightXp += awardedXpThisInteraction;
               set(state => ({
-                insightXp: state.insightXp + awardedXpThisInteraction,
                 awardedXpForSteps: [...state.awardedXpForSteps, currentActiveGuidance.id],
               }));
-              get()._persistAwardedXpSteps(); // Persist awarded XP steps immediately
             }
           }
           
-          get().markStepAsShown(currentActiveGuidance.id); // Mark step as shown (for 'once' logic)
+          get().markStepAsShown(currentActiveGuidance.id);
 
-          // Check for Quest Completion
+          // Daily Insight Streak Logic
+          if (currentActiveGuidance.isDailyInsight) {
+            const today = getTodayDateString();
+            if (lastShownDate !== today) {
+              const yesterday = getYesterdayDateString();
+              if (lastShownDate === yesterday) {
+                currentDailyStreak++;
+              } else {
+                currentDailyStreak = 1; // Reset streak if not yesterday or first time
+              }
+              lastShownDate = today;
+              
+              const streakBonusXp = currentDailyStreak * 1; // Example: 1 XP per day in streak
+              currentInsightXp += streakBonusXp;
+              console.log(`Daily insight streak: ${currentDailyStreak}, Bonus XP: ${streakBonusXp}`);
+            }
+          }
+          
           if (currentActiveGuidance.isQuestEnd && currentActiveQuestId && !get().completedQuests.includes(currentActiveQuestId)) {
             const questRewardDetails = questCompletionRewardsData.find(qr => qr.questId === currentActiveQuestId);
             if (questRewardDetails) {
+              currentInsightXp += questRewardDetails.xp; 
               set(state => ({
-                insightXp: state.insightXp + questRewardDetails.xp, 
                 completedQuests: [...state.completedQuests, currentActiveQuestId],
               }));
-              get()._persistCompletedQuests(); // Persist completed quests
               
               useSimulationStore.getState().awardQuestBadge(
                 questRewardDetails.badgeName,
@@ -126,74 +182,67 @@ export const useGuidanceStore = create<GuidanceState>()(
                 currentActiveQuestId,
                 questRewardDetails.badgeIcon
               );
-              console.log(`Quest ${currentActiveQuestId} completed! Awarded ${questRewardDetails.xp} XP and badge: ${questRewardDetails.badgeName}`);
             }
           }
+          set({ insightXp: currentInsightXp, dailyInsightStreak: currentDailyStreak, lastDailyInsightShownDate: lastShownDate });
+          get()._updateAcumenMetrics();
         }
         set({ activeGuidance: null, activeQuestId: null, activeQuestStepId: null });
+        get()._persistAllGuidanceData();
       },
 
       _loadPersistedData: () => {
         if (typeof window !== 'undefined') {
-          const storedShown = localStorage.getItem(LOCALSTORAGE_SHOWN_STEPS_KEY);
-          if (storedShown) {
-            try {
-              const parsed = JSON.parse(storedShown);
-              if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
-                set({ shownSteps: parsed });
-              }
-            } catch (e) { console.error("Failed to parse shown guidance steps", e); }
-          }
+          const loadItem = (key: string, defaultValue: any, validator?: (val: any) => boolean) => {
+            const stored = localStorage.getItem(key);
+            if (stored) {
+              try {
+                const parsed = JSON.parse(stored);
+                return validator ? (validator(parsed) ? parsed : defaultValue) : parsed;
+              } catch (e) { console.error(`Failed to parse ${key}`, e); }
+            }
+            return defaultValue;
+          };
 
-          const storedAwardedXp = localStorage.getItem(LOCALSTORAGE_AWARDED_XP_STEPS_KEY);
-          if (storedAwardedXp) {
-            try {
-              const parsed = JSON.parse(storedAwardedXp);
-              if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
-                set({ awardedXpForSteps: parsed });
-              }
-            } catch (e) { console.error("Failed to parse awarded XP steps", e); }
-          }
-          
-           const storedCompletedQuests = localStorage.getItem(LOCALSTORAGE_COMPLETED_QUESTS_KEY);
-          if (storedCompletedQuests) {
-            try {
-              const parsed = JSON.parse(storedCompletedQuests);
-              if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
-                set({ completedQuests: parsed });
-              }
-            } catch (e) { console.error("Failed to parse completed quests", e); }
-          }
+          set({
+            shownSteps: loadItem(LOCALSTORAGE_SHOWN_STEPS_KEY, [], (val) => Array.isArray(val) && val.every(item => typeof item === 'string')),
+            awardedXpForSteps: loadItem(LOCALSTORAGE_AWARDED_XP_STEPS_KEY, [], (val) => Array.isArray(val) && val.every(item => typeof item === 'string')),
+            completedQuests: loadItem(LOCALSTORAGE_COMPLETED_QUESTS_KEY, [], (val) => Array.isArray(val) && val.every(item => typeof item === 'string')),
+            insightXp: loadItem('forgesim-guidance-storage', { insightXp: 0 })?.insightXp || 0, // From main persist key
+            founderAcumenScore: loadItem(LOCALSTORAGE_FOUNDER_ACUMEN_SCORE_KEY, 0, (val) => typeof val === 'number'),
+            founderAcumenLevel: loadItem(LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY, "Novice", (val) => typeof val === 'string'),
+            lastDailyInsightShownDate: loadItem(LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY, null, (val) => typeof val === 'string' || val === null),
+            dailyInsightStreak: loadItem(LOCALSTORAGE_DAILY_INSIGHT_STREAK_KEY, 0, (val) => typeof val === 'number'),
+          });
+          get()._updateAcumenMetrics(); // Ensure acumen score/level are up-to-date after loading XP
         }
       },
-      _persistShownSteps: () => {
+      _persistAllGuidanceData: () => {
          if (typeof window !== 'undefined') {
-            localStorage.setItem(LOCALSTORAGE_SHOWN_STEPS_KEY, JSON.stringify(get().shownSteps));
+            const state = get();
+            localStorage.setItem(LOCALSTORAGE_SHOWN_STEPS_KEY, JSON.stringify(state.shownSteps));
+            localStorage.setItem(LOCALSTORAGE_AWARDED_XP_STEPS_KEY, JSON.stringify(state.awardedXpForSteps));
+            localStorage.setItem(LOCALSTORAGE_COMPLETED_QUESTS_KEY, JSON.stringify(state.completedQuests));
+            // insightXp is handled by the main persist middleware
+            localStorage.setItem(LOCALSTORAGE_FOUNDER_ACUMEN_SCORE_KEY, JSON.stringify(state.founderAcumenScore));
+            localStorage.setItem(LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY, JSON.stringify(state.founderAcumenLevel));
+            localStorage.setItem(LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY, JSON.stringify(state.lastDailyInsightShownDate));
+            localStorage.setItem(LOCALSTORAGE_DAILY_INSIGHT_STREAK_KEY, JSON.stringify(state.dailyInsightStreak));
          }
       },
-      _persistAwardedXpSteps: () => {
-        if (typeof window !== 'undefined') {
-           localStorage.setItem(LOCALSTORAGE_AWARDED_XP_STEPS_KEY, JSON.stringify(get().awardedXpForSteps));
-        }
-     },
-     _persistCompletedQuests: () => {
-      if (typeof window !== 'undefined') {
-         localStorage.setItem(LOCALSTORAGE_COMPLETED_QUESTS_KEY, JSON.stringify(get().completedQuests));
-      }
-   },
     }),
     {
-      name: 'forgesim-guidance-storage',
+      name: 'forgesim-guidance-storage', // Main key for persist middleware
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        shownSteps: state.shownSteps,
-        awardedXpForSteps: state.awardedXpForSteps,
-        completedQuests: state.completedQuests,
+        // Only insightXp needs to be part of the main persist object if others are handled manually
         insightXp: state.insightXp,
       }),
        onRehydrateStorage: () => (state) => {
+        // This is called AFTER the main state is rehydrated by persist middleware
+        // Now we can load the other manually managed items
         if (state) {
-          state._loadPersistedData();
+          state._loadPersistedData(); // Call AFTER insightXp is rehydrated
         }
       }
     }
@@ -202,6 +251,6 @@ export const useGuidanceStore = create<GuidanceState>()(
 
 // Initialize store listeners and load initial data when the module loads in the browser
 if (typeof window !== 'undefined') {
-  useGuidanceStore.getState()._loadPersistedData(); // Ensure this is called to load from localStorage
-  useGuidanceStore.getState().loadGuidanceSteps(); // Then load predefined steps
+  useGuidanceStore.getState()._loadPersistedData(); 
+  useGuidanceStore.getState().loadGuidanceSteps(); 
 }
