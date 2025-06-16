@@ -129,6 +129,24 @@ export default {
           '0%, 100%': { opacity: '0.2' },
           '50%': { opacity: '0.5' },
         },
+        'float-rotate-3d': {
+          '0%': {
+            transform: 'translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1)',
+            opacity: 'var(--start-opacity, 0.3)',
+          },
+          '50%': {
+            transform: 'translateZ(calc(var(--start-z, 0px) + 20px)) rotateX(calc(var(--start-rotateX, 0deg) + 20deg)) rotateY(calc(var(--start-rotateY, 0deg) + 30deg)) translateY(-20px) scale(1.05)',
+            opacity: 'calc(var(--start-opacity, 0.3) + 0.2)',
+          },
+          '100%': {
+            transform: 'translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1)',
+            opacity: 'var(--start-opacity, 0.3)',
+          },
+        },
+        'sparkle': {
+          '0%, 100%': { opacity: 'var(--start-opacity, 0.3)', transform: 'scale(0.8)' },
+          '50%': { opacity: 'calc(var(--start-opacity, 0.3) + 0.5)', transform: 'scale(1.2)', boxShadow: '0 0 10px 2px hsl(var(--accent)/0.8)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -139,11 +157,13 @@ export default {
         'fadeIn': 'fadeIn 1s ease-out forwards',
         'fadeInUp': 'fadeInUp 0.8s ease-out forwards',
         'background-pan': 'background-pan 15s ease infinite',
-        'ember-float': 'ember-float linear infinite', // Corrected this line
+        'ember-float': 'ember-float linear infinite', 
         'fog-drift': 'fog-drift 60s ease-in-out infinite alternate',
         'spin-slow': 'spin 20s linear infinite',
         'spin-slowest': 'spin 120s linear infinite',
         'ping-slow': 'ping-slow 5s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'float-rotate-3d': 'float-rotate-3d ease-in-out infinite', // Added
+        'sparkle': 'sparkle ease-in-out infinite', // Added
       },
       boxShadow: { // Enhanced shadows for dark theme
         'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',
@@ -152,6 +172,7 @@ export default {
         'primary-glow-md': '0 0 20px 3px hsl(var(--primary) / 0.7)',
         'card-deep': '0 10px 30px -5px hsl(var(--background) / 0.6), 0 8px 15px -8px hsl(var(--background) / 0.8)',
         'epic-depth': '0 15px 35px -10px hsl(var(--background) / 0.7), 0 10px 20px -12px hsl(var(--background) / 0.9)',
+        'inner-soft-gold': 'inset 0 2px 4px 0 hsl(var(--accent) / 0.1), inset 0 -1px 2px 0 hsl(var(--background) / 0.3)', // New
       },
       backgroundImage: { // For gradients
         'nexus-gradient-main': 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--secondary) / 0.3) 50%, hsl(var(--background)) 100%)',
@@ -163,6 +184,12 @@ export default {
       animationDelay: { // Added custom animation delay utilities
         '0.1s': '0.1s', '0.4s': '0.4s', '0.6s': '0.6s', '0.8s': '0.8s',
         '1.0s': '1.0s', '1.2s': '1.2s', '1.4s': '1.4s', '1.6s': '1.6s',
+      },
+      rotate: { // Added for 3D transforms if needed via Tailwind class
+        'y-10': 'rotateY(10deg)',
+        'y-15': 'rotateY(15deg)',
+        'x-3': 'rotateX(3deg)',
+        'x-5': 'rotateX(5deg)',
       }
     },
   },
@@ -170,6 +197,9 @@ export default {
     require('tailwindcss-animate'),
     function ({ addUtilities }: { addUtilities: any }) {
       const newUtilities = {
+        '.perspective-1000': { perspective: '1000px' }, // Utility for perspective
+        '.transform-style-preserve-3d': { 'transform-style': 'preserve-3d' }, // Utility for transform-style
+
         '.animation-delay-none': { animationDelay: '0s' },
         '.animation-delay-100': { animationDelay: '100ms' },
         '.animation-delay-200': { animationDelay: '200ms' },
@@ -191,3 +221,4 @@ export default {
     }
   ],
 } satisfies Config;
+    
