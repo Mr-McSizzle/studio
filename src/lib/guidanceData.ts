@@ -1,8 +1,8 @@
+
 // src/lib/guidanceData.ts
 import type { GuidanceStep } from '@/types/guidance';
 
 // Define your guidance steps here.
-// These were previously intended for Firestore.
 
 export const predefinedGuidanceSteps: GuidanceStep[] = [
   {
@@ -25,7 +25,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     id: "mentor-chat-intro",
     message: "This is EVE, your AI Hive Mind assistant. Ask her anything about your simulation or business strategy!",
     trigger: { type: "pageOpen", path: "/app/mentor", delayMs: 600 },
-    highlightSelector: ".flex.flex-col.h-\[calc\(100vh-20rem\)\]", // Example: Targets the main chat interface container
+    highlightSelector: ".flex.flex-col.h-\\\\[calc\\\\(100vh-20rem\\\\)\\\\]", // Correctly escaped selector
     targetElementAttachment: "top-center",
     once: true
   },
@@ -56,3 +56,4 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
   //   once: true
   // }
 ];
+
