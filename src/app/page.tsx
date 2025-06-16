@@ -4,34 +4,93 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ForgeSimLogo } from '@/components/icons/logo';
-import { Zap, Brain, ShieldCheck, TrendingUpIcon, PlayCircle, Gem, PackageOpen, ArrowRight, Sparkles as SparkleIcon } from 'lucide-react';
+import { Zap, Brain, ShieldCheck, TrendingUpIcon, PlayCircle, Gem, PackageOpen, ArrowRight, Sparkles as SparkleIcon, Cog, Aperture } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // Added useState and useEffect
 
 // Sub-component for the animated 3D background
 const InteractiveLuxuryBackground = () => {
-  const numShapes = 10; // Number of floating geometric shapes
-  const numParticles = 50; // Number of sparkling particles
+  const numShapes = 10;
+  const numParticles = 50;
+
+  const [shapeStyles, setShapeStyles] = useState<React.CSSProperties[]>([]);
+  const [particleStyles, setParticleStyles] = useState<React.CSSProperties[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This effect runs only on the client, after initial hydration
+    setIsClient(true);
+
+    const generatedShapeStyles = [...Array(numShapes)].map((_, i) => {
+      const size = Math.random() * 80 + 40;
+      const duration = Math.random() * 20 + 15;
+      const delay = Math.random() * 10;
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      const zVal = Math.random() * 400 - 200;
+      const rotateXVal = Math.random() * 360;
+      const rotateYVal = Math.random() * 360;
+      
+      // Deterministic shadow color based on index `i`
+      const shadowColor = i % 3 === 0 ? 'hsl(var(--accent)/0.5)' : i % 3 === 1 ? 'hsl(var(--primary)/0.4)' : 'hsl(var(--secondary)/0.4)';
+
+      return {
+        width: `${size}px`,
+        height: `${size}px`,
+        left: `${x}%`,
+        top: `${y}%`,
+        transform: `translateZ(${zVal}px) rotateX(${rotateXVal}deg) rotateY(${rotateYVal}deg)`,
+        animationDuration: `${duration}s`,
+        animationDelay: `-${delay}s`,
+        boxShadow: `0 0 ${size / 5}px ${shadowColor}`,
+      };
+    });
+    setShapeStyles(generatedShapeStyles);
+
+    const generatedParticleStyles = [...Array(numParticles)].map(() => {
+      const duration = Math.random() * 5 + 3;
+      const delay = Math.random() * 5;
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      const size = Math.random() * 2 + 1;
+      const opacity = Math.random() * 0.5 + 0.3;
+      return {
+        width: `${size}px`,
+        height: `${size}px`,
+        left: `${x}%`,
+        top: `${y}%`,
+        animationDuration: `${duration}s`,
+        animationDelay: `-${delay}s`,
+        opacity: opacity,
+        boxShadow: '0 0 6px 1px hsl(var(--accent)/0.7)',
+      };
+    });
+    setParticleStyles(generatedParticleStyles);
+  }, []); // Empty dependency array ensures this runs once on mount (client-side)
+
+  if (!isClient) {
+    // Render a static placeholder on the server and during the initial client render pass
+    // This avoids Math.random() causing mismatches.
+    return (
+      <div className="absolute inset-0 z-0 overflow-hidden perspective-1000">
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/10 to-secondary/5 opacity-80"></div>
+        {/* Optional: A very simple, non-random static element if needed during SSR */}
+        <Aperture className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 text-primary/5 animate-spin-slowest opacity-30" />
+      </div>
+    );
+  }
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden perspective-1000">
       {/* Base Gradient Layer */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/10 to-secondary/5 opacity-80"></div>
+       <Aperture className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 text-primary/5 animate-spin-slowest opacity-30" />
+
 
       {/* Floating Geometric Shapes */}
-      {[...Array(numShapes)].map((_, i) => {
-        const size = Math.random() * 80 + 40; // 40px to 120px
-        const duration = Math.random() * 20 + 15; // 15s to 35s
-        const delay = Math.random() * 10;
-        const x = Math.random() * 100;
-        const y = Math.random() * 100;
-        const z = Math.random() * 400 - 200; // -200px to 200px
-        const rotateX = Math.random() * 360;
-        const rotateY = Math.random() * 360;
+      {shapeStyles.map((style, i) => {
         const colorClass = i % 3 === 0 ? 'bg-accent/30' : i % 3 === 1 ? 'bg-primary/20' : 'bg-secondary/20';
         const shapeClass = i % 2 === 0 ? 'rounded-lg' : 'rounded-full';
-
-
         return (
           <div
             key={`shape-${i}`}
@@ -40,44 +99,19 @@ const InteractiveLuxuryBackground = () => {
               colorClass,
               shapeClass
             )}
-            style={{
-              width: `${size}px`,
-              height: `${size}px`,
-              left: `${x}%`,
-              top: `${y}%`,
-              transform: `translateZ(${z}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-              animationDuration: `${duration}s`,
-              animationDelay: `-${delay}s`,
-              boxShadow: `0 0 ${size / 5}px ${colorClass.replace('/30','/50').replace('/20','/40')}`
-            }}
+            style={style}
           />
         );
       })}
 
       {/* Sparkling Particles */}
-      {[...Array(numParticles)].map((_, i) => {
-        const duration = Math.random() * 5 + 3; // 3s to 8s
-        const delay = Math.random() * 5;
-        const x = Math.random() * 100;
-        const y = Math.random() * 100;
-        const size = Math.random() * 2 + 1; // 1px to 3px
-        return (
-          <div
-            key={`particle-${i}`}
-            className="absolute rounded-full bg-accent animate-sparkle"
-            style={{
-              width: `${size}px`,
-              height: `${size}px`,
-              left: `${x}%`,
-              top: `${y}%`,
-              animationDuration: `${duration}s`,
-              animationDelay: `-${delay}s`,
-              opacity: Math.random() * 0.5 + 0.3, // 0.3 to 0.8
-              boxShadow: '0 0 6px 1px hsl(var(--accent)/0.7)'
-            }}
-          />
-        );
-      })}
+      {particleStyles.map((style, i) => (
+        <div
+          key={`particle-${i}`}
+          className="absolute rounded-full bg-accent animate-sparkle"
+          style={style}
+        />
+      ))}
     </div>
   );
 };
@@ -108,6 +142,7 @@ const FeatureCard3D = ({ icon, title, description, className, animationDelay = '
         <h3 className="text-2xl font-headline text-transparent bg-clip-text bg-gradient-to-r from-accent via-yellow-400 to-amber-300 mb-2 text-glow-accent-subtle">{title}</h3>
         <p className="text-sm text-muted-foreground/90 leading-relaxed">{description}</p>
       </div>
+       <Cog className="absolute -bottom-2 -right-2 h-10 w-10 text-primary/10 opacity-50 group-hover:opacity-100 group-hover:text-accent/20 transition-all duration-300 animate-spin-slow group-hover:animate-spin" style={{ animationDuration: '10s'}}/>
     </div>
   );
 };
@@ -123,14 +158,14 @@ export default function LuxuryPlayfulHomePage() {
         <header className="text-center mb-16 md:mb-24 animate-fadeInUp animation-delay-[0.1s] transform-style-preserve-3d">
           <div className="relative inline-block mb-8 transform hover:scale-110 transition-transform duration-500 hover:rotate-y-15 hover:rotate-x-3">
             <ForgeSimLogo className="h-28 w-28 md:h-36 md:w-36 text-primary filter drop-shadow-[0_0_20px_hsl(var(--primary)/0.8)] animate-subtle-pulse animation-duration-[3s]" />
-            <div className="absolute inset-0 rounded-full border-2 border-accent/40 animate-ping-slow opacity-60"></div>
+            <div className="absolute inset-0 rounded-full border-2 border-accent/40 animate-ping-slow opacity-60 animation-duration-[3s]"></div>
           </div>
           
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-accent to-yellow-500 mb-4 tracking-tight filter drop-shadow-[0_3px_15px_hsl(var(--accent)/0.6)] transform hover:scale-105 transition-transform duration-300">
-            ForgeSim
+            FORGESIM
           </h1>
           <h2 className="text-xl sm:text-2xl font-headline text-primary mb-10 tracking-wider text-glow-primary filter drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]">
-            Elevate Your Strategy. Master Your Market.
+            THE ANVIL OF AMBITION
           </h2>
           <p className="text-md sm:text-lg text-muted-foreground/80 max-w-2xl mx-auto leading-relaxed">
             Step into a sophisticated digital realm where your entrepreneurial vision takes flight. ForgeSim offers a dynamic, AI-powered environment to test, refine, and perfect your business strategies with unparalleled insight.
@@ -146,7 +181,7 @@ export default function LuxuryPlayfulHomePage() {
             >
               <Link href="/app">
                 <PlayCircle className="mr-3 h-6 w-6 sm:h-7 sm:w-7 group-hover:animate-subtle-pulse" />
-                LAUNCH DIGITAL TWIN
+                ENTER THE SIMULACRUM
               </Link>
             </Button>
              <p className="text-xs text-muted-foreground/70 mt-6">
@@ -177,7 +212,7 @@ export default function LuxuryPlayfulHomePage() {
           </div>
           
           <section id="experience-overview" className="py-12 animate-fadeInUp animation-delay-[1.2s]">
-            <h3 className="text-center text-4xl font-headline text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-400 to-rose-500 mb-12 text-glow-primary">The ForgeSim Experience</h3>
+            <h3 className="text-center text-4xl font-headline text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-400 to-rose-500 mb-12 text-glow-primary">Core Systems Overview</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10">
               <ExperienceItem icon={<ShieldCheck className="text-accent h-7 w-7"/>} title="Strategic Validation" description="Test bold ideas and refine business models in a risk-free innovation sandbox." />
               <ExperienceItem icon={<TrendingUpIcon className="text-accent h-7 w-7"/>} title="Predictive Foresight" description="Leverage AI analytics to anticipate market shifts and uncover hidden growth vectors." />
@@ -194,7 +229,7 @@ export default function LuxuryPlayfulHomePage() {
               className="w-full max-w-xs sm:max-w-sm border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground text-md sm:text-lg py-5 sm:py-6 rounded-lg shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 focus:ring-4 focus:ring-accent/70 group"
             >
               <Link href="/login">
-                <ArrowRight className="mr-2 h-5 w-5"/> Access Your Simulation
+                <ArrowRight className="mr-2 h-5 w-5"/> Access Your Terminal
               </Link>
             </Button>
           </section>
@@ -226,4 +261,6 @@ function ExperienceItem({ icon, title, description }: ExperienceItemProps) {
     </div>
   );
 }
+    
+
     
