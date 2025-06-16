@@ -2,9 +2,10 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image'; // Added import for next/image
 import { Button } from '@/components/ui/button';
 import { ForgeSimLogo } from '@/components/icons/logo';
-import { ArrowRight, PlayCircle, Brain, PackageOpen, ShieldCheck, TrendingUpIcon, Users, Zap, Aperture, Gem, Cog } from 'lucide-react'; // Added Aperture, Gem, Cog
+import { PlayCircle, Brain, PackageOpen, TrendingUpIcon, Users, Zap, Aperture, Gem } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect } from 'react';
 
@@ -14,17 +15,16 @@ const InteractiveLuxuryBackground = () => {
   const [particleStyles, setParticleStyles] = useState<React.CSSProperties[]>([]);
 
   useEffect(() => {
-    setIsClient(true);
-
+    // Generate styles only on the client-side
     const generateShapeStyles = () =>
       Array.from({ length: 10 }).map(() => {
-        const size = Math.random() * 80 + 40; // 40px to 120px
-        const duration = Math.random() * 10 + 20; // 20s to 30s
-        const delay = Math.random() * -5; // -5s to 0s
+        const size = Math.random() * 80 + 40; 
+        const duration = Math.random() * 10 + 20; 
+        const delay = Math.random() * -5; 
         const initialRotateX = Math.random() * 360;
         const initialRotateY = Math.random() * 360;
-        const initialTranslateZ = Math.random() * 200 - 100; // -100px to 100px
-        const opacity = Math.random() * 0.2 + 0.1; // 0.1 to 0.3
+        const initialTranslateZ = Math.random() * 200 - 100; 
+        const opacity = Math.random() * 0.2 + 0.1; 
 
         return {
           width: `${size}px`,
@@ -39,16 +39,16 @@ const InteractiveLuxuryBackground = () => {
           '--start-rotateX': `${initialRotateX}deg`,
           '--start-rotateY': `${initialRotateY}deg`,
           '--start-opacity': opacity,
-           boxShadow: `0 0 ${size / 5}px hsla(var(--${['primary', 'accent', 'secondary'][Math.floor(Math.random()*3)]}), 0.5)`, // Dynamic shadow based on color
+           boxShadow: `0 0 ${size / 5}px hsla(var(--${['primary', 'accent', 'secondary'][Math.floor(Math.random()*3)]}), 0.5)`,
         } as React.CSSProperties;
       });
 
     const generateParticleStyles = () =>
       Array.from({ length: 40 }).map(() => {
-        const size = Math.random() * 2 + 1; // 1px to 3px
-        const duration = Math.random() * 5 + 3; // 3s to 8s
+        const size = Math.random() * 2 + 1; 
+        const duration = Math.random() * 5 + 3; 
         const delay = Math.random() * -5;
-        const initialOpacity = Math.random() * 0.5 + 0.3; // 0.3 to 0.8
+        const initialOpacity = Math.random() * 0.5 + 0.3; 
 
         return {
           width: `${size}px`,
@@ -62,9 +62,10 @@ const InteractiveLuxuryBackground = () => {
           boxShadow: `0 0 6px 1px hsl(var(--accent)/0.7)`,
         } as React.CSSProperties;
       });
-
-      setShapeStyles(generateShapeStyles());
-      setParticleStyles(generateParticleStyles());
+    
+    setShapeStyles(generateShapeStyles());
+    setParticleStyles(generateParticleStyles());
+    setIsClient(true); // Set to true after styles are generated and ready for client-side render
   }, []);
 
 
@@ -79,10 +80,7 @@ const InteractiveLuxuryBackground = () => {
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-gradient-to-br from-background via-primary/5 to-secondary/10 perspective-1000">
-      {/* Static very subtle background element */}
       <Aperture className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] text-primary/5 opacity-20 animate-spin-slowest pointer-events-none" />
-
-      {/* Floating 3D Shapes */}
       {shapeStyles.map((style, i) => {
         const colorClass = ['bg-accent/30', 'bg-primary/20', 'bg-secondary/20'][i % 3];
         const shapeClass = i % 2 === 0 ? 'rounded-lg' : 'rounded-full';
@@ -98,8 +96,6 @@ const InteractiveLuxuryBackground = () => {
           />
         );
       })}
-
-      {/* Sparkling Gold Particles */}
       {particleStyles.map((style, i) => (
         <div
           key={`particle-${i}`}
@@ -115,22 +111,30 @@ const InteractiveLuxuryBackground = () => {
 interface FeatureCard3DProps {
   title: string;
   description: string;
-  icon: React.ReactNode;
+  imageSrc: string; // Changed from icon to imageSrc
+  imageAlt: string;   // Added imageAlt
+  imageAiHint: string; // Added imageAiHint
   animationDelay: string;
 }
 
-const FeatureCard3D: React.FC<FeatureCard3DProps> = ({ title, description, icon, animationDelay }) => {
+const FeatureCard3D: React.FC<FeatureCard3DProps> = ({ title, description, imageSrc, imageAlt, imageAiHint, animationDelay }) => {
   return (
     <div className={cn(
-      "group relative bg-card/50 backdrop-blur-md border border-primary/20 rounded-xl p-6 md:p-8 shadow-card-deep transform-style-preserve-3d transition-all duration-300 hover:shadow-primary-glow-md animate-fadeInUp",
+      "group relative bg-card/60 backdrop-blur-md border border-primary/20 rounded-xl p-6 md:p-8 shadow-card-deep transform-style-preserve-3d transition-all duration-300 hover:shadow-primary-glow-md animate-fadeInUp",
       animationDelay
     )}>
-      <div className="relative z-10 transition-transform duration-300 group-hover:rotate-y-10 group-hover:rotate-x-5 group-hover:scale-105">
-        <div className="absolute -top-5 -left-5 w-16 h-16 bg-gradient-to-br from-accent to-yellow-400 rounded-full flex items-center justify-center text-accent-foreground shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-          {React.cloneElement(icon as React.ReactElement, { className: "w-8 h-8" })}
+      <div className="relative z-10 transition-transform duration-300 group-hover:rotate-y-3 group-hover:rotate-x-1 group-hover:scale-[1.02]"> {/* Adjusted hover transform for subtlety */}
+        <div className="relative w-full aspect-video mb-6 rounded-lg overflow-hidden shadow-lg">
+          <Image 
+            src={imageSrc} 
+            alt={imageAlt} 
+            layout="fill" 
+            objectFit="cover" 
+            data-ai-hint={imageAiHint}
+            quality={75}
+          />
         </div>
-        <Cog className="absolute -top-2 -right-2 w-8 h-8 text-secondary/30 animate-spin-slow opacity-50 group-hover:opacity-75 transition-opacity" />
-        <h3 className="mt-12 text-2xl md:text-3xl font-headline font-bold mb-3">
+        <h3 className="text-2xl md:text-3xl font-headline font-bold mb-3">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-yellow-300 to-yellow-500">{title}</span>
         </h3>
         <p className="text-muted-foreground/80 text-sm leading-relaxed">{description}</p>
@@ -161,7 +165,6 @@ export default function LuxuryPlayfulHomePage() {
       <InteractiveLuxuryBackground />
 
       <main className="relative z-10 flex-grow">
-        {/* Hero Section */}
         <section className="min-h-screen flex flex-col items-center justify-center text-center px-4 py-20 overflow-hidden">
           <div className="animate-fadeInUp animation-delay-[0.1s]">
             <ForgeSimLogo className="h-28 w-28 md:h-36 md:w-36 text-primary mx-auto mb-6 filter drop-shadow-[0_5px_25px_hsl(var(--primary)/0.5)] animate-subtle-pulse" />
@@ -185,7 +188,6 @@ export default function LuxuryPlayfulHomePage() {
           </div>
         </section>
 
-        {/* Features Showcase with 3D Cards */}
         <section className="py-16 md:py-24 bg-background/30 backdrop-blur-sm">
           <div className="container mx-auto px-4">
             <h2 className="text-4xl md:text-5xl font-headline font-bold text-center text-primary mb-12 md:mb-20 animate-fadeInUp animation-delay-[0.2s] text-glow-primary">
@@ -195,36 +197,41 @@ export default function LuxuryPlayfulHomePage() {
               <FeatureCard3D
                 title="Dynamic Simulation Core"
                 description="Experience a living digital twin of your business. Test strategies, navigate market shifts, and witness the true impact of your decisions in real-time."
-                icon={<PackageOpen className="w-8 h-8" />}
+                imageSrc="/new-assets/homepage-hero.png"
+                imageAlt="Symbolic representation of ForgeSim's dynamic core"
+                imageAiHint="symbolic art dragon hands"
                 animationDelay="animation-delay-[0.4s]"
               />
-              <div className="md:mt-10"> {/* Staggering for visual interest */}
+              <div className="md:mt-10"> 
                 <FeatureCard3D
                   title="AI Hive Mind Guidance"
                   description="Leverage EVE, your central AI strategist, and her cohort of specialized AI agents. Receive personalized advice and actionable insights."
-                  icon={<Brain className="w-8 h-8" />}
+                  imageSrc="/new-assets/homepage-feature1.png"
+                  imageAlt="Detail of AI Hive Mind concept art"
+                  imageAiHint="symbolic detail dragon"
                   animationDelay="animation-delay-[0.6s]"
                 />
               </div>
               <FeatureCard3D
                 title="Predictive & Strategic Analytics"
                 description="Uncover hidden opportunities and mitigate risks with AI-powered predictive analytics. Forge resilient strategies for sustainable growth."
-                icon={<TrendingUpIcon className="w-8 h-8" />}
+                imageSrc="/new-assets/homepage-feature2.png"
+                imageAlt="Abstract representation of strategic analytics"
+                imageAiHint="symbolic detail ornament"
                 animationDelay="animation-delay-[0.8s]"
               />
             </div>
           </div>
         </section>
 
-        {/* The ForgeSim Experience */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-4xl md:text-5xl font-headline font-bold text-center text-accent mb-12 md:mb-16 animate-fadeInUp animation-delay-[0.2s] text-glow-accent">
               The ForgeSim Experience
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 max-w-4xl mx-auto">
-              <ExperienceItem title="Risk-Free Experimentation" icon={<ShieldCheck className="w-7 h-7"/>} animationDelay="animation-delay-[0.4s]" />
-              <ExperienceItem title="Accelerated Learning" icon={<Zap className="w-7 h-7"/>} animationDelay="animation-delay-[0.5s]" />
+              <ExperienceItem title="Risk-Free Experimentation" icon={<Zap className="w-7 h-7"/>} animationDelay="animation-delay-[0.4s]" /> {/* Replaced ShieldCheck with Zap for consistency */}
+              <ExperienceItem title="Accelerated Learning" icon={<Brain className="w-7 h-7"/>} animationDelay="animation-delay-[0.5s]" />  {/* Replaced Zap with Brain */}
               <ExperienceItem title="Data-Driven Decisions" icon={<Gem className="w-7 h-7"/>}  animationDelay="animation-delay-[0.6s]" />
               <ExperienceItem title="Strategic Mastery" icon={<Users className="w-7 h-7"/>}  animationDelay="animation-delay-[0.7s]" />
             </div>
@@ -244,4 +251,3 @@ export default function LuxuryPlayfulHomePage() {
     </div>
   );
 }
-
