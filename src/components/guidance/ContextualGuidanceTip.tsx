@@ -3,16 +3,17 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Lightbulb, CheckCircle, ArrowLeftCircle, ArrowRightCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Lightbulb, CheckCircle, ArrowLeftCircle, ArrowRightCircle, Navigation, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { AttachmentPoint, GuidanceStep } from '@/types/guidance';
+import type { GuidanceStep } from '@/types/guidance';
 import { useGuidanceStore } from '@/store/guidanceStore';
 
 interface ContextualGuidanceTipProps {
   message: string;
   targetElement?: HTMLElement | null;
-  attachment?: AttachmentPoint;
+  attachment?: GuidanceStep['targetElementAttachment'];
   onClose: () => void;
   isVisible: boolean;
   currentStep: GuidanceStep | null;
@@ -29,6 +30,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
   const tipRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0, opacity: 0 });
   const [xpAnimationAmount, setXpAnimationAmount] = useState<number | null>(null);
+  const router = useRouter();
 
   const { awardedXpForSteps, navigateToQuestStep } = useGuidanceStore(state => ({
     awardedXpForSteps: state.awardedXpForSteps,
@@ -36,7 +38,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
   }));
 
   useEffect(() => {
-    if (!isVisible || !tipRef.current) {
+    if (!isVisible || !tipRef.current || !currentStep) {
       setPosition(prev => ({ ...prev, opacity: 0 }));
       return;
     }
@@ -52,69 +54,19 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
       const tipRect = tipRef.current.getBoundingClientRect();
 
       switch (attachment) {
-        case 'top-start':
-          newTop = targetRect.top - tipRect.height - PADDING;
-          newLeft = targetRect.left;
-          transformOrigin = 'bottom left';
-          break;
-        case 'top-center':
-          newTop = targetRect.top - tipRect.height - PADDING;
-          newLeft = targetRect.left + targetRect.width / 2 - tipRect.width / 2;
-          transformOrigin = 'bottom center';
-          break;
-        case 'top-end':
-          newTop = targetRect.top - tipRect.height - PADDING;
-          newLeft = targetRect.right - tipRect.width;
-          transformOrigin = 'bottom right';
-          break;
-        case 'right-start':
-          newTop = targetRect.top;
-          newLeft = targetRect.right + PADDING;
-          transformOrigin = 'top left';
-          break;
-        case 'right-center':
-          newTop = targetRect.top + targetRect.height / 2 - tipRect.height / 2;
-          newLeft = targetRect.right + PADDING;
-          transformOrigin = 'center left';
-          break;
-        case 'right-end':
-          newTop = targetRect.bottom - tipRect.height;
-          newLeft = targetRect.right + PADDING;
-          transformOrigin = 'bottom left';
-          break;
-        case 'bottom-start':
-          newTop = targetRect.bottom + PADDING;
-          newLeft = targetRect.left;
-          transformOrigin = 'top left';
-          break;
-        case 'bottom-center':
-          newTop = targetRect.bottom + PADDING;
-          newLeft = targetRect.left + targetRect.width / 2 - tipRect.width / 2;
-          transformOrigin = 'top center';
-          break;
-        case 'bottom-end':
-          newTop = targetRect.bottom + PADDING;
-          newLeft = targetRect.right - tipRect.width;
-          transformOrigin = 'top right';
-          break;
-        case 'left-start':
-          newTop = targetRect.top;
-          newLeft = targetRect.left - tipRect.width - PADDING;
-          transformOrigin = 'top right';
-          break;
-        case 'left-center':
-          newTop = targetRect.top + targetRect.height / 2 - tipRect.height / 2;
-          newLeft = targetRect.left - tipRect.width - PADDING;
-          transformOrigin = 'center right';
-          break;
-        case 'left-end':
-          newTop = targetRect.bottom - tipRect.height;
-          newLeft = targetRect.left - tipRect.width - PADDING;
-          transformOrigin = 'bottom right';
-          break;
-        case 'center':
-        default:
-          break;
+        case 'top-start': newTop = targetRect.top - tipRect.height - PADDING; newLeft = targetRect.left; transformOrigin = 'bottom left'; break;
+        case 'top-center': newTop = targetRect.top - tipRect.height - PADDING; newLeft = targetRect.left + targetRect.width / 2 - tipRect.width / 2; transformOrigin = 'bottom center'; break;
+        case 'top-end': newTop = targetRect.top - tipRect.height - PADDING; newLeft = targetRect.right - tipRect.width; transformOrigin = 'bottom right'; break;
+        case 'right-start': newTop = targetRect.top; newLeft = targetRect.right + PADDING; transformOrigin = 'top left'; break;
+        case 'right-center': newTop = targetRect.top + targetRect.height / 2 - tipRect.height / 2; newLeft = targetRect.right + PADDING; transformOrigin = 'center left'; break;
+        case 'right-end': newTop = targetRect.bottom - tipRect.height; newLeft = targetRect.right + PADDING; transformOrigin = 'bottom left'; break;
+        case 'bottom-start': newTop = targetRect.bottom + PADDING; newLeft = targetRect.left; transformOrigin = 'top left'; break;
+        case 'bottom-center': newTop = targetRect.bottom + PADDING; newLeft = targetRect.left + targetRect.width / 2 - tipRect.width / 2; transformOrigin = 'top center'; break;
+        case 'bottom-end': newTop = targetRect.bottom + PADDING; newLeft = targetRect.right - tipRect.width; transformOrigin = 'top right'; break;
+        case 'left-start': newTop = targetRect.top; newLeft = targetRect.left - tipRect.width - PADDING; transformOrigin = 'top right'; break;
+        case 'left-center': newTop = targetRect.top + targetRect.height / 2 - tipRect.height / 2; newLeft = targetRect.left - tipRect.width - PADDING; transformOrigin = 'center right'; break;
+        case 'left-end': newTop = targetRect.bottom - tipRect.height; newLeft = targetRect.left - tipRect.width - PADDING; transformOrigin = 'bottom right'; break;
+        case 'center': default: break;
       }
     }
 
@@ -125,7 +77,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
     if (tipRef.current) {
       tipRef.current.style.transformOrigin = transformOrigin;
     }
-  }, [targetElement, attachment, isVisible, message]);
+  }, [targetElement, attachment, isVisible, message, currentStep]); // Added currentStep dependency
 
   useEffect(() => {
     if (xpAnimationAmount !== null) {
@@ -137,12 +89,27 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
   }, [xpAnimationAmount]);
 
   const handlePrimaryActionClick = () => {
-    if (currentStep && currentStep.xpValue && currentStep.xpValue > 0 && !awardedXpForSteps.includes(currentStep.id)) {
-      setXpAnimationAmount(currentStep.xpValue);
+    if (currentStep) {
+      let xpToAnimate = 0;
+      if (currentStep.isDiscovery && currentStep.discoveryXpValue && !awardedXpForSteps.includes(currentStep.id)) {
+        xpToAnimate = currentStep.discoveryXpValue;
+      } else if (currentStep.xpValue && !awardedXpForSteps.includes(currentStep.id)) {
+        xpToAnimate = currentStep.xpValue;
+      }
+      if (xpToAnimate > 0) {
+        setXpAnimationAmount(xpToAnimate);
+      }
     }
     onClose();
   };
 
+  const handleSuggestedActionClick = () => {
+    if (currentStep?.suggestedAction?.path) {
+      router.push(currentStep.suggestedAction.path);
+    }
+    onClose(); // Dismiss tip after taking action
+  };
+  
   const handleNextStep = () => {
     if (currentStep?.nextStepId) {
       navigateToQuestStep(currentStep.nextStepId);
@@ -159,6 +126,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
 
   const isQuestStep = !!currentStep.questId;
   const primaryButtonText = currentStep.isQuestEnd ? "Finish Quest" : "Got it!";
+  const tipMessage = currentStep.isDiscovery ? `Sage's Wisdom: ${message}` : message;
 
   return (
     <div
@@ -180,7 +148,6 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
       {xpAnimationAmount !== null && (
         <div
           className="absolute -top-3 -right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-ping-once"
-          style={{ animation: 'ping-once 1.5s cubic-bezier(0, 0, 0.2, 1) forwards' }}
         >
           +{xpAnimationAmount} XP!
         </div>
@@ -196,10 +163,21 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
               )}
             </p>
           )}
-          <p className="text-sm leading-relaxed">{message}</p>
+          <p className="text-sm leading-relaxed">{tipMessage}</p>
         </div>
       </div>
       <div className="mt-4 flex flex-col space-y-2">
+        {currentStep.suggestedAction && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full border-primary text-primary hover:bg-primary/10 hover:text-primary"
+            onClick={handleSuggestedActionClick}
+          >
+            {currentStep.suggestedAction.path.startsWith('http') ? <ExternalLink className="mr-2 h-4 w-4"/> : <Navigation className="mr-2 h-4 w-4"/>}
+            {currentStep.suggestedAction.label}
+          </Button>
+        )}
         {isQuestStep && (currentStep.previousStepId || currentStep.nextStepId) && (
           <div className="flex justify-between items-center gap-2">
             {currentStep.previousStepId ? (
@@ -211,7 +189,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
               >
                 <ArrowLeftCircle className="mr-2 h-4 w-4" /> Previous
               </Button>
-            ) : <div className="flex-1"></div> /* Placeholder for spacing */}
+            ) : <div className="flex-1"></div>}
             {currentStep.nextStepId ? (
               <Button
                 variant="outline"
@@ -221,7 +199,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
               >
                 Next <ArrowRightCircle className="ml-2 h-4 w-4" />
               </Button>
-            ) : <div className="flex-1"></div> /* Placeholder for spacing */}
+            ) : <div className="flex-1"></div>}
           </div>
         )}
         <Button
@@ -237,18 +215,9 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
       </div>
        <style jsx global>{`
         @keyframes ping-once {
-          0% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.25);
-            opacity: 0.7;
-          }
-          100% {
-            transform: scale(1.5);
-            opacity: 0;
-          }
+          0% { transform: scale(1) translateY(0); opacity: 1; }
+          50% { transform: scale(1.3) translateY(-10px); opacity: 0.8; }
+          100% { transform: scale(1.6) translateY(-20px); opacity: 0; }
         }
         .animate-ping-once {
           animation: ping-once 1.5s cubic-bezier(0, 0, 0.2, 1) forwards;

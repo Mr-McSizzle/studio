@@ -26,6 +26,12 @@ export interface PageOpenTrigger extends BaseGuidanceTrigger {
 
 export type GuidanceTrigger = PageOpenTrigger; // Union of all trigger types
 
+export interface SuggestedAction {
+  label: string; // Text for the button
+  path: string;  // Path to navigate to
+  // Future: actionType: 'navigate' | 'dispatchStoreAction' | 'openModal', target?: string (e.g. modalId or store action type)
+}
+
 export interface GuidanceStep {
   id: string; // Unique identifier for this step
   message: string; // The guidance message to display
@@ -44,6 +50,13 @@ export interface GuidanceStep {
   previousStepId?: string; // ID of the previous step in the quest sequence
   questTotalSteps?: number; // Total number of steps in this quest (for display)
   currentStepNumber?: number; // The number of this step within its quest (for display)
+
+  // Discovery Mechanic fields
+  isDiscovery?: boolean; // If true, this is a "hidden wisdom" tip
+  discoveryXpValue?: number; // Bonus XP for discovering this tip
+
+  // Actionable Tip fields
+  suggestedAction?: SuggestedAction; // Optional action button in the tip
 }
 
 export interface QuestCompletionReward {
@@ -65,3 +78,4 @@ export type AttachmentPoint =
 export interface FirestoreGuidanceDocument {
   steps: GuidanceStep[];
 }
+

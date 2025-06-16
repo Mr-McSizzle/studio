@@ -25,7 +25,7 @@ interface GuidanceState {
   markStepAsShown: (stepId: string) => void;
   setActiveGuidance: (step: GuidanceStep | null) => void;
   clearActiveGuidance: () => void;
-  navigateToQuestStep: (stepId: string) => void; // New action for quest navigation
+  navigateToQuestStep: (stepId: string) => void; 
   _loadPersistedData: () => void;
   _persistShownSteps: () => void;
   _persistAwardedXpSteps: () => void;
@@ -60,17 +60,15 @@ export const useGuidanceStore = create<GuidanceState>()(
 
       setActiveGuidance: (step: GuidanceStep | null) => {
         if (step && step.questId) {
-          // If this step is part of a quest, update quest-related state
           set({
             activeGuidance: step,
             activeQuestId: step.questId,
             activeQuestStepId: step.id,
           });
         } else {
-          // If not part of a quest, or clearing guidance
           set({
             activeGuidance: step,
-            activeQuestId: null, // Clear quest context if the step isn't part of one
+            activeQuestId: null, 
             activeQuestStepId: null,
           });
         }
@@ -83,7 +81,6 @@ export const useGuidanceStore = create<GuidanceState>()(
           setActiveGuidance(nextStep);
         } else {
           console.warn(`[GuidanceStore] Could not find quest step with ID: ${stepId}`);
-          // Optionally clear active quest if step not found, or stay on current
         }
       },
 
@@ -92,18 +89,22 @@ export const useGuidanceStore = create<GuidanceState>()(
         const currentActiveQuestId = get().activeQuestId;
 
         if (currentActiveGuidance) {
-          // Award step XP if applicable for the individual step
-          if (
-            currentActiveGuidance.xpValue &&
-            currentActiveGuidance.xpValue > 0 &&
-            !get().awardedXpForSteps.includes(currentActiveGuidance.id)
-          ) {
+          let awardedXpThisInteraction = 0;
+          // Award step XP (either normal or discovery)
+          if (currentActiveGuidance.isDiscovery && currentActiveGuidance.discoveryXpValue && currentActiveGuidance.discoveryXpValue > 0 && !get().awardedXpForSteps.includes(currentActiveGuidance.id)) {
+            awardedXpThisInteraction = currentActiveGuidance.discoveryXpValue;
+          } else if (currentActiveGuidance.xpValue && currentActiveGuidance.xpValue > 0 && !get().awardedXpForSteps.includes(currentActiveGuidance.id)) {
+            awardedXpThisInteraction = currentActiveGuidance.xpValue;
+          }
+
+          if (awardedXpThisInteraction > 0) {
             set(state => ({
-              insightXp: state.insightXp + (currentActiveGuidance.xpValue || 0),
+              insightXp: state.insightXp + awardedXpThisInteraction,
               awardedXpForSteps: [...state.awardedXpForSteps, currentActiveGuidance.id],
             }));
             get()._persistAwardedXpSteps();
           }
+          
           get().markStepAsShown(currentActiveGuidance.id);
 
           // Check for Quest Completion
@@ -111,12 +112,11 @@ export const useGuidanceStore = create<GuidanceState>()(
             const questRewardDetails = questCompletionRewardsData.find(qr => qr.questId === currentActiveQuestId);
             if (questRewardDetails) {
               set(state => ({
-                insightXp: state.insightXp + questRewardDetails.xp, // Add quest XP
+                insightXp: state.insightXp + questRewardDetails.xp, 
                 completedQuests: [...state.completedQuests, currentActiveQuestId],
               }));
               get()._persistCompletedQuests();
               
-              // Award badge via simulationStore
               useSimulationStore.getState().awardQuestBadge(
                 questRewardDetails.badgeName,
                 questRewardDetails.badgeDescription,
@@ -127,7 +127,6 @@ export const useGuidanceStore = create<GuidanceState>()(
             }
           }
         }
-        // Clear active guidance and quest context
         set({ activeGuidance: null, activeQuestId: null, activeQuestStepId: null });
       },
 
