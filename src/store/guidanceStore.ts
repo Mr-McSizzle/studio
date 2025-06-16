@@ -160,11 +160,10 @@ export const useGuidanceStore = create<GuidanceState>()(
               } else {
                 currentDailyStreak = 1; // Reset streak if not yesterday or first time
               }
-              lastShownDate = today;
-              
               const streakBonusXp = currentDailyStreak * 1; // Example: 1 XP per day in streak
               currentInsightXp += streakBonusXp;
               console.log(`Daily insight streak: ${currentDailyStreak}, Bonus XP: ${streakBonusXp}`);
+              lastShownDate = today;
             }
           }
           

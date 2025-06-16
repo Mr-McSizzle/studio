@@ -105,7 +105,6 @@ export const DynamicGuidanceSystem: React.FC = () => {
           // For now, one daily insight shown (any) blocks others for the day if their trigger matches.
           // To be more precise, we'd need to track *which* daily insight was shown, or if we only allow ONE per day total.
           // Assuming for now: if *any* daily insight was shown via lastDailyInsightShownDate, don't trigger another *different* one.
-          // A better approach would be to store the ID of the daily insight shown, but this is simpler for now.
           // If we want to allow *different* daily insights on the same day if their triggers match, this check needs refinement.
           // For now, if a daily was already shown, this step (if it's daily) won't trigger.
           return false;
