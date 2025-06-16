@@ -2,250 +2,165 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image'; // Added import for next/image
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ForgeSimLogo } from '@/components/icons/logo';
-import { PlayCircle, Brain, PackageOpen, TrendingUpIcon, Users, Zap, Aperture, Gem } from 'lucide-react'; 
+import { ArrowRight, PlayCircle, Zap, Brain, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import React, { useState, useEffect } from 'react';
 
-const InteractiveLuxuryBackground = () => {
-  const [isClient, setIsClient] = useState(false);
-  const [shapeStyles, setShapeStyles] = useState<React.CSSProperties[]>([]);
-  const [particleStyles, setParticleStyles] = useState<React.CSSProperties[]>([]);
-
-  useEffect(() => {
-    // Generate styles only on the client-side
-    const generateShapeStyles = () =>
-      Array.from({ length: 10 }).map(() => {
-        const size = Math.random() * 80 + 40; 
-        const duration = Math.random() * 10 + 20; 
-        const delay = Math.random() * -5; 
-        const initialRotateX = Math.random() * 360;
-        const initialRotateY = Math.random() * 360;
-        const initialTranslateZ = Math.random() * 200 - 100; 
-        const opacity = Math.random() * 0.2 + 0.1; 
-
-        return {
-          width: `${size}px`,
-          height: `${size}px`,
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          transform: `translateZ(${initialTranslateZ}px) rotateX(${initialRotateX}deg) rotateY(${initialRotateY}deg)`,
-          animationDuration: `${duration}s`,
-          animationDelay: `${delay}s`,
-          opacity: opacity,
-          '--start-z': `${initialTranslateZ}px`,
-          '--start-rotateX': `${initialRotateX}deg`,
-          '--start-rotateY': `${initialRotateY}deg`,
-          '--start-opacity': opacity,
-           boxShadow: `0 0 ${size / 5}px hsla(var(--${['primary', 'accent', 'secondary'][Math.floor(Math.random()*3)]}), 0.5)`,
-        } as React.CSSProperties;
-      });
-
-    const generateParticleStyles = () =>
-      Array.from({ length: 40 }).map(() => {
-        const size = Math.random() * 2 + 1; 
-        const duration = Math.random() * 5 + 3; 
-        const delay = Math.random() * -5;
-        const initialOpacity = Math.random() * 0.5 + 0.3; 
-
-        return {
-          width: `${size}px`,
-          height: `${size}px`,
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          animationDuration: `${duration}s`,
-          animationDelay: `${delay}s`,
-          opacity: initialOpacity,
-          '--start-opacity': initialOpacity,
-          boxShadow: `0 0 6px 1px hsl(var(--accent)/0.7)`,
-        } as React.CSSProperties;
-      });
-    
-    setShapeStyles(generateShapeStyles());
-    setParticleStyles(generateParticleStyles());
-    setIsClient(true); // Set to true after styles are generated and ready for client-side render
-  }, []);
-
-
-  if (!isClient) {
-    // Render a simpler background or nothing during SSR / pre-hydration
-    return (
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-gradient-to-br from-background via-primary/5 to-secondary/10">
-          <Aperture className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] text-primary/5 opacity-20 animate-spin-slowest pointer-events-none" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-gradient-to-br from-background via-primary/5 to-secondary/10 perspective-1000">
-      <Aperture className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] text-primary/5 opacity-20 animate-spin-slowest pointer-events-none" />
-      {shapeStyles.map((style, i) => {
-        const colorClass = ['bg-accent/30', 'bg-primary/20', 'bg-secondary/20'][i % 3];
-        const shapeClass = i % 2 === 0 ? 'rounded-lg' : 'rounded-full';
-        return (
-          <div
-            key={`shape-${i}`}
-            className={cn(
-              'absolute opacity-30 animate-float-rotate-3d',
-              colorClass,
-              shapeClass
-            )}
-            style={style}
-          />
-        );
-      })}
-      {particleStyles.map((style, i) => (
-        <div
-          key={`particle-${i}`}
-          className="absolute rounded-full bg-accent animate-sparkle"
-          style={style}
-        />
-      ))}
-    </div>
-  );
-};
-
-
-interface FeatureCard3DProps {
-  title: string;
-  description: string;
-  imageSrc: string; // Changed from icon to imageSrc
-  imageAlt: string;   // Added imageAlt
-  imageAiHint: string; // Added imageAiHint
-  animationDelay: string;
-}
-
-const FeatureCard3D: React.FC<FeatureCard3DProps> = ({ title, description, imageSrc, imageAlt, imageAiHint, animationDelay }) => {
-  return (
-    <div className={cn(
-      "group relative bg-card/60 backdrop-blur-md border border-primary/20 rounded-xl p-6 md:p-8 shadow-card-deep transform-style-preserve-3d transition-all duration-300 hover:shadow-primary-glow-md animate-fadeInUp",
-      animationDelay
-    )}>
-      <div className="relative z-10 transition-transform duration-300 group-hover:rotate-y-3 group-hover:rotate-x-1 group-hover:scale-[1.02]"> {/* Adjusted hover transform for subtlety */}
-        <div className="relative w-full aspect-video mb-6 rounded-lg overflow-hidden shadow-lg">
-          <Image 
-            src={imageSrc} 
-            alt={imageAlt} 
-            layout="fill" 
-            objectFit="cover" 
-            data-ai-hint={imageAiHint}
-            quality={75}
-          />
-        </div>
-        <h3 className="text-2xl md:text-3xl font-headline font-bold mb-3">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-yellow-300 to-yellow-500">{title}</span>
-        </h3>
-        <p className="text-muted-foreground/80 text-sm leading-relaxed">{description}</p>
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/10 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 shadow-inner-soft-gold" />
-    </div>
-  );
-};
-
-interface ExperienceItemProps {
-  title: string;
-  icon: React.ReactNode;
-  animationDelay: string;
-}
-const ExperienceItem: React.FC<ExperienceItemProps> = ({ title, icon, animationDelay }) => (
-  <div className={cn("flex flex-col items-center text-center animate-fadeInUp", animationDelay)}>
-    <div className="p-3 mb-2 rounded-full bg-accent/10 border border-accent/30 text-accent shadow-inner-soft-gold">
-      {icon}
-    </div>
-    <h4 className="text-md font-semibold text-foreground">{title}</h4>
+// Helper component for animated text lines (optional, for more dynamic entrances)
+const AnimatedTextLine = ({ text, delay, className }: { text: string, delay: string, className?: string }) => (
+  <div className="overflow-hidden">
+    <p className={cn("animate-fadeInUp", `animation-delay-[${delay}]`, className)} style={{ animationFillMode: 'forwards' }}>{text}</p>
   </div>
 );
 
-
-export default function LuxuryPlayfulHomePage() {
+export default function EditorialHomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
-      <InteractiveLuxuryBackground />
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-body overflow-x-hidden">
+      <main className="flex-grow">
+        {/* --- Hero Section --- */}
+        <section className="relative min-h-screen flex flex-col justify-center items-center text-center p-4 md:p-8 overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/new-assets/homepage-hero.png"
+              alt="ForgeSim Hero - Symbolic representation of creation and strategy"
+              layout="fill"
+              objectFit="cover"
+              quality={85}
+              className="opacity-20 md:opacity-30 saturate-[0.8]"
+              data-ai-hint="symbolic art dragon hands"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div> {/* Gradient overlay */}
+          </div>
 
-      <main className="relative z-10 flex-grow">
-        <section className="min-h-screen flex flex-col items-center justify-center text-center px-4 py-20 overflow-hidden">
-          <div className="animate-fadeInUp animation-delay-[0.1s]">
-            <ForgeSimLogo className="h-28 w-28 md:h-36 md:w-36 text-primary mx-auto mb-6 filter drop-shadow-[0_5px_25px_hsl(var(--primary)/0.5)] animate-subtle-pulse" />
-            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-tight mb-3 md:mb-4">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-yellow-300 to-yellow-500 filter drop-shadow-[0_2px_15px_hsl(var(--accent)/0.6)]">
-                Forge Sim
-              </span>
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="animate-fadeInUp animation-delay-[0.2s]">
+                <ForgeSimLogo className="h-20 w-20 md:h-24 md:w-24 text-primary mb-4 filter drop-shadow-[0_3px_15px_hsl(var(--primary)/0.4)]" />
+            </div>
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight leading-tight">
+              <AnimatedTextLine text="FORGE" delay="0.4s" className="text-foreground filter drop-shadow-[0_2px_8px_hsl(var(--background)/0.5)]" />
+              <AnimatedTextLine text="YOUR" delay="0.6s" className="text-primary text-glow-primary filter drop-shadow-[0_2px_8px_hsl(var(--background)/0.5)]" />
+              <AnimatedTextLine text="LEGACY" delay="0.8s" className="text-foreground filter drop-shadow-[0_2px_8px_hsl(var(--background)/0.5)]" />
             </h1>
-            <p className="text-xl md:text-2xl font-headline text-primary max-w-2xl mx-auto mb-10 leading-tight text-glow-primary">
-              Elevate Your Strategy. Master Your Market.
+            <p className="mt-4 md:mt-6 max-w-xl text-lg md:text-xl text-muted-foreground font-medium animate-fadeInUp animation-delay-[1s]" style={{animationFillMode: 'forwards'}}>
+              The crucible of strategy awaits. Architect your digital twin, command AI agents, and master the art of business in a dynamic simulation.
             </p>
-            <Button
-              asChild
-              size="lg"
-              className="bg-gradient-to-r from-accent via-yellow-400 to-yellow-600 hover:saturate-150 text-accent-foreground text-lg md:text-xl py-4 px-10 rounded-lg shadow-xl hover:shadow-accent-glow-md transition-all duration-300 transform hover:scale-105 group"
-            >
-              <Link href="/app">
-                <Zap className="mr-2 h-6 w-6" /> Launch Digital Twin
-              </Link>
-            </Button>
+            <div className="animate-fadeInUp animation-delay-[1.2s]" style={{animationFillMode: 'forwards'}}>
+                <Button
+                asChild
+                size="lg"
+                className="mt-8 md:mt-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground text-lg py-3.5 px-10 rounded-md shadow-xl hover:shadow-accent-glow-md transition-all duration-300 transform hover:scale-105 group"
+                >
+                <Link href="/app">
+                    <PlayCircle className="mr-2.5 h-6 w-6" /> Enter the Forge
+                </Link>
+                </Button>
+            </div>
           </div>
         </section>
 
-        <section className="py-16 md:py-24 bg-background/30 backdrop-blur-sm">
+        {/* --- Feature Section 1: Dynamic Simulation Core --- */}
+        <section className="py-16 md:py-24 bg-card/30 backdrop-blur-sm">
           <div className="container mx-auto px-4">
-            <h2 className="text-4xl md:text-5xl font-headline font-bold text-center text-primary mb-12 md:mb-20 animate-fadeInUp animation-delay-[0.2s] text-glow-primary">
-              Craft Your Legacy
-            </h2>
-            <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12 items-start">
-              <FeatureCard3D
-                title="Dynamic Simulation Core"
-                description="Experience a living digital twin of your business. Test strategies, navigate market shifts, and witness the true impact of your decisions in real-time."
-                imageSrc="/new-assets/homepage-hero.png"
-                imageAlt="Symbolic representation of ForgeSim's dynamic core"
-                imageAiHint="symbolic art dragon hands"
-                animationDelay="animation-delay-[0.4s]"
-              />
-              <div className="md:mt-10"> 
-                <FeatureCard3D
-                  title="AI Hive Mind Guidance"
-                  description="Leverage EVE, your central AI strategist, and her cohort of specialized AI agents. Receive personalized advice and actionable insights."
-                  imageSrc="/new-assets/homepage-feature1.png"
-                  imageAlt="Detail of AI Hive Mind concept art"
-                  imageAiHint="symbolic detail dragon"
-                  animationDelay="animation-delay-[0.6s]"
+            <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+              <div className={cn("relative aspect-[4/3] md:aspect-video rounded-lg overflow-hidden shadow-2xl animate-fadeInUp animation-delay-[0.2s]")} style={{animationFillMode: 'forwards'}}>
+                <Image
+                  src="/new-assets/homepage-feature1.png"
+                  alt="AI Hive Mind guiding strategic decisions"
+                  layout="fill"
+                  objectFit="cover"
+                  quality={80}
+                  data-ai-hint="symbolic detail dragon"
                 />
+                 <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent opacity-75"></div>
               </div>
-              <FeatureCard3D
-                title="Predictive & Strategic Analytics"
-                description="Uncover hidden opportunities and mitigate risks with AI-powered predictive analytics. Forge resilient strategies for sustainable growth."
-                imageSrc="/new-assets/homepage-feature2.png"
-                imageAlt="Abstract representation of strategic analytics"
-                imageAiHint="symbolic detail ornament"
-                animationDelay="animation-delay-[0.8s]"
-              />
+              <div className={cn("animate-fadeInUp animation-delay-[0.4s] md:order-first text-left")} style={{animationFillMode: 'forwards'}}>
+                <Zap className="h-12 w-12 text-accent mb-4" />
+                <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-5 text-glow-primary leading-tight">Dynamic Simulation Core</h2>
+                <p className="text-lg text-muted-foreground mb-4 leading-relaxed">
+                  Witness your strategies unfold in a living digital replica of your business. Test theories, navigate market shifts, and understand the true impact of every decision.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  ForgeSim’s advanced algorithms model complex interactions, offering a risk-free environment to experiment and iterate towards perfection.
+                </p>
+                 <Button variant="link" asChild className="mt-6 text-accent hover:text-accent/80 px-0 group text-md font-semibold">
+                  <Link href="/app/simulation">Explore Decision Levers <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"/> </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-4xl md:text-5xl font-headline font-bold text-center text-accent mb-12 md:mb-16 animate-fadeInUp animation-delay-[0.2s] text-glow-accent">
-              The ForgeSim Experience
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 max-w-4xl mx-auto">
-              <ExperienceItem title="Risk-Free Experimentation" icon={<Zap className="w-7 h-7"/>} animationDelay="animation-delay-[0.4s]" /> {/* Replaced ShieldCheck with Zap for consistency */}
-              <ExperienceItem title="Accelerated Learning" icon={<Brain className="w-7 h-7"/>} animationDelay="animation-delay-[0.5s]" />  {/* Replaced Zap with Brain */}
-              <ExperienceItem title="Data-Driven Decisions" icon={<Gem className="w-7 h-7"/>}  animationDelay="animation-delay-[0.6s]" />
-              <ExperienceItem title="Strategic Mastery" icon={<Users className="w-7 h-7"/>}  animationDelay="animation-delay-[0.7s]" />
+        {/* --- Feature Section 2: AI Hive Mind Guidance --- */}
+        <section className="py-16 md:py-24 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+              <div className={cn("animate-fadeInUp animation-delay-[0.2s] text-left")} style={{animationFillMode: 'forwards'}}>
+                <Brain className="h-12 w-12 text-accent mb-4" />
+                <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-5 text-glow-primary leading-tight">AI Hive Mind Guidance</h2>
+                <p className="text-lg text-muted-foreground mb-4 leading-relaxed">
+                  Command EVE, your central AI strategist, and her cohort of specialized agents. Receive personalized advice, predictive analytics, and actionable insights tailored to your simulation.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  From financial forecasting with Alex to marketing mastery with Maya, your AI team is ready to amplify your strategic capabilities.
+                </p>
+                 <Button variant="link" asChild className="mt-6 text-accent hover:text-accent/80 px-0 group text-md font-semibold">
+                  <Link href="/app/mentor">Consult EVE Now <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"/> </Link>
+                </Button>
+              </div>
+              <div className={cn("relative aspect-[4/3] md:aspect-video rounded-lg overflow-hidden shadow-2xl animate-fadeInUp animation-delay-[0.4s]")} style={{animationFillMode: 'forwards'}}>
+                <Image
+                  src="/new-assets/homepage-feature2.png"
+                  alt="Strategic analytics and predictive insights"
+                  layout="fill"
+                  objectFit="cover"
+                  quality={80}
+                  data-ai-hint="symbolic detail ornament"
+                />
+                <div className="absolute inset-0 bg-gradient-to-l from-black/40 via-transparent to-transparent opacity-75"></div>
+              </div>
             </div>
           </div>
         </section>
+
+        {/* --- Core Benefits/Systems --- */}
+         <section className="py-16 md:py-24 bg-card/30 backdrop-blur-sm">
+          <div className="container mx-auto px-4 text-center">
+            <div className={cn("animate-fadeInUp animation-delay-[0.1s]")} style={{animationFillMode: 'forwards'}}>
+              <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-12 md:mb-16 text-glow-primary">
+                Unlock Strategic Mastery
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+              {[
+                { title: "Risk-Free Experimentation", icon: <Zap className="w-10 h-10 text-accent" />, delay: "0.2s", description: "Test bold ideas without real-world consequences. Iterate on strategies in a safe, dynamic sandbox." },
+                { title: "Accelerated Learning Cycles", icon: <TrendingUp className="w-10 h-10 text-accent" />, delay: "0.3s", description: "Rapidly understand market dynamics and the cause-and-effect of your strategic choices." },
+                { title: "AI-Powered Foresight", icon: <Brain className="w-10 h-10 text-accent" />, delay: "0.4s", description: "Leverage predictive analytics and expert AI agent insights to anticipate challenges and seize opportunities." },
+              ].map(item => (
+                <div key={item.title} className={cn("p-8 bg-card rounded-xl shadow-xl animate-fadeInUp", `animation-delay-[${item.delay}]`)} style={{animationFillMode: 'forwards'}}>
+                  <div className="flex justify-center mb-5">{item.icon}</div>
+                  <h3 className="text-2xl font-headline font-semibold text-foreground mb-3">{item.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
       </main>
 
-      <footer className="relative z-10 text-center py-8 md:py-12 border-t border-border bg-background/80 backdrop-blur-sm">
-        <p className="text-muted-foreground text-sm">&copy; {new Date().getFullYear()} ForgeSim Dynamics. All Rights Reserved.</p>
-        <p className="text-xs text-muted-foreground/70 mt-1">Simulation Protocol vX.1 Gamma. Your Ambition. Our Crucible.</p>
-        <div className="mt-4">
-          <Button variant="link" asChild className="text-accent hover:text-accent/80 text-sm">
-            <Link href="/login">Access Terminal</Link>
-          </Button>
+      <footer className="relative z-10 text-center py-10 md:py-16 border-t border-border bg-background/90 backdrop-blur-sm">
+        <div className={cn("animate-fadeInUp animation-delay-[0.2s]")} style={{animationFillMode: 'forwards'}}>
+          <ForgeSimLogo className="h-14 w-14 text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground text-sm">&copy; {new Date().getFullYear()} ForgeSim Dynamics. All Rights Reserved.</p>
+          <p className="text-xs text-muted-foreground/70 mt-1.5">Simulation Protocol vXI. Where Visionaries Become Victors.</p>
+          <div className="mt-6">
+            <Button variant="link" asChild className="text-accent hover:text-accent/80 text-md font-semibold">
+              <Link href="/login">Access Simulation Terminal</Link>
+            </Button>
+          </div>
         </div>
       </footer>
     </div>
