@@ -5,89 +5,89 @@
 
 @layer base {
   :root {
-    /* NEXUS Inspired Dark Theme with Red/Gold Accents */
-    --background: 240 10% 4%; /* Very dark blue/black */
-    --foreground: 0 0% 95%; /* Off-white */
+    /* ForgeSim PRD Inspired Dark Theme */
+    --background: 240 10% 3.5%; /* Even darker base for more contrast */
+    --foreground: 0 0% 95%;
 
-    --card: 240 10% 8%; /* Slightly lighter dark blue/black for cards */
-    --card-foreground: 0 0% 95%;
+    --card: 240 8% 6%; /* Darker cards */
+    --card-foreground: 0 0% 90%;
 
-    --popover: 240 10% 6%; /* Even darker for popovers */
+    --popover: 240 10% 5%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 0 70% 55%; /* Vibrant Red (like NEXUS red-600) */
-    --primary-foreground: 0 0% 98%; /* Light text on red */
+    /* PRD Colors */
+    --primary: 0 100% 25%; /* Dark Maroon Wine (#800020) */
+    --primary-foreground: 0 0% 98%; /* Light text on maroon */
 
-    --secondary: 0 60% 35%; /* Darker, desaturated red */
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 0 0% 20%; /* Dark Gray (#333333) */
+    --secondary-foreground: 0 0% 90%;
 
-    --muted: 0 0% 15%; /* Dark gray for muted elements */
-    --muted-foreground: 0 0% 65%; /* Lighter gray for muted text */
+    --muted: 0 0% 12%; /* Slightly lighter dark gray for muted elements */
+    --muted-foreground: 0 0% 60%; 
 
-    --accent: 45 85% 55%; /* Vibrant Gold/Yellow (like NEXUS yellow-500/600) */
+    --accent: 50 60% 50%; /* Metal Gold (#CFB53B) */
     --accent-foreground: 0 0% 10%; /* Dark text on gold */
 
-    --destructive: 0 70% 45%; /* Retain a clear red for destructive actions */
+    --destructive: 0 70% 45%; 
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 50% 30%; /* Dark red border, or very dark gray e.g. 240 5% 20% */
-    --input: 240 10% 10%; /* Dark input background */
-    --ring: 0 70% 60%; /* Red for focus rings */
+    --border: 0 0% 15%; /* Darker border, can use primary/accent for highlights */
+    --input: 240 10% 8%; 
+    --ring: 50 60% 55%; /* Gold for focus rings, consistent with accent */
 
-    --chart-1: 45 80% 60%;  /* Gold shade */
-    --chart-2: 0 70% 50%; /* Red shade */
-    --chart-3: 30 70% 65%;  /* Lighter Gold/Orange */
-    --chart-4: 0 0% 80%;    /* Light Gray/Silver for contrast */
-    --chart-5: 0 50% 40%; /* Muted Desaturated Red */
+    --chart-1: 50 60% 55%;  /* Gold shade (Accent) */
+    --chart-2: 0 100% 30%; /* Maroon shade (Primary slightly lighter for chart) */
+    --chart-3: 30 50% 55%;  /* Lighter Gold/Orange - muted */
+    --chart-4: 0 0% 75%;    /* Light Gray/Silver for contrast */
+    --chart-5: 0 80% 35%; /* Muted Desaturated Red */
 
     --radius: 0.5rem;
 
-    /* Sidebar Theme - Very Dark with Gold/Red Accents */
-    --sidebar-background: 240 10% 3%; /* Almost black, very dark blue */
-    --sidebar-foreground: 0 0% 85%; /* Light gray for sidebar text */
-    --sidebar-primary: 45 85% 55%; /* Gold for active/primary items */
-    --sidebar-primary-foreground: 0 0% 10%; /* Dark text on gold */
-    --sidebar-accent: 0 70% 55%; /* Red for hover/accent in sidebar */
-    --sidebar-accent-foreground: 0 0% 98%; /* Light text on red */
-    --sidebar-border: 0 0% 15%; /* Dark border for sidebar elements */
-    --sidebar-ring: 45 85% 55%; /* Gold for focus rings */
+    /* Sidebar Theme - Consistent with main theme */
+    --sidebar-background: 240 10% 2.5%; /* Very dark, almost black */
+    --sidebar-foreground: 0 0% 80%; 
+    --sidebar-primary: 0 100% 25%; /* Maroon for active/primary items in sidebar */
+    --sidebar-primary-foreground: 0 0% 98%; 
+    --sidebar-accent: 50 60% 50%; /* Gold for hover/accent in sidebar */
+    --sidebar-accent-foreground: 0 0% 10%; 
+    --sidebar-border: 0 0% 12%; 
+    --sidebar-ring: 50 60% 55%; 
   }
 
   .dark {
-    --background: 240 10% 4%;
+    /* Ensure dark mode variables are identical to :root for consistency as it's default */
+    --background: 240 10% 3.5%;
     --foreground: 0 0% 95%;
-    --card: 240 10% 8%;
-    --card-foreground: 0 0% 95%;
-    --popover: 240 10% 6%;
+    --card: 240 8% 6%;
+    --card-foreground: 0 0% 90%;
+    --popover: 240 10% 5%;
     --popover-foreground: 0 0% 95%;
-    --primary: 0 70% 55%;
+    --primary: 0 100% 25%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 60% 35%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 45 85% 55%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 50 60% 50%;
     --accent-foreground: 0 0% 10%;
     --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 50% 30%;
-    --input: 240 10% 10%;
-    --ring: 0 70% 60%;
-
-    --chart-1: 45 80% 60%;
-    --chart-2: 0 70% 50%;
-    --chart-3: 30 70% 65%;
-    --chart-4: 0 0% 80%;
-    --chart-5: 0 50% 40%;
-
-    --sidebar-background: 240 10% 3%;
-    --sidebar-foreground: 0 0% 85%;
-    --sidebar-primary: 45 85% 55%;
-    --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 0 70% 55%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 45 85% 55%;
+    --border: 0 0% 15%;
+    --input: 240 10% 8%;
+    --ring: 50 60% 55%;
+    --chart-1: 50 60% 55%;
+    --chart-2: 0 100% 30%;
+    --chart-3: 30 50% 55%;
+    --chart-4: 0 0% 75%;
+    --chart-5: 0 80% 35%;
+    --sidebar-background: 240 10% 2.5%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary: 0 100% 25%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 50 60% 50%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 12%;
+    --sidebar-ring: 50 60% 55%;
   }
 }
 
@@ -97,15 +97,14 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Consider adding a subtle noise/texture background image for depth if desired */
   }
 }
 
 @layer components {
-  .text-glow-accent { /* Gold glow */
-    text-shadow: 0 0 8px hsl(var(--accent) / 0.7), 0 0 12px hsl(var(--accent) / 0.5), 0 0 20px hsl(var(--accent) / 0.3);
+  .text-glow-accent { 
+    text-shadow: 0 0 8px hsl(var(--accent) / 0.6), 0 0 12px hsl(var(--accent) / 0.4), 0 0 18px hsl(var(--accent) / 0.2);
   }
-  .text-glow-primary { /* Red glow */
+  .text-glow-primary { 
     text-shadow: 0 0 8px hsl(var(--primary) / 0.7), 0 0 12px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
   }
 
@@ -113,20 +112,19 @@
     @apply transition-all duration-300 ease-in-out;
   }
   .card-glow-hover-accent:hover {
-    box-shadow: 0 0 15px 0px hsl(var(--accent) / 0.4), 0 0 25px 0px hsl(var(--accent) / 0.3);
-    transform: translateY(-2px);
-    border-color: hsl(var(--accent) / 0.7);
+    box-shadow: 0 0 12px 0px hsl(var(--accent) / 0.3), 0 0 20px 0px hsl(var(--accent) / 0.2);
+    transform: translateY(-1px);
+    border-color: hsl(var(--accent) / 0.6);
   }
   .card-glow-hover-primary {
     @apply transition-all duration-300 ease-in-out;
   }
   .card-glow-hover-primary:hover {
-    box-shadow: 0 0 15px 0px hsl(var(--primary) / 0.4), 0 0 25px 0px hsl(var(--primary) / 0.3);
-    transform: translateY(-2px);
-    border-color: hsl(var(--primary) / 0.7);
+    box-shadow: 0 0 12px 0px hsl(var(--primary) / 0.4), 0 0 20px 0px hsl(var(--primary) / 0.3);
+    transform: translateY(-1px);
+    border-color: hsl(var(--primary) / 0.5);
   }
 
-  /* NEXUS inspired animated background elements container */
   .nexus-bg-animations {
     @apply fixed inset-0 z-0 pointer-events-none;
   }
@@ -134,7 +132,6 @@
     @apply absolute;
   }
 
-  /* Guidance System Highlight */
   .guidance-highlight-active {
     @apply ring-2 ring-accent ring-offset-2 ring-offset-background shadow-accent-glow-md;
     outline: 2px solid hsl(var(--accent) / 0.8);
@@ -142,31 +139,29 @@
     animation: guidance-pulse 1.5s infinite ease-in-out;
   }
 
-  /* Example theme for ContextualGuidanceTip */
   .theme-founders-choice {
     @apply bg-gradient-to-br from-primary/20 to-accent/20 border-primary;
   }
-  .theme-founders-choice .prose { /* Example: Target prose text color within this theme */
+  .theme-founders-choice .prose { 
     @apply text-primary-foreground/90;
   }
-   .theme-founders-choice .lucide-lightbulb { /* Example: Target icon color */
+   .theme-founders-choice .lucide-lightbulb { 
     @apply text-primary;
   }
-  /* Add more specific styling as needed for buttons etc. within the theme */
 }
 
 
 @layer utilities {
   @keyframes orbit-1 {
-    0% { transform: translate(50%, 50%) rotate(0deg) translateX(80px) rotate(0deg); } /* Adjusted for sm screens */
+    0% { transform: translate(50%, 50%) rotate(0deg) translateX(80px) rotate(0deg); } 
     100% { transform: translate(50%, 50%) rotate(360deg) translateX(80px) rotate(-360deg); }
   }
   @keyframes orbit-2 {
-    0% { transform: translate(50%, 50%) rotate(0deg) translateX(120px) rotate(0deg); } /* Adjusted for sm screens */
+    0% { transform: translate(50%, 50%) rotate(0deg) translateX(120px) rotate(0deg); } 
     100% { transform: translate(50%, 50%) rotate(-360deg) translateX(120px) rotate(360deg); }
   }
    @keyframes orbit-3 {
-    0% { transform: translate(50%, 50%) rotate(0deg) translateX(160px) rotate(0deg); } /* Adjusted for sm screens */
+    0% { transform: translate(50%, 50%) rotate(0deg) translateX(160px) rotate(0deg); } 
     100% { transform: translate(50%, 50%) rotate(360deg) translateX(160px) rotate(-360deg); }
   }
 
@@ -174,7 +169,7 @@
     animation: orbit-1 10s linear infinite;
     top: 50%;
     left: 50%;
-    transform-origin: -30px -30px; /* Adjust based on element size and desired orbit center */
+    transform-origin: -30px -30px; 
   }
   .animate-orbit-2 {
     animation: orbit-2 15s linear infinite;
@@ -189,7 +184,6 @@
     transform-origin: -70px -70px;
   }
 
-  /* Responsive adjustments for orbit animations */
   @screen sm {
     @keyframes orbit-1-sm {
       0% { transform: translate(50%, 50%) rotate(0deg) translateX(100px) rotate(0deg); }
@@ -214,7 +208,6 @@
     }
   }
 
-  /* Keyframes for guidance highlight pulse */
   @keyframes guidance-pulse {
     0%, 100% {
       box-shadow: 0 0 0 0 hsl(var(--accent) / 0.7), 0 0 10px 1px hsl(var(--accent) / 0.6);
@@ -224,7 +217,6 @@
     }
   }
 
-  /* Adding spin-slow for background elements */
   @keyframes spin-slow {
     to {
       transform: rotate(360deg);
@@ -234,7 +226,6 @@
     animation: spin-slow 20s linear infinite;
   }
 
-  /* Animation delays utilities */
   .animation-delay-none { animation-delay: 0s; }
   .animation-delay-100 { animation-delay: 100ms; }
   .animation-delay-200 { animation-delay: 200ms; }
@@ -244,4 +235,3 @@
   .animation-delay-1000 { animation-delay: 1000ms; }
 
 }
-
