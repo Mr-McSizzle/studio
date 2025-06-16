@@ -1,13 +1,9 @@
-
 // src/store/guidanceStore.ts
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { GuidanceStep, FirestoreGuidanceDocument } from '@/types/guidance';
-import { db } from '@/lib/firebase'; // Firebase instance
-import { doc, getDoc } from 'firebase/firestore';
+import type { GuidanceStep } from '@/types/guidance';
+import { predefinedGuidanceSteps } from '@/lib/guidanceData'; // Import local steps
 
-const FIRESTORE_GUIDANCE_PATH = 'tutorials';
-const FIRESTORE_GUIDANCE_DOC_ID = 'hive-mind-guide'; // Document ID containing the 'steps' array
 const LOCALSTORAGE_SHOWN_STEPS_KEY = 'forgeSimShownGuidanceSteps';
 
 interface GuidanceState {
@@ -16,10 +12,8 @@ interface GuidanceState {
   activeGuidance: GuidanceStep | null;
   activeTargetSelector: string | null; // For highlighting
   activeTargetAttachment: GuidanceStep['targetElementAttachment'];
-  isFetching: boolean;
-  fetchError: string | null;
 
-  fetchGuidanceSteps: () => Promise<void>;
+  loadGuidanceSteps: () => void; // Changed from fetchGuidanceSteps
   markStepAsShown: (stepId: string) => void;
   setActiveGuidance: (step: GuidanceStep | null) => void;
   clearActiveGuidance: () => void;
@@ -28,7 +22,6 @@ interface GuidanceState {
 }
 
 export const useGuidanceStore = create<GuidanceState>()(
-  // Persist only 'shownSteps' to localStorage
   persist(
     (set, get) => ({
       steps: [],
@@ -36,47 +29,10 @@ export const useGuidanceStore = create<GuidanceState>()(
       activeGuidance: null,
       activeTargetSelector: null,
       activeTargetAttachment: undefined,
-      isFetching: false,
-      fetchError: null,
 
-      fetchGuidanceSteps: async () => {
-        if (get().isFetching || get().steps.length > 0) return; // Prevent multiple fetches or if already loaded
-        set({ isFetching: true, fetchError: null });
-        try {
-          const docRef = doc(db, FIRESTORE_GUIDANCE_PATH, FIRESTORE_GUIDANCE_DOC_ID);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const data = docSnap.data() as FirestoreGuidanceDocument;
-            if (data && Array.isArray(data.steps)) {
-              set({ steps: data.steps, isFetching: false });
-            } else {
-              console.warn(`Firestore document at ${FIRESTORE_GUIDANCE_PATH}/${FIRESTORE_GUIDANCE_DOC_ID} is missing 'steps' array or is malformed.`);
-              set({ steps: [], fetchError: 'Guidance data malformed.', isFetching: false });
-            }
-          } else {
-            console.warn(`No guidance document found at ${FIRESTORE_GUIDANCE_PATH}/${FIRESTORE_GUIDANCE_DOC_ID}`);
-            set({ steps: [], fetchError: 'Guidance definition not found.', isFetching: false });
-          }
-        } catch (error) {
-          let detailedMessage = 'Failed to fetch guidance steps.';
-          if (error instanceof Error) {
-            // Check for common Firebase offline/permission errors
-            if ((error.constructor as any).name === 'FirebaseError' || error.name === 'FirebaseError') { // More robust check for FirebaseError
-              if (error.message.includes('offline') || error.message.includes('Failed to get document') || error.message.includes('unavailable')) {
-                detailedMessage = `Firestore client is offline or cannot connect. Please ensure your Firebase project is correctly configured in 'src/lib/firebase.ts' (API keys, project ID, etc.), your internet connection is active, and your Firestore database is set up with appropriate security rules. Original error: ${error.message}`;
-              } else if (error.message.includes('permission-denied')) {
-                detailedMessage = `Firestore permission denied. Please check your Firestore security rules to allow read access to the '${FIRESTORE_GUIDANCE_PATH}/${FIRESTORE_GUIDANCE_DOC_ID}' document. Original error: ${error.message}`;
-              } else {
-                 detailedMessage = `A Firebase error occurred: ${error.message}`;
-              }
-            } else {
-               detailedMessage = error.message;
-            }
-          }
-          console.error("Error fetching guidance steps from Firestore:", detailedMessage, error);
-          set({ fetchError: detailedMessage, isFetching: false });
-        }
+      loadGuidanceSteps: () => {
+        // Load steps from the local data file
+        set({ steps: predefinedGuidanceSteps });
       },
 
       markStepAsShown: (stepId: string) => {
@@ -127,19 +83,20 @@ export const useGuidanceStore = create<GuidanceState>()(
       },
     }),
     {
-      name: 'forgesim-guidance-storage', // Name for the persisted part of the store
+      name: 'forgesim-guidance-storage', 
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ shownSteps: state.shownSteps }), // Only persist 'shownSteps'
+      partialize: (state) => ({ shownSteps: state.shownSteps }), 
        onRehydrateStorage: () => (state) => {
         if (state) {
-          state._loadShownStepsFromLocalStorage(); // Ensure this is called after rehydration
+          state._loadShownStepsFromLocalStorage(); 
         }
       }
     }
   )
 );
 
-// Initialize shownSteps from localStorage when the store is created/hydrated
+// Initialize shownSteps and load predefined steps when the store is created/hydrated
 if (typeof window !== 'undefined') {
   useGuidanceStore.getState()._loadShownStepsFromLocalStorage();
+  useGuidanceStore.getState().loadGuidanceSteps(); // Load predefined steps on init
 }
