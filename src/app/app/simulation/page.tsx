@@ -85,18 +85,19 @@ const ConceptualDigitalTwinVisual = () => {
 export default function SimulationPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const simState = useSimulationStore();
-  const {
-    isInitialized,
-    resources,
-    financials,
-    product,
-    simulationMonth,
-    setMarketingSpend,
-    setRndSpend,
-    setPricePerUser,
-    adjustTeamMemberCount,
-  } = simState;
+  
+  // Selectors for specific state pieces and actions
+  const isInitialized = useSimulationStore(state => state.isInitialized);
+  const simulationMonth = useSimulationStore(state => state.simulationMonth);
+  const financials = useSimulationStore(state => state.financials);
+  const product = useSimulationStore(state => state.product);
+  const resources = useSimulationStore(state => state.resources); // For initial local state sync
+  const teamToDisplay = useSimulationStore(state => state.isInitialized ? state.resources.team : []);
+
+  const setMarketingSpend = useSimulationStore(state => state.setMarketingSpend);
+  const setRndSpend = useSimulationStore(state => state.setRndSpend);
+  const setPricePerUser = useSimulationStore(state => state.setPricePerUser);
+  const adjustTeamMemberCount = useSimulationStore(state => state.adjustTeamMemberCount);
 
   const currencySymbol = financials.currencySymbol || "$";
 
@@ -104,7 +105,6 @@ export default function SimulationPage() {
   const [localRndSpend, setLocalRndSpend] = useState(resources.rndSpend);
   const [localPricePerUser, setLocalPricePerUser] = useState(product.pricePerUser);
 
-  // State for new team member form
   const [newMemberName, setNewMemberName] = useState(""); 
   const [roleInputValue, setRoleInputValue] = useState(""); 
   const [finalRoleValue, setFinalRoleValue] = useState<string>(""); 
@@ -120,15 +120,16 @@ export default function SimulationPage() {
 
   useEffect(() => {
     if (isInitialized) {
-      setLocalMarketingSpend(resources.marketingSpend);
-      setLocalRndSpend(resources.rndSpend);
-      setLocalPricePerUser(product.pricePerUser);
+      // Sync local state with store state if needed, e.g., when component mounts or isInitialized changes
+      setLocalMarketingSpend(useSimulationStore.getState().resources.marketingSpend);
+      setLocalRndSpend(useSimulationStore.getState().resources.rndSpend);
+      setLocalPricePerUser(useSimulationStore.getState().product.pricePerUser);
     } else {
       setLocalMarketingSpend(0);
       setLocalRndSpend(0);
       setLocalPricePerUser(0);
     }
-  }, [resources.marketingSpend, resources.rndSpend, product.pricePerUser, isInitialized]);
+  }, [isInitialized]); // Removed direct resource dependencies to avoid loop with local state updates
 
   const handleMarketingSpendChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
@@ -275,7 +276,7 @@ export default function SimulationPage() {
                     className="w-full"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? resources.marketingSpend.toLocaleString() : "N/A"}</p>
+                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? useSimulationStore.getState().resources.marketingSpend.toLocaleString() : "N/A"}</p>
               </div>
 
               <Separator />
@@ -294,7 +295,7 @@ export default function SimulationPage() {
                     className="w-full"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? resources.rndSpend.toLocaleString() : "N/A"}</p>
+                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? useSimulationStore.getState().resources.rndSpend.toLocaleString() : "N/A"}</p>
               </div>
 
               <Separator />
@@ -304,7 +305,7 @@ export default function SimulationPage() {
                 
                 <ScrollArea className="max-h-48 pr-2">
                 <div className="space-y-3">
-                  {isInitialized && resources.team.length > 0 ? resources.team.map(member => (
+                  {teamToDisplay.length > 0 ? teamToDisplay.map(member => (
                     <div key={member.role} className="flex items-center justify-between p-2 border border-border/70 rounded-md bg-card/50">
                       <div>
                         <p className="font-medium text-sm">{member.role}: {member.count}</p>
@@ -381,8 +382,11 @@ export default function SimulationPage() {
                             value={roleInputValue}
                             onValueChange={(search) => {
                                 setRoleInputValue(search);
-                                if (!search.trim()) { // If input is cleared
-                                    setFinalRoleValue(""); // Also clear selected role
+                                if (!search.trim()) { 
+                                    setFinalRoleValue(""); 
+                                } else if (!jobRoles.some(jr => jr.label.toLowerCase() === search.trim().toLowerCase() || jr.value.toLowerCase() === search.trim().toLowerCase())) {
+                                    // If typed text doesn't match predefined, keep finalRoleValue potentially as the typed custom role
+                                    // The selection of the "Add new role" CommandItem will explicitly set finalRoleValue
                                 }
                             }}
                           />
@@ -396,15 +400,15 @@ export default function SimulationPage() {
                                   key={role.value}
                                   value={role.value}
                                   onSelect={(currentValue) => {
-                                    setFinalRoleValue(currentValue);
-                                    setRoleInputValue(jobRoles.find(r => r.value === currentValue)?.label || currentValue);
+                                    setFinalRoleValue(jobRoles.find(r => r.value.toLowerCase() === currentValue.toLowerCase())?.value || currentValue);
+                                    setRoleInputValue(jobRoles.find(r => r.value.toLowerCase() === currentValue.toLowerCase())?.label || currentValue);
                                     setRoleComboboxOpen(false);
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      finalRoleValue === role.value ? "opacity-100" : "opacity-0"
+                                      finalRoleValue.toLowerCase() === role.value.toLowerCase() ? "opacity-100" : "opacity-0"
                                     )}
                                   />
                                   {role.label}
@@ -416,7 +420,7 @@ export default function SimulationPage() {
                                 key={roleInputValue.trim()}
                                 value={roleInputValue.trim()}
                                 onSelect={(currentValue) => {
-                                  setFinalRoleValue(currentValue);
+                                  setFinalRoleValue(currentValue); // Set the custom typed value
                                   setRoleInputValue(currentValue); 
                                   setRoleComboboxOpen(false);
                                 }}
@@ -466,6 +470,8 @@ export default function SimulationPage() {
     </div>
   );
 }
+    
+
     
 
     
