@@ -59,8 +59,23 @@ export const useGuidanceStore = create<GuidanceState>()(
             set({ steps: [], fetchError: 'Guidance definition not found.', isFetching: false });
           }
         } catch (error) {
-          console.error("Error fetching guidance steps from Firestore:", error);
-          set({ fetchError: error instanceof Error ? error.message : 'Failed to fetch guidance.', isFetching: false });
+          let detailedMessage = 'Failed to fetch guidance steps.';
+          if (error instanceof Error) {
+            // Check for common Firebase offline/permission errors
+            if ((error.constructor as any).name === 'FirebaseError' || error.name === 'FirebaseError') { // More robust check for FirebaseError
+              if (error.message.includes('offline') || error.message.includes('Failed to get document') || error.message.includes('unavailable')) {
+                detailedMessage = `Firestore client is offline or cannot connect. Please ensure your Firebase project is correctly configured in 'src/lib/firebase.ts' (API keys, project ID, etc.), your internet connection is active, and your Firestore database is set up with appropriate security rules. Original error: ${error.message}`;
+              } else if (error.message.includes('permission-denied')) {
+                detailedMessage = `Firestore permission denied. Please check your Firestore security rules to allow read access to the '${FIRESTORE_GUIDANCE_PATH}/${FIRESTORE_GUIDANCE_DOC_ID}' document. Original error: ${error.message}`;
+              } else {
+                 detailedMessage = `A Firebase error occurred: ${error.message}`;
+              }
+            } else {
+               detailedMessage = error.message;
+            }
+          }
+          console.error("Error fetching guidance steps from Firestore:", detailedMessage, error);
+          set({ fetchError: detailedMessage, isFetching: false });
         }
       },
 
