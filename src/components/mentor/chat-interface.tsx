@@ -58,8 +58,8 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
   }, [displayedMessages]);
 
   useEffect(() => {
-    initializeGreeting(currentChatContext, focusedAgentId, focusedAgentName); 
-    if (focusedAgentId && focusedAgentName && allMessages.filter(m => m.agentContextId === currentChatContext).length <= 1) { 
+    initializeGreeting(currentChatContext, focusedAgentId, focusedAgentName);
+    if (focusedAgentId && focusedAgentName && allMessages.filter(m => m.agentContextId === currentChatContext).length <= 1) {
        setUserInput(`My question for ${focusedAgentName} is about `);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,8 +77,8 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
       timestamp: new Date(),
       agentContextId: currentChatContext,
     };
-    addMessage(newUserMessage); 
-    const currentInput = userInput; 
+    addMessage(newUserMessage);
+    const currentInput = userInput;
     setUserInput("");
     setIsLoading(true);
 
@@ -119,7 +119,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
       };
 
       const result: MentorConversationOutput = await mentorConversation(mentorInput);
-      
+
       setGuidance(result.response, currentChatContext, result.suggestedNextAction);
 
       // Client-side parsing of EVE's response for confirmed actions
@@ -178,7 +178,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
         timestamp: new Date(),
         agentContextId: currentChatContext,
       };
-      addMessage(errorResponseMessage); 
+      addMessage(errorResponseMessage);
     } finally {
       setIsLoading(false);
     }
@@ -189,7 +189,10 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     : "Ask EVE, your AI Hive Mind... (e.g., 'Change product price to $19.99')";
 
   return (
-    <div className="flex flex-col h-[calc(100vh-20rem)] max-h-[700px] bg-card shadow-lg rounded-lg">
+    <div
+      className="flex flex-col h-[calc(100vh-20rem)] max-h-[700px] bg-card shadow-lg rounded-lg"
+      data-guidance-target="chat-container" // Added data attribute
+    >
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-2">
           {displayedMessages.map((msg) => (
@@ -239,4 +242,3 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
   );
 }
     
-
