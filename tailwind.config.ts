@@ -155,15 +155,15 @@ export default {
         'glow': 'glow 2s ease-in-out infinite alternate',
         'orbit': 'orbit 20s linear infinite',
         'fadeIn': 'fadeIn 1s ease-out forwards',
-        'fadeInUp': 'fadeInUp 0.8s ease-out forwards',
+        'fadeInUp': 'fadeInUp 0.8s ease-out forwards', // Duration can be adjusted
         'background-pan': 'background-pan 15s ease infinite',
         'ember-float': 'ember-float linear infinite', 
         'fog-drift': 'fog-drift 60s ease-in-out infinite alternate',
         'spin-slow': 'spin 20s linear infinite',
         'spin-slowest': 'spin 120s linear infinite',
         'ping-slow': 'ping-slow 5s cubic-bezier(0, 0, 0.2, 1) infinite',
-        'float-rotate-3d': 'float-rotate-3d ease-in-out infinite', // Added
-        'sparkle': 'sparkle ease-in-out infinite', // Added
+        'float-rotate-3d': 'float-rotate-3d ease-in-out infinite',
+        'sparkle': 'sparkle ease-in-out infinite',
       },
       boxShadow: { // Enhanced shadows for dark theme
         'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',
@@ -172,7 +172,7 @@ export default {
         'primary-glow-md': '0 0 20px 3px hsl(var(--primary) / 0.7)',
         'card-deep': '0 10px 30px -5px hsl(var(--background) / 0.6), 0 8px 15px -8px hsl(var(--background) / 0.8)',
         'epic-depth': '0 15px 35px -10px hsl(var(--background) / 0.7), 0 10px 20px -12px hsl(var(--background) / 0.9)',
-        'inner-soft-gold': 'inset 0 2px 4px 0 hsl(var(--accent) / 0.1), inset 0 -1px 2px 0 hsl(var(--background) / 0.3)', // New
+        'inner-soft-gold': 'inset 0 2px 4px 0 hsl(var(--accent) / 0.1), inset 0 -1px 2px 0 hsl(var(--background) / 0.3)',
       },
       backgroundImage: { // For gradients
         'nexus-gradient-main': 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--secondary) / 0.3) 50%, hsl(var(--background)) 100%)',
@@ -182,8 +182,11 @@ export default {
         '200%': '200% 200%',
       },
       animationDelay: { // Added custom animation delay utilities
-        '0.1s': '0.1s', '0.4s': '0.4s', '0.6s': '0.6s', '0.8s': '0.8s',
-        '1.0s': '1.0s', '1.2s': '1.2s', '1.4s': '1.4s', '1.6s': '1.6s',
+        '0s': '0s', // Ensuring 0s is explicitly available if needed by Tailwind JIT
+        '0.1s': '0.1s', '0.2s': '0.2s', '0.3s': '0.3s', '0.4s': '0.4s', '0.5s': '0.5s',
+        '0.6s': '0.6s', '0.7s': '0.7s', '0.8s': '0.8s', '0.9s': '0.9s',
+        '1.0s': '1.0s', '1.1s': '1.1s', '1.2s': '1.2s', '1.3s': '1.3s', '1.4s': '1.4s',
+        '1.5s': '1.5s', '1.6s': '1.6s',
       },
       rotate: { // Added for 3D transforms if needed via Tailwind class
         'y-10': 'rotateY(10deg)',
@@ -195,29 +198,24 @@ export default {
   },
   plugins: [
     require('tailwindcss-animate'),
-    function ({ addUtilities }: { addUtilities: any }) {
+    function ({ addUtilities, theme }: { addUtilities: any, theme: any }) {
       const newUtilities = {
-        '.perspective-1000': { perspective: '1000px' }, // Utility for perspective
-        '.transform-style-preserve-3d': { 'transform-style': 'preserve-3d' }, // Utility for transform-style
-
-        '.animation-delay-none': { animationDelay: '0s' },
-        '.animation-delay-100': { animationDelay: '100ms' },
-        '.animation-delay-200': { animationDelay: '200ms' },
-        '.animation-delay-300': { animationDelay: '300ms' },
-        '.animation-delay-500': { animationDelay: '500ms' },
-        '.animation-delay-700': { animationDelay: '700ms' },
-        '.animation-delay-1000': { animationDelay: '1000ms' },
-        '.animation-delay-\\[0\\.1s\\]': { 'animation-delay': '0.1s' },
-        '.animation-delay-\\[0\\.4s\\]': { 'animation-delay': '0.4s' },
-        '.animation-delay-\\[0\\.6s\\]': { 'animation-delay': '0.6s' },
-        '.animation-delay-\\[0\\.8s\\]': { 'animation-delay': '0.8s' },
-        '.animation-delay-\\[1\\.0s\\]': { 'animation-delay': '1.0s' },
-        '.animation-delay-\\[1\\.2s\\]': { 'animation-delay': '1.2s' },
-        '.animation-delay-\\[1\\.4s\\]': { 'animation-delay': '1.4s' },
-        '.animation-delay-\\[1\\.6s\\]': { 'animation-delay': '1.6s' },
-        '.animation-duration-\\[3s\\]': { 'animation-duration': '3s' },
+        '.perspective-1000': { perspective: '1000px' },
+        '.transform-style-preserve-3d': { 'transform-style': 'preserve-3d' },
       }
-      addUtilities(newUtilities, ['responsive', 'hover'])
+      const animationDelays = theme('animationDelay');
+      if (animationDelays) {
+        Object.entries(animationDelays).forEach(([key, value]) => {
+          newUtilities[`.animation-delay-\\[${key}\\]`] = { 'animation-delay': value as string };
+        });
+      }
+      const animationDurations = theme('animationDuration'); // if you ever need to extend this too
+      if (animationDurations) {
+        Object.entries(animationDurations).forEach(([key, value]) => {
+          newUtilities[`.animation-duration-\\[${key}\\]`] = { 'animation-duration': value as string };
+        });
+      }
+      addUtilities(newUtilities, ['responsive', 'hover']);
     }
   ],
 } satisfies Config;
