@@ -104,6 +104,9 @@
   .text-glow-accent { 
     text-shadow: 0 0 8px hsl(var(--accent) / 0.6), 0 0 12px hsl(var(--accent) / 0.4), 0 0 18px hsl(var(--accent) / 0.2);
   }
+  .text-glow-accent-subtle { 
+    text-shadow: 0 0 5px hsl(var(--accent) / 0.5), 0 0 8px hsl(var(--accent) / 0.3);
+  }
   .text-glow-primary { 
     text-shadow: 0 0 8px hsl(var(--primary) / 0.7), 0 0 12px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
   }
@@ -148,6 +151,39 @@
    .theme-founders-choice .lucide-lightbulb { 
     @apply text-primary;
   }
+
+  .text-chiseled-gold {
+    text-shadow: 
+      1px 1px 0px hsl(var(--background) / 0.5), /* Darker offset for depth */
+      -1px -1px 0px hsl(var(--accent) / 0.3), /* Highlight */
+      0 0 10px hsl(var(--accent) / 0.2); /* Subtle glow */
+  }
+  .text-chiseled-maroon {
+    text-shadow: 
+      1px 1px 0px hsl(var(--background) / 0.6), 
+      -1px -1px 0px hsl(var(--primary) / 0.4),
+      0 0 8px hsl(var(--primary) / 0.2);
+  }
+
+  .ember {
+    @apply absolute bg-accent rounded-full opacity-0 animate-ember-float;
+    box-shadow: 0 0 5px hsl(var(--accent)), 0 0 10px hsl(var(--accent)), 0 0 15px hsl(var(--accent)/0.7);
+  }
+  
+  .fog-layer {
+    @apply absolute inset-0 opacity-10;
+    background-repeat: repeat;
+    background-size: cover;
+  }
+  .fog-layer-1 {
+    background-image: radial-gradient(ellipse at 70% 30%, hsl(var(--primary)/0.05) 0%, transparent 50%);
+    animation: fog-drift 60s linear infinite alternate;
+  }
+  .fog-layer-2 {
+    background-image: radial-gradient(ellipse at 30% 70%, hsl(var(--secondary)/0.07) 0%, transparent 50%);
+     animation: fog-drift 80s linear infinite alternate-reverse;
+  }
+
 }
 
 
@@ -225,6 +261,41 @@
   .animate-spin-slow {
     animation: spin-slow 20s linear infinite;
   }
+  .animate-spin-slowest {
+    animation: spin-slow 120s linear infinite; /* Slower spin for background elements */
+  }
+
+  @keyframes ember-float {
+    0% {
+      transform: translateY(0) translateX(0) scale(0.5);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    80% {
+      transform: translateY(-100vh) translateX(calc(var(--tw-translate-x, 0px) + (sin(var(--animation-progress, 0) * 2 * 3.14159) * 30px))) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-120vh) translateX(calc(var(--tw-translate-x, 0px) + (sin(var(--animation-progress, 1) * 2 * 3.14159) * 30px))) scale(0.5);
+      opacity: 0;
+    }
+  }
+  .animate-ember-float {
+    animation-name: ember-float;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes fog-drift {
+    0% { transform: translateX(-10%) translateY(-5%) scale(1); }
+    50% { transform: translateX(10%) translateY(5%) scale(1.05); }
+    100% { transform: translateX(-10%) translateY(-5%) scale(1); }
+  }
+  .animate-fog-drift {
+     animation: fog-drift 60s ease-in-out infinite alternate;
+  }
 
   .animation-delay-none { animation-delay: 0s; }
   .animation-delay-100 { animation-delay: 100ms; }
@@ -233,5 +304,14 @@
   .animation-delay-500 { animation-delay: 500ms; }
   .animation-delay-700 { animation-delay: 700ms; }
   .animation-delay-1000 { animation-delay: 1000ms; }
+  .animation-delay-\[0\.1s\] { animation-delay: 0.1s; }
+  .animation-delay-\[0\.4s\] { animation-delay: 0.4s; }
+  .animation-delay-\[0\.6s\] { animation-delay: 0.6s; }
+  .animation-delay-\[0\.8s\] { animation-delay: 0.8s; }
+  .animation-delay-\[1\.0s\] { animation-delay: 1.0s; }
+  .animation-delay-\[1\.2s\] { animation-delay: 1.2s; }
+  .animation-delay-\[1\.4s\] { animation-delay: 1.4s; }
+  .animation-delay-\[1\.6s\] { animation-delay: 1.6s; }
 
+  .animation-duration-\[3s\] { animation-duration: 3s; }
 }
