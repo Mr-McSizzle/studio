@@ -5,6 +5,7 @@ import type { GuidanceStep, QuestCompletionReward } from '@/types/guidance';
 // Define your guidance steps here.
 const ONBOARDING_QUEST_ID = "onboarding_basics";
 const DISCOVERY_BADGE_QUEST_ID = "general_discoveries"; // A conceptual quest ID for discovery badges
+const COMMUNITY_CONTRIBUTOR_QUEST_ID = "community_contributor_wisdom"; // Placeholder for user-submitted tip rewards
 
 export const predefinedGuidanceSteps: GuidanceStep[] = [
   // --- Onboarding Quest ---
@@ -23,10 +24,10 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     questTotalSteps: 4,
     currentStepNumber: 1,
     suggestedAction: {
-      label: "Learn More About Dashboards (External Link Example)",
-      path: "https://example.com/dashboard-guides" 
+      label: "Learn About Dashboards (External)",
+      path: "https://en.wikipedia.org/wiki/Dashboard_(business)" 
     },
-    isDailyInsight: true, // Example of a daily insight
+    isDailyInsight: true, 
   },
   {
     id: "setup-page-intro-quest",
@@ -90,7 +91,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
       label: "Generate Insights Now",
       path: "/app/strategy" 
     },
-    isDailyInsight: true, // Another example for daily insight
+    isDailyInsight: true,
   },
   {
     id: "lab-discovery-tip",
@@ -101,7 +102,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     once: true,
     isDiscovery: true,
     discoveryXpValue: 10, 
-    xpValue: 0, 
+    xpValue: 0, // xpValue is overridden by discoveryXpValue if isDiscovery is true
     suggestedAction: {
         label: "Start a Sandbox Experiment",
         path: "/app/lab" 
@@ -125,6 +126,7 @@ export const questCompletionRewardsData: QuestCompletionReward[] = [
     badgeName: "ForgeSim Navigator",
     badgeDescription: "Successfully completed the initial onboarding tour of ForgeSim.",
     badgeIcon: "Compass", 
+    unlocksCosmeticId: "tip_theme_founders_choice", // Unlock a theme on completing onboarding
   },
   {
     questId: DISCOVERY_BADGE_QUEST_ID, 
@@ -132,5 +134,14 @@ export const questCompletionRewardsData: QuestCompletionReward[] = [
     badgeName: "Sage of ForgeSim",
     badgeDescription: "Unlocked deep insights and discovered hidden wisdom within the simulation.",
     badgeIcon: "Scroll",
+  },
+  { // Placeholder for Community Contributor badge
+    questId: COMMUNITY_CONTRIBUTOR_QUEST_ID,
+    xp: 100, // Example significant XP
+    badgeName: "Community Sage",
+    badgeDescription: "Your wisdom has been recognized and shared with fellow founders!",
+    badgeIcon: "Award",
+    unlocksCosmeticId: "tip_theme_community_glow", // Example future cosmetic
   }
 ];
+

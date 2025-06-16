@@ -17,6 +17,7 @@ interface ContextualGuidanceTipProps {
   onClose: () => void;
   isVisible: boolean;
   currentStep: GuidanceStep | null;
+  activeThemeId?: string | null; // New prop for theme
 }
 
 export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
@@ -26,6 +27,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
   onClose,
   isVisible,
   currentStep,
+  activeThemeId, // Destructure new prop
 }) => {
   const tipRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0, opacity: 0 });
@@ -43,7 +45,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
       return;
     }
 
-    const PADDING = 12; // Define PADDING here
+    const PADDING = 12; 
 
     let newTop = window.innerHeight / 2 - (tipRef.current?.offsetHeight || 0) / 2;
     let newLeft = window.innerWidth / 2 - (tipRef.current?.offsetWidth || 0) / 2;
@@ -78,13 +80,13 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
     if (tipRef.current) {
       tipRef.current.style.transformOrigin = transformOrigin;
     }
-  }, [targetElement, attachment, isVisible, message, currentStep]); // Added currentStep dependency
+  }, [targetElement, attachment, isVisible, message, currentStep]);
 
   useEffect(() => {
     if (xpAnimationAmount !== null) {
       const timer = setTimeout(() => {
         setXpAnimationAmount(null);
-      }, 1500); // Animation duration
+      }, 1500); 
       return () => clearTimeout(timer);
     }
   }, [xpAnimationAmount]);
@@ -92,11 +94,16 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
   const handlePrimaryActionClick = () => {
     if (currentStep) {
       let xpToAnimate = 0;
-      if (currentStep.isDiscovery && currentStep.discoveryXpValue && !awardedXpForSteps.includes(currentStep.id)) {
-        xpToAnimate = currentStep.discoveryXpValue;
-      } else if (currentStep.xpValue && !awardedXpForSteps.includes(currentStep.id)) {
-        xpToAnimate = currentStep.xpValue;
+      if (!awardedXpForSteps.includes(currentStep.id)) { // Check if XP for this step ID already awarded
+        if (currentStep.isDiscovery && currentStep.discoveryXpValue) {
+          xpToAnimate = currentStep.discoveryXpValue;
+        } else if (currentStep.xpValue) {
+          xpToAnimate = currentStep.xpValue;
+        }
       }
+      // Additional check for daily streak bonus if applicable (handled in store, this is just for animation)
+      // For simplicity, we'll just animate the step's own XP here or discovery XP.
+      // The store logic in `clearActiveGuidance` will handle the actual XP and streak calculation.
       if (xpToAnimate > 0) {
         setXpAnimationAmount(xpToAnimate);
       }
@@ -112,7 +119,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
         router.push(currentStep.suggestedAction.path);
       }
     }
-    onClose(); // Dismiss tip after taking action
+    onClose(); 
   };
   
   const handleNextStep = () => {
@@ -131,7 +138,13 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
 
   const isQuestStep = !!currentStep.questId;
   const primaryButtonText = currentStep.isQuestEnd ? "Finish Quest" : "Got it!";
-  const tipMessage = currentStep.isDiscovery ? `Sage's Wisdom: ${message}` : message;
+  let tipMessage = currentStep.message;
+  if (currentStep.isDiscovery) {
+    tipMessage = `Sage's Wisdom: ${currentStep.message}`;
+  }
+
+  // Apply theme class based on activeThemeId
+  const themeClass = activeThemeId === 'tip_theme_founders_choice' ? 'theme-founders-choice' : '';
 
   return (
     <div
@@ -140,7 +153,8 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
         "fixed z-[1000] w-80 max-w-[calc(100vw-32px)] p-4 rounded-lg shadow-xl bg-popover text-popover-foreground border border-accent",
         "transition-all duration-300 ease-out",
         "opacity-0 scale-95 data-[visible=true]:opacity-100 data-[visible=true]:scale-100",
-        "transform-gpu"
+        "transform-gpu",
+        themeClass // Apply the theme class here
       )}
       style={{
         top: `${position.top}px`,
@@ -194,7 +208,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
               >
                 <ArrowLeftCircle className="mr-2 h-4 w-4" /> Previous
               </Button>
-            ) : <div className="flex-1"></div>} {/* Empty div for spacing if no prev button */}
+            ) : <div className="flex-1"></div>} 
             {currentStep.nextStepId ? (
               <Button
                 variant="outline"
@@ -204,7 +218,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
               >
                 Next <ArrowRightCircle className="ml-2 h-4 w-4" />
               </Button>
-            ) : <div className="flex-1"></div>} {/* Empty div for spacing if no next button */}
+            ) : <div className="flex-1"></div>} 
           </div>
         )}
         <Button
@@ -218,7 +232,6 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
           {primaryButtonText}
         </Button>
       </div>
-      {/* Ensure CSS for animation is present, can be in globals.css or here in a style tag if needed */}
       <style jsx global>{`
         @keyframes ping-once {
           0% { transform: scale(1) translateY(0); opacity: 1; }

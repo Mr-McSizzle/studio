@@ -68,6 +68,7 @@ export interface QuestCompletionReward {
   badgeName: string;
   badgeDescription: string;
   badgeIcon?: string; // Optional: Lucide icon name or path to an SVG
+  unlocksCosmeticId?: string; // Optional: ID of a cosmetic item unlocked by this quest
 }
 
 
@@ -83,3 +84,21 @@ export type AttachmentPoint =
 // steps: GuidanceStep[];
 // }
 
+// Conceptual type for User-Suggested Tips (Future Feature)
+/*
+export interface SubmittedTip {
+  id: string;                 // Auto-generated
+  userId: string;             // ID of the submitting user
+  tipContent: string;         // The actual text of the tip
+  suggestedContextPage?: string; // e.g., "/app/dashboard"
+  suggestedContextElement?: string; // e.g., "#cashOnHandCard" (CSS selector)
+  suggestedTrigger?: GuidanceTriggerType; // Optional: 'pageOpen', 'elementVisible', etc.
+  tags?: string[];            // User-suggested tags
+  submissionDate: string;     // ISO Date string
+  status: 'pending' | 'approved' | 'rejected' | 'needs_edit'; // Moderation status
+  moderatorFeedback?: string; // Feedback from moderator if rejected or needs edit
+  upvotes: number;            // Community upvotes
+  // downvotes: number;       // Optional: Community downvotes
+  // version?: number;        // For tracking edits if allowed
+}
+*/

@@ -141,6 +141,18 @@
     transition: all 0.3s ease-in-out;
     animation: guidance-pulse 1.5s infinite ease-in-out;
   }
+
+  /* Example theme for ContextualGuidanceTip */
+  .theme-founders-choice {
+    @apply bg-gradient-to-br from-primary/20 to-accent/20 border-primary;
+  }
+  .theme-founders-choice .prose { /* Example: Target prose text color within this theme */
+    @apply text-primary-foreground/90;
+  }
+   .theme-founders-choice .lucide-lightbulb { /* Example: Target icon color */
+    @apply text-primary;
+  }
+  /* Add more specific styling as needed for buttons etc. within the theme */
 }
 
 

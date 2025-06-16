@@ -18,7 +18,8 @@ export const DynamicGuidanceSystem: React.FC = () => {
     shownSteps,
     activeGuidance,
     completedQuests,
-    lastDailyInsightShownDate, // Get this from the store
+    lastDailyInsightShownDate,
+    activeTipThemeId, // Get active theme ID from store
     loadGuidanceSteps,
     setActiveGuidance,
     clearActiveGuidance,
@@ -98,15 +99,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
         return false; 
       }
 
-      // Daily Insight Check: If it's a daily insight and one has already been shown today, don't match.
       if (step.isDailyInsight && lastDailyInsightShownDate === today) {
-          // Exception: If THIS specific daily insight is currently active (e.g. user navigated away and back), allow it.
-          // This simple check might not be enough if we want to cycle through multiple daily insights per day.
-          // For now, one daily insight shown (any) blocks others for the day if their trigger matches.
-          // To be more precise, we'd need to track *which* daily insight was shown, or if we only allow ONE per day total.
-          // Assuming for now: if *any* daily insight was shown via lastDailyInsightShownDate, don't trigger another *different* one.
-          // If we want to allow *different* daily insights on the same day if their triggers match, this check needs refinement.
-          // For now, if a daily was already shown, this step (if it's daily) won't trigger.
           return false;
       }
 
@@ -123,10 +116,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
 
       const delay = matchedStep.trigger.delayMs || 0;
       timeoutIdRef.current = setTimeout(() => {
-        // If the matched step is a daily insight, and lastDailyInsightShownDate is NOT today, it's eligible.
-        // The store will handle marking lastDailyInsightShownDate upon dismissal.
         if (matchedStep.isDailyInsight && lastDailyInsightShownDate === today) {
-            // This condition is now technically redundant due to the check above, but for safety:
             console.log("[GuidanceSystem] Daily insight already shown today, not activating new one via this trigger.");
         } else {
             setActiveGuidance(matchedStep);
@@ -150,6 +140,7 @@ export const DynamicGuidanceSystem: React.FC = () => {
       attachment={activeGuidance?.targetElementAttachment || 'bottom-center'}
       onClose={handleCloseGuidance}
       currentStep={activeGuidance}
+      activeThemeId={activeTipThemeId} // Pass the active theme ID
     />
   );
 };

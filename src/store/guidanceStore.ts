@@ -13,6 +13,8 @@ const LOCALSTORAGE_FOUNDER_ACUMEN_SCORE_KEY = 'forgeSimFounderAcumenScore';
 const LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY = 'forgeSimFounderAcumenLevel';
 const LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY = 'forgeSimLastDailyInsightDate';
 const LOCALSTORAGE_DAILY_INSIGHT_STREAK_KEY = 'forgeSimDailyInsightStreak';
+const LOCALSTORAGE_UNLOCKED_COSMETIC_IDS_KEY = 'forgeSimUnlockedCosmeticIds';
+const LOCALSTORAGE_ACTIVE_TIP_THEME_ID_KEY = 'forgeSimActiveTipThemeId';
 
 
 interface GuidanceState {
@@ -25,17 +27,23 @@ interface GuidanceState {
   activeQuestId: string | null; 
   activeQuestStepId: string | null; 
 
-  // Phase 3: Gamification additions
+  // Gamification additions
   founderAcumenScore: number;
   founderAcumenLevel: string; // e.g., "Novice", "Adept", "Sage"
   lastDailyInsightShownDate: string | null; // Stores "YYYY-MM-DD"
   dailyInsightStreak: number;
+
+  // Cosmetic rewards
+  unlockedCosmeticIds: string[];
+  activeTipThemeId: string | null;
+
 
   loadGuidanceSteps: () => void;
   markStepAsShown: (stepId: string) => void;
   setActiveGuidance: (step: GuidanceStep | null) => void;
   clearActiveGuidance: () => void;
   navigateToQuestStep: (stepId: string) => void; 
+  setActiveTipTheme: (themeId: string | null) => void;
   _updateAcumenMetrics: () => void; // Internal helper
   _loadPersistedData: () => void;
   _persistAllGuidanceData: () => void; // Consolidated persistence
@@ -76,6 +84,9 @@ export const useGuidanceStore = create<GuidanceState>()(
       founderAcumenLevel: "Novice",
       lastDailyInsightShownDate: null,
       dailyInsightStreak: 0,
+
+      unlockedCosmeticIds: [],
+      activeTipThemeId: null,
 
       loadGuidanceSteps: () => {
         set({ steps: predefinedGuidanceSteps });
@@ -123,12 +134,18 @@ export const useGuidanceStore = create<GuidanceState>()(
         }
       },
 
+      setActiveTipTheme: (themeId: string | null) => {
+        set({ activeTipThemeId: themeId });
+        get()._persistAllGuidanceData();
+      },
+
       clearActiveGuidance: () => {
         const currentActiveGuidance = get().activeGuidance;
         const currentActiveQuestId = get().activeQuestId;
         let currentInsightXp = get().insightXp; // Get current XP before modifications
         let currentDailyStreak = get().dailyInsightStreak;
         let lastShownDate = get().lastDailyInsightShownDate;
+        let currentUnlockedCosmetics = [...get().unlockedCosmeticIds];
 
         if (currentActiveGuidance) {
           let awardedXpThisInteraction = 0;
@@ -181,9 +198,20 @@ export const useGuidanceStore = create<GuidanceState>()(
                 currentActiveQuestId,
                 questRewardDetails.badgeIcon
               );
+
+              // Unlock cosmetic if defined for the quest
+              if (questRewardDetails.unlocksCosmeticId && !currentUnlockedCosmetics.includes(questRewardDetails.unlocksCosmeticId)) {
+                currentUnlockedCosmetics.push(questRewardDetails.unlocksCosmeticId);
+                console.log(`Unlocked cosmetic: ${questRewardDetails.unlocksCosmeticId}`);
+              }
             }
           }
-          set({ insightXp: currentInsightXp, dailyInsightStreak: currentDailyStreak, lastDailyInsightShownDate: lastShownDate });
+          set({ 
+            insightXp: currentInsightXp, 
+            dailyInsightStreak: currentDailyStreak, 
+            lastDailyInsightShownDate: lastShownDate,
+            unlockedCosmeticIds: currentUnlockedCosmetics,
+          });
           get()._updateAcumenMetrics();
         }
         set({ activeGuidance: null, activeQuestId: null, activeQuestStepId: null });
@@ -212,6 +240,8 @@ export const useGuidanceStore = create<GuidanceState>()(
             founderAcumenLevel: loadItem(LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY, "Novice", (val) => typeof val === 'string'),
             lastDailyInsightShownDate: loadItem(LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY, null, (val) => typeof val === 'string' || val === null),
             dailyInsightStreak: loadItem(LOCALSTORAGE_DAILY_INSIGHT_STREAK_KEY, 0, (val) => typeof val === 'number'),
+            unlockedCosmeticIds: loadItem(LOCALSTORAGE_UNLOCKED_COSMETIC_IDS_KEY, [], (val) => Array.isArray(val) && val.every(item => typeof item === 'string')),
+            activeTipThemeId: loadItem(LOCALSTORAGE_ACTIVE_TIP_THEME_ID_KEY, null, (val) => typeof val === 'string' || val === null),
           });
           get()._updateAcumenMetrics(); // Ensure acumen score/level are up-to-date after loading XP
         }
@@ -227,6 +257,8 @@ export const useGuidanceStore = create<GuidanceState>()(
             localStorage.setItem(LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY, JSON.stringify(state.founderAcumenLevel));
             localStorage.setItem(LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY, JSON.stringify(state.lastDailyInsightShownDate));
             localStorage.setItem(LOCALSTORAGE_DAILY_INSIGHT_STREAK_KEY, JSON.stringify(state.dailyInsightStreak));
+            localStorage.setItem(LOCALSTORAGE_UNLOCKED_COSMETIC_IDS_KEY, JSON.stringify(state.unlockedCosmeticIds));
+            localStorage.setItem(LOCALSTORAGE_ACTIVE_TIP_THEME_ID_KEY, JSON.stringify(state.activeTipThemeId));
          }
       },
     }),
@@ -253,3 +285,28 @@ if (typeof window !== 'undefined') {
   useGuidanceStore.getState()._loadPersistedData(); 
   useGuidanceStore.getState().loadGuidanceSteps(); 
 }
+
+// Conceptual comments for User-Suggested Tips
+// Future function in the store:
+/*
+async submitUserTip(tipData: Omit<SubmittedTip, 'id' | 'submissionDate' | 'status' | 'upvotes'>): Promise<boolean> {
+  // 1. Add to a local 'pendingSubmissions' array in store (not persisted or for admin only)
+  // 2. OR: Send to a backend/Firebase Function for moderation.
+  // 3. Award initial XP for submission:
+  set(state => ({
+    insightXp: state.insightXp + SUBMISSION_XP_AWARD, // e.g., SUBMISSION_XP_AWARD = 5
+  }));
+  get()._updateAcumenMetrics();
+  get()._persistAllGuidanceData();
+  // 4. Return true/false based on successful submission (e.g., to backend)
+  return true; // Placeholder
+},
+*/
+//
+// Future logic in clearActiveGuidance or a separate function for when a moderator approves a tip:
+/*
+if (tip_was_user_submitted_and_now_approved) {
+  // Award major XP to original submitter
+  // Grant "Community Sage" badge to original submitter
+}
+*/
