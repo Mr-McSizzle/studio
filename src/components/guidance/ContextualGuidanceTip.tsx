@@ -43,7 +43,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
       return;
     }
 
-    const PADDING = 12;
+    const PADDING = 12; // Define PADDING here
 
     let newTop = window.innerHeight / 2 - (tipRef.current?.offsetHeight || 0) / 2;
     let newLeft = window.innerWidth / 2 - (tipRef.current?.offsetWidth || 0) / 2;
@@ -70,6 +70,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
       }
     }
 
+    // Ensure tip stays within viewport
     newTop = Math.max(PADDING, Math.min(newTop, window.innerHeight - (tipRef.current?.offsetHeight || 0) - PADDING));
     newLeft = Math.max(PADDING, Math.min(newLeft, window.innerWidth - (tipRef.current?.offsetWidth || 0) - PADDING));
 
@@ -83,7 +84,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
     if (xpAnimationAmount !== null) {
       const timer = setTimeout(() => {
         setXpAnimationAmount(null);
-      }, 1500);
+      }, 1500); // Animation duration
       return () => clearTimeout(timer);
     }
   }, [xpAnimationAmount]);
@@ -100,12 +101,16 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
         setXpAnimationAmount(xpToAnimate);
       }
     }
-    onClose();
+    onClose(); // This will call clearActiveGuidance in the store, which now handles XP logic.
   };
 
   const handleSuggestedActionClick = () => {
     if (currentStep?.suggestedAction?.path) {
-      router.push(currentStep.suggestedAction.path);
+      if (currentStep.suggestedAction.path.startsWith('http')) {
+        window.open(currentStep.suggestedAction.path, '_blank', 'noopener,noreferrer');
+      } else {
+        router.push(currentStep.suggestedAction.path);
+      }
     }
     onClose(); // Dismiss tip after taking action
   };
@@ -189,7 +194,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
               >
                 <ArrowLeftCircle className="mr-2 h-4 w-4" /> Previous
               </Button>
-            ) : <div className="flex-1"></div>}
+            ) : <div className="flex-1"></div>} {/* Empty div for spacing if no prev button */}
             {currentStep.nextStepId ? (
               <Button
                 variant="outline"
@@ -199,7 +204,7 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
               >
                 Next <ArrowRightCircle className="ml-2 h-4 w-4" />
               </Button>
-            ) : <div className="flex-1"></div>}
+            ) : <div className="flex-1"></div>} {/* Empty div for spacing if no next button */}
           </div>
         )}
         <Button
@@ -213,7 +218,8 @@ export const ContextualGuidanceTip: React.FC<ContextualGuidanceTipProps> = ({
           {primaryButtonText}
         </Button>
       </div>
-       <style jsx global>{`
+      {/* Ensure CSS for animation is present, can be in globals.css or here in a style tag if needed */}
+      <style jsx global>{`
         @keyframes ping-once {
           0% { transform: scale(1) translateY(0); opacity: 1; }
           50% { transform: scale(1.3) translateY(-10px); opacity: 0.8; }

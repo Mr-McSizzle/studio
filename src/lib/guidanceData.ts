@@ -12,7 +12,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     id: "dashboard-welcome-tip",
     message: "Welcome to your Dashboard! This is your startup's command center. Monitor key metrics like Cash, Users, and your Startup Score here.",
     trigger: { type: "pageOpen", path: "/app/dashboard", delayMs: 700 },
-    highlightSelector: ".container h1", 
+    highlightSelector: ".container .text-3xl.font-headline", // Targets the main page title on dashboard
     targetElementAttachment: "bottom-start",
     once: true,
     xpValue: 2,
@@ -22,6 +22,10 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     nextStepId: "setup-page-intro-quest", 
     questTotalSteps: 4,
     currentStepNumber: 1,
+    suggestedAction: {
+      label: "Learn More About Dashboards (External Link Example)",
+      path: "https://example.com/dashboard-guides" // Example external link
+    }
   },
   {
     id: "setup-page-intro-quest",
@@ -42,7 +46,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     id: "mentor-chat-intro-quest",
     message: "Meet EVE, your AI Hive Mind assistant. She's your primary contact for strategic advice and can tap into a team of specialized AI agents. Ask her anything!",
     trigger: { type: "pageOpen", path: "/app/mentor", delayMs: 600 },
-    highlightSelector: ".flex.flex-col.h-\\\\[calc\\\\(100vh-20rem\\\\)\\\\]", 
+    highlightSelector: ".flex.flex-col.h-\\\\[calc\\\\(100vh-20rem\\\\)\\\\]", // Escaped selector for chat interface
     targetElementAttachment: "top-center",
     once: true,
     xpValue: 2,
@@ -53,7 +57,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
     questTotalSteps: 4,
     currentStepNumber: 3,
     suggestedAction: {
-      label: "Ask EVE a question",
+      label: "Ask EVE for Startup Name Ideas", // More specific action
       path: "/app/mentor" // Stays on the same page, user expected to interact
     }
   },
@@ -88,7 +92,7 @@ export const predefinedGuidanceSteps: GuidanceStep[] = [
   },
   {
     id: "lab-discovery-tip",
-    message: "Sage's Wisdom: The Innovation Lab is your sandbox for bold ideas! Test scenarios or new decision levers here without impacting your main simulation. Great for risk-free experimentation.",
+    message: "The Innovation Lab is your sandbox for bold ideas! Test scenarios or new decision levers here without impacting your main simulation. Great for risk-free experimentation.",
     trigger: { type: "pageOpen", path: "/app/lab", delayMs: 800 },
     highlightSelector: "#sandbox-section", // Assuming a section for sandbox controls
     targetElementAttachment: "top-center",
@@ -128,4 +132,3 @@ export const questCompletionRewardsData: QuestCompletionReward[] = [
     badgeIcon: "Scroll",
   }
 ];
-

@@ -14,9 +14,9 @@ const LOCALSTORAGE_COMPLETED_QUESTS_KEY = 'forgeSimCompletedQuests';
 interface GuidanceState {
   steps: GuidanceStep[];
   shownSteps: string[];
-  awardedXpForSteps: string[];
+  awardedXpForSteps: string[]; // Tracks IDs of steps for which any XP (step or discovery) has been awarded
   completedQuests: string[]; // Array of quest IDs that have been completed
-  insightXp: number;
+  insightXp: number; // Total XP earned from all guidance interactions (step, discovery, quest completion)
   activeGuidance: GuidanceStep | null;
   activeQuestId: string | null; // ID of the currently active quest
   activeQuestStepId: string | null; // ID of the current step within the active quest
@@ -90,22 +90,25 @@ export const useGuidanceStore = create<GuidanceState>()(
 
         if (currentActiveGuidance) {
           let awardedXpThisInteraction = 0;
-          // Award step XP (either normal or discovery)
-          if (currentActiveGuidance.isDiscovery && currentActiveGuidance.discoveryXpValue && currentActiveGuidance.discoveryXpValue > 0 && !get().awardedXpForSteps.includes(currentActiveGuidance.id)) {
-            awardedXpThisInteraction = currentActiveGuidance.discoveryXpValue;
-          } else if (currentActiveGuidance.xpValue && currentActiveGuidance.xpValue > 0 && !get().awardedXpForSteps.includes(currentActiveGuidance.id)) {
-            awardedXpThisInteraction = currentActiveGuidance.xpValue;
-          }
+          
+          // Check if XP for this specific step ID has already been awarded
+          if (!get().awardedXpForSteps.includes(currentActiveGuidance.id)) {
+            if (currentActiveGuidance.isDiscovery && currentActiveGuidance.discoveryXpValue && currentActiveGuidance.discoveryXpValue > 0) {
+              awardedXpThisInteraction = currentActiveGuidance.discoveryXpValue;
+            } else if (currentActiveGuidance.xpValue && currentActiveGuidance.xpValue > 0) {
+              awardedXpThisInteraction = currentActiveGuidance.xpValue;
+            }
 
-          if (awardedXpThisInteraction > 0) {
-            set(state => ({
-              insightXp: state.insightXp + awardedXpThisInteraction,
-              awardedXpForSteps: [...state.awardedXpForSteps, currentActiveGuidance.id],
-            }));
-            get()._persistAwardedXpSteps();
+            if (awardedXpThisInteraction > 0) {
+              set(state => ({
+                insightXp: state.insightXp + awardedXpThisInteraction,
+                awardedXpForSteps: [...state.awardedXpForSteps, currentActiveGuidance.id],
+              }));
+              get()._persistAwardedXpSteps(); // Persist awarded XP steps immediately
+            }
           }
           
-          get().markStepAsShown(currentActiveGuidance.id);
+          get().markStepAsShown(currentActiveGuidance.id); // Mark step as shown (for 'once' logic)
 
           // Check for Quest Completion
           if (currentActiveGuidance.isQuestEnd && currentActiveQuestId && !get().completedQuests.includes(currentActiveQuestId)) {
@@ -115,7 +118,7 @@ export const useGuidanceStore = create<GuidanceState>()(
                 insightXp: state.insightXp + questRewardDetails.xp, 
                 completedQuests: [...state.completedQuests, currentActiveQuestId],
               }));
-              get()._persistCompletedQuests();
+              get()._persistCompletedQuests(); // Persist completed quests
               
               useSimulationStore.getState().awardQuestBadge(
                 questRewardDetails.badgeName,
@@ -197,7 +200,8 @@ export const useGuidanceStore = create<GuidanceState>()(
   )
 );
 
+// Initialize store listeners and load initial data when the module loads in the browser
 if (typeof window !== 'undefined') {
-  useGuidanceStore.getState()._loadPersistedData();
-  useGuidanceStore.getState().loadGuidanceSteps();
+  useGuidanceStore.getState()._loadPersistedData(); // Ensure this is called to load from localStorage
+  useGuidanceStore.getState().loadGuidanceSteps(); // Then load predefined steps
 }

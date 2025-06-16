@@ -28,7 +28,7 @@ export type GuidanceTrigger = PageOpenTrigger; // Union of all trigger types
 
 export interface SuggestedAction {
   label: string; // Text for the button
-  path: string;  // Path to navigate to
+  path: string;  // Path to navigate to or external URL
   // Future: actionType: 'navigate' | 'dispatchStoreAction' | 'openModal', target?: string (e.g. modalId or store action type)
 }
 
@@ -75,7 +75,8 @@ export type AttachmentPoint =
   | 'left-start' | 'left-center' | 'left-end'
   | 'center'; // Fallback if no target element
 
-export interface FirestoreGuidanceDocument {
-  steps: GuidanceStep[];
-}
+// This type is not used as we are not using Firestore anymore for guidance steps.
+// export interface FirestoreGuidanceDocument {
+// steps: GuidanceStep[];
+// }
 
