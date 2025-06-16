@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label"; // Added missing import
 import { Badge } from "@/components/ui/badge";
 import { ListTodo, PlusCircle, Trash2, Star, TrendingUp, GripVertical, Tag, ShieldAlert, ChevronsUpDown, Zap } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
-import type { TodoItem, TaskDifficulty, TaskPriority } from "@/types/todo"; // Updated import
+import type { TodoItem, TaskDifficulty, TaskPriority } from "@/types/todo";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
