@@ -133,6 +133,14 @@
   .nexus-bg-animations > div {
     @apply absolute;
   }
+
+  /* Guidance System Highlight */
+  .guidance-highlight-active {
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-background shadow-accent-glow-md;
+    outline: 2px solid hsl(var(--accent) / 0.8);
+    transition: all 0.3s ease-in-out;
+    animation: guidance-pulse 1.5s infinite ease-in-out;
+  }
 }
 
 
@@ -193,6 +201,14 @@
       animation-name: orbit-3-sm;
     }
   }
-}
 
-    
+  /* Keyframes for guidance highlight pulse */
+  @keyframes guidance-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--accent) / 0.7), 0 0 10px 1px hsl(var(--accent) / 0.6);
+    }
+    50% {
+      box-shadow: 0 0 0 5px hsl(var(--accent) / 0), 0 0 20px 3px hsl(var(--accent) / 0.7);
+    }
+  }
+}

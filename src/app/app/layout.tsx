@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { PanelLeft, LogOut, Settings } from "lucide-react"; // Removed MessagesSquare, ChevronRight, Lightbulb
+import { PanelLeft, LogOut, Settings } from "lucide-react"; 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; 
 
@@ -20,12 +20,10 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-// Removed Card, CardContent, CardHeader, CardTitle from here as HiveMindGuidanceBar is removed
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore"; 
 import { useAuthStore } from "@/store/authStore"; 
-
-// HiveMindGuidanceBar component is removed
+import { DynamicGuidanceSystem } from "@/components/guidance/DynamicGuidanceSystem"; // Added
 
 function UserProfileDropdown() {
   const router = useRouter();
@@ -152,17 +150,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               </Sheet>
             </header>
             <SidebarInset className="p-4 sm:px-6 sm:py-0">
-             {/* HiveMindGuidanceBar was here and is now removed */}
               <main className="flex-1 overflow-auto py-6">
                 {children}
               </main>
             </SidebarInset>
           </div>
         </div>
+        <DynamicGuidanceSystem /> {/* Added Dynamic Guidance System */}
       </SidebarProvider>
     </TooltipProvider>
   );
 }
-    
-
-    
