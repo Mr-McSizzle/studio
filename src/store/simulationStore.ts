@@ -394,17 +394,26 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
       setMarketingSpend: (amount: number) => set(state => {
         if (!state.isInitialized || amount < 0) return state;
-        return { resources: { ...state.resources, marketingSpend: amount } };
+        return { 
+          ...state,
+          resources: { ...state.resources, marketingSpend: amount } 
+        };
       }),
 
       setRndSpend: (amount: number) => set(state => {
         if (!state.isInitialized || amount < 0) return state;
-        return { resources: { ...state.resources, rndSpend: amount } };
+        return { 
+          ...state,
+          resources: { ...state.resources, rndSpend: amount } 
+        };
       }),
 
       setPricePerUser: (price: number) => set(state => {
         if (!state.isInitialized || price < 0) return state;
-        return { product: { ...state.product, pricePerUser: price } };
+        return { 
+          ...state,
+          product: { ...state.product, pricePerUser: price } 
+        };
       }),
 
       adjustTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => set(state => {
@@ -424,7 +433,10 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         } else if (change > 0) {
           team.push({ role: roleToAdjust, count: change, salary: salaryPerMember || (roleToAdjust.toLowerCase() === 'founder' ? MOCK_SALARY_PER_FOUNDER : DEFAULT_ENGINEER_SALARY) });
         }
-        return { resources: { ...state.resources, team } };
+        return { 
+          ...state,
+          resources: { ...state.resources, team } 
+        };
       }),
 
       setMissions: (generatedMissionsFromAI: GeneratedMission[]) => set(state => {
@@ -1107,6 +1119,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     }
   )
 );
+
 
 
 
