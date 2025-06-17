@@ -148,7 +148,21 @@ export default {
         'text-fade-in-scale-up': {
            '0%': { opacity: '0', transform: 'scale(0.9)' },
            '100%': { opacity: '1', transform: 'scale(1)' },
-        }
+        },
+        'orb-pulse': { // For cinematic setup orb
+          '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px hsl(var(--accent)/0.6))' },
+          '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 25px hsl(var(--accent)/0.8))' },
+        },
+        'ring-rotate-scale': { // For cinematic setup rings
+          '0%': { transform: 'rotate(0deg) scale(0.8)', opacity: '0.7' },
+          '50%': { transform: 'rotate(180deg) scale(1)', opacity: '0.3' },
+          '100%': { transform: 'rotate(360deg) scale(0.8)', opacity: '0.7' },
+        },
+        'data-stream': { // Simple data stream effect
+            '0%': { transform: 'translateY(-100%)', opacity: '0' },
+            '20%, 80%': { opacity: '0.3' },
+            '100%': { transform: 'translateY(100%)', opacity: '0' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -167,6 +181,9 @@ export default {
         'particle-burst': 'particle-burst-rise-fade var(--particle-duration, 1.5s) ease-out var(--particle-delay, 0s) forwards',
         'avatar-glide': 'avatar-glide-in 0.7s ease-out forwards',
         'text-fade-in': 'text-fade-in-scale-up 0.6s ease-out forwards',
+        'orb-pulse': 'orb-pulse 3s ease-in-out infinite',
+        'ring-rotate-scale': 'ring-rotate-scale 5s linear infinite',
+        'data-stream': 'data-stream 3s linear infinite',
       },
       boxShadow: { 
         'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',
@@ -220,4 +237,5 @@ export default {
     }
   ],
 } satisfies Config;
+
     
