@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { promptStartup, type PromptStartupInput, type PromptStartupOutput } from "@/ai/flows/prompt-startup";
 import { suggestNames, type SuggestNamesInput, type SuggestNamesOutput } from "@/ai/flows/suggest-names-flow";
@@ -9,14 +9,16 @@ import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target, DollarSign, TrendingUp, Percent, Users, MessageSquare, FileSignature, Brain, Wand2 } from "lucide-react";
+import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target, DollarSign, TrendingUp, Percent, Users, MessageSquare, FileSignature, Brain, Wand2, Zap, Network, UsersRound, ChevronRight } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { CinematicSetupOverlay } from "@/components/setup/CinematicSetupOverlay"; // New Import
+import { CinematicSetupOverlay } from "@/components/setup/CinematicSetupOverlay"; 
+import { FounderArchetype, FounderArchetypeEnum } from "@/types/simulation";
+import { cn } from "@/lib/utils";
 
 const initializationSteps = [
   "Initializing Digital Twin Core...",
@@ -27,8 +29,33 @@ const initializationSteps = [
 ];
 const eveFinalMessage = "Twin activated. Let’s begin shaping your future.";
 
+const archetypes: { id: FounderArchetype; title: string; description: string; icon: React.ElementType }[] = [
+  { id: 'innovator', title: "The Disruptive Innovator", description: "Focuses on groundbreaking products and R&D, aiming to redefine the market. May involve higher initial risk for greater potential reward.", icon: Zap },
+  { id: 'scaler', title: "The Lean Scaler", description: "Prioritizes operational efficiency, rapid market penetration, and sustainable growth. Emphasizes metrics and process optimization.", icon: Network },
+  { id: 'community_builder', title: "The Community Builder", description: "Builds a strong user base through engagement, feedback, and fostering loyalty. Values brand reputation and user-centric development.", icon: UsersRound },
+];
+
+const eveFeedbacks: Record<string, Record<string, { message: string; threshold: number | string }>> = {
+  targetMarket: {
+    short: { message: "EVE: Defining your target audience is key. Who are you building this for?", threshold: 5 },
+    medium: { message: "EVE: An interesting market focus! Maya, our Marketing Guru, sees potential here.", threshold: 20 },
+    long: { message: "EVE: A well-defined target market. This clarity will guide your strategy significantly.", threshold: 50 },
+  },
+  budget: {
+    low: { message: "EVE: A lean start. Alex, our Accountant, advises meticulous cash flow management.", threshold: 10000 },
+    medium: { message: "EVE: A solid initial budget. This provides flexibility for early moves.", threshold: 50000 },
+    high: { message: "EVE: Ample resources to begin! Leo, our Expansion Expert, is noting the potential for bold strategies.", threshold: 200000 },
+  },
+  startupNameIdea: {
+    conceptual: { message: "EVE: The genesis of an idea... What problem will it solve?", threshold: 10 },
+    developing: { message: "EVE: The concept is taking shape. Brand Lab is intrigued by the naming potential.", threshold: 30 },
+  }
+};
 
 export default function SetupSimulationPage() {
+  const [currentStep, setCurrentStep] = useState(1); // 1 for archetype, 2 for details
+  const [selectedArchetype, setSelectedArchetype] = useState<FounderArchetype | undefined>(undefined);
+
   const [startupNameIdea, setStartupNameIdea] = useState("");
   const [targetMarket, setTargetMarket] = useState("");
   const [budget, setBudget] = useState("");
@@ -42,20 +69,56 @@ export default function SetupSimulationPage() {
   const [initialIP, setInitialIP] = useState("");
 
   const [simulationOutput, setSimulationOutput] = useState<PromptStartupOutput | null>(null);
-  const [isLoadingAiCall, setIsLoadingAiCall] = useState(false); // Renamed from isLoading
+  const [isLoadingAiCall, setIsLoadingAiCall] = useState(false); 
   const [error, setError] = useState<string | null>(null);
   const [isSuggestingNames, setIsSuggestingNames] = useState(false);
 
-  // State for cinematic overlay
   const [showCinematicOverlay, setShowCinematicOverlay] = useState(false);
   const [cinematicProgressText, setCinematicProgressText] = useState("");
   const [showEveInOverlay, setShowEveInOverlay] = useState(false);
   const [cinematicStepIndex, setCinematicStepIndex] = useState(0);
 
+  const [eveSetupFeedback, setEveSetupFeedback] = useState<string | null>(null);
+  const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { toast } = useToast();
   const router = useRouter();
   const initializeSimulationInStore = useSimulationStore(state => state.initializeSimulation);
   const resetSimStore = useSimulationStore(state => state.resetSimulation);
+
+  const displayEveFeedback = (feedbackKey: keyof typeof eveFeedbacks, value: string | number) => {
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    const fieldFeedbacks = eveFeedbacks[feedbackKey];
+    let messageToShow = null;
+
+    if (typeof value === 'string') {
+        if (value.length > (fieldFeedbacks.developing?.threshold as number || 30)) messageToShow = fieldFeedbacks.developing?.message;
+        else if (value.length > (fieldFeedbacks.conceptual?.threshold as number || 10)) messageToShow = fieldFeedbacks.conceptual?.message;
+    } else if (typeof value === 'number') {
+        if (value >= (fieldFeedbacks.high?.threshold as number || 200000)) messageToShow = fieldFeedbacks.high?.message;
+        else if (value >= (fieldFeedbacks.medium?.threshold as number || 50000)) messageToShow = fieldFeedbacks.medium?.message;
+        else if (value >= (fieldFeedbacks.low?.threshold as number || 0)) messageToShow = fieldFeedbacks.low?.message; // Check against 0 for budget
+    }
+    
+    setEveSetupFeedback(messageToShow || "");
+
+    feedbackTimeoutRef.current = setTimeout(() => {
+      setEveSetupFeedback(null);
+    }, 4000); // Feedback disappears after 4 seconds
+  };
+
+  useEffect(() => {
+    if (startupNameIdea.trim()) displayEveFeedback('startupNameIdea', startupNameIdea);
+  }, [startupNameIdea]);
+
+  useEffect(() => {
+    if (targetMarket.trim()) displayEveFeedback('targetMarket', targetMarket);
+  }, [targetMarket]);
+
+  useEffect(() => {
+    if (budget) displayEveFeedback('budget', parseFloat(budget));
+  }, [budget]);
+
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -63,13 +126,11 @@ export default function SetupSimulationPage() {
       setCinematicProgressText(initializationSteps[cinematicStepIndex]);
       timer = setTimeout(() => {
         setCinematicStepIndex(prev => prev + 1);
-      }, 2000); // Duration for each text step
+      }, 2000); 
     } else if (showCinematicOverlay && !showEveInOverlay && cinematicStepIndex >= initializationSteps.length) {
-      // All text steps done, prepare to show EVE
       timer = setTimeout(() => {
         setShowEveInOverlay(true);
-        setCinematicProgressText(eveFinalMessage); // This text is now handled by CinematicSetupOverlay via eveMessage
-      }, 1000); // Delay before EVE appears
+      }, 1000); 
     }
     return () => clearTimeout(timer);
   }, [showCinematicOverlay, cinematicStepIndex, showEveInOverlay]);
@@ -77,15 +138,28 @@ export default function SetupSimulationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedArchetype) {
+      toast({ title: "Archetype Required", description: "Please select your Founder's Calling archetype first.", variant: "destructive" });
+      return;
+    }
     if (!startupNameIdea.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim()) {
       toast({ title: "Input Required", description: "Please provide your startup name/idea, target market, initial budget, and currency code.", variant: "destructive" });
       return;
     }
-    // ... (rest of the validation logic) ...
+    if (currencyCode.trim().length !== 3) {
+        toast({ title: "Invalid Currency Code", description: "Currency code must be 3 letters (e.g., USD, EUR).", variant: "destructive" });
+        return;
+    }
+     const budgetNum = parseFloat(budget);
+    if (isNaN(budgetNum) || budgetNum <= 0) {
+        toast({ title: "Invalid Budget", description: "Initial budget must be a positive number.", variant: "destructive" });
+        return;
+    }
+
 
     setIsLoadingAiCall(true);
-    setShowCinematicOverlay(true); // Start cinematic overlay
-    setCinematicStepIndex(0); // Reset cinematic steps
+    setShowCinematicOverlay(true); 
+    setCinematicStepIndex(0); 
     setShowEveInOverlay(false);
     setError(null);
     setSimulationOutput(null);
@@ -96,6 +170,7 @@ export default function SetupSimulationPage() {
       Target Market: ${targetMarket}
       Initial Budget: ${budget}
       Preferred Currency: ${currencyCode.toUpperCase()}
+      Founder Archetype: ${selectedArchetype}
       ${targetGrowthRate ? `Target Monthly User Growth Rate: ${targetGrowthRate}%` : ''}
       ${desiredProfitMargin ? `Desired Profit Margin: ${desiredProfitMargin}%` : ''}
       ${targetCAC ? `Target Customer Acquisition Cost (CAC): ${currencyCode.toUpperCase()} ${targetCAC}` : ''}
@@ -107,6 +182,7 @@ export default function SetupSimulationPage() {
     try {
       const input: PromptStartupInput = {
         prompt: fullPromptForAI,
+        selectedArchetype: selectedArchetype, // Pass selected archetype
         currencyCode: currencyCode.toUpperCase(),
         targetGrowthRate: targetGrowthRate || undefined,
         desiredProfitMargin: desiredProfitMargin || undefined,
@@ -115,30 +191,26 @@ export default function SetupSimulationPage() {
         initialProductFeatures: initialProductFeatures.split(',').map(f => f.trim()).filter(f => f) || undefined,
         initialIP: initialIP.trim() || undefined,
       };
-      // Simulate AI call delay for cinematic effect if needed, then actual call
-      // For demo, let's assume the cinematic sequence itself takes time
+      
       const result = await promptStartup(input);
       setSimulationOutput(result);
-      initializeSimulationInStore(result, startupNameIdea, targetMarket, budget, currencyCode.toUpperCase());
+      initializeSimulationInStore(result, startupNameIdea, targetMarket, budget, currencyCode.toUpperCase(), selectedArchetype);
 
-      // Wait a bit after EVE's message before redirecting
       setTimeout(() => {
         toast({ title: "Digital Twin Initialized!", description: "Your simulation is ready. Redirecting to dashboard...", });
         router.push("/app/dashboard");
-        setShowCinematicOverlay(false); // Hide overlay before navigation (though unmount will also do it)
-      }, 2500); // Delay after EVE's message
+        setShowCinematicOverlay(false); 
+      }, 2500); 
 
     } catch (err) {
       console.error("Error initializing startup simulation:", err);
-      // ... (rest of error handling logic) ...
-      setShowCinematicOverlay(false); // Hide overlay on error
+      setShowCinematicOverlay(false); 
       setIsLoadingAiCall(false);
       let userFriendlyMessage = "Failed to initialize simulation. The AI might be unavailable or returned an unexpected response. Please try again.";
       if (err instanceof Error) userFriendlyMessage = `Failed to initialize simulation. Details: ${err.message}`;
       setError(userFriendlyMessage);
       toast({ title: "Error Initializing Simulation", description: userFriendlyMessage, variant: "destructive" });
     } 
-    // setIsLoadingAiCall(false) is handled by success redirect or error path
   };
 
   const handleSuggestNames = async () => {
@@ -191,203 +263,255 @@ export default function SetupSimulationPage() {
             Initialize Your Digital Twin
           </h1>
           <p className="text-muted-foreground">
-            Describe your startup's core concept, target market, initial budget, and preferred currency. ForgeSim's AI will generate the initial scenario. Include specific goals for a more tailored simulation.
+            Begin by choosing your founder's approach, then detail your venture. ForgeSim's AI will generate your initial simulation.
           </p>
         </header>
 
-        <Card className="shadow-lg mb-8">
-          <CardHeader>
-            <CardTitle>Define Your Startup Venture</CardTitle>
-            <CardDescription>
-              Provide details about your business concept. The more specific you are, the more tailored your simulation's starting point will be.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="startup-name-idea" className="text-sm font-medium flex items-center gap-2">
-                    <FileSignature className="h-4 w-4 text-muted-foreground"/> Startup Name / Business Idea Summary
-                  </Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSuggestNames}
-                    disabled={isLoadingAiCall || isSuggestingNames}
+        {currentStep === 1 && (
+          <Card className="shadow-lg mb-8 animate-fadeInUp">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Lightbulb className="h-6 w-6 text-primary"/>Choose Your Founder's Calling</CardTitle>
+              <CardDescription>Select an archetype that best represents your primary approach. This will subtly influence your simulation's starting conditions and potential challenges.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-3 gap-6">
+              {archetypes.map(archetype => {
+                const Icon = archetype.icon;
+                return (
+                  <Card
+                    key={archetype.id}
+                    className={cn(
+                      "cursor-pointer hover:shadow-xl transition-all duration-200",
+                      selectedArchetype === archetype.id ? "ring-2 ring-accent border-accent shadow-accent-glow-sm" : "hover:border-primary/50"
+                    )}
+                    onClick={() => setSelectedArchetype(archetype.id)}
                   >
-                    {isSuggestingNames ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4"/>}
-                    Need Name Ideas?
-                  </Button>
-                </div>
-                <Textarea
-                  id="startup-name-idea"
-                  value={startupNameIdea}
-                  onChange={(e) => setStartupNameIdea(e.target.value)}
-                  placeholder="e.g., 'ForgePress' - A SaaS platform for small businesses to manage social media with AI content suggestions..."
-                  rows={3}
-                  className="w-full"
-                  disabled={isLoadingAiCall}
-                />
-              </div>
-              <div>
-                <Label htmlFor="target-market" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                  <Target className="h-4 w-4 text-muted-foreground"/> Target Market
-                </Label>
-                <Input
-                  id="target-market"
-                  value={targetMarket}
-                  onChange={(e) => setTargetMarket(e.target.value)}
-                  placeholder="e.g., Local coffee shops and independent retailers in urban areas with annual revenue < $500k."
-                  className="w-full"
-                  disabled={isLoadingAiCall}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="budget" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-muted-foreground"/> Initial Budget (Numerical Value)
-                  </Label>
-                  <Input
-                    id="budget"
-                    value={budget}
-                    onChange={(e) => setBudget(e.target.value)}
-                    placeholder="e.g., 50000"
-                    type="number"
+                    <CardHeader className="items-center text-center">
+                      <div className={cn("p-3 rounded-full mb-3 transition-colors", selectedArchetype === archetype.id ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground")}>
+                        <Icon className="h-8 w-8" />
+                      </div>
+                      <CardTitle className="text-xl">{archetype.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <p className="text-sm text-muted-foreground">{archetype.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </CardContent>
+            <CardContent className="text-center">
+                <Button onClick={() => setCurrentStep(2)} disabled={!selectedArchetype || isLoadingAiCall} size="lg" className="bg-primary hover:bg-primary/90">
+                    Proceed to Venture Details <ChevronRight className="ml-2 h-5 w-5"/>
+                </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {currentStep === 2 && (
+          <Card className="shadow-lg mb-8 animate-fadeInUp">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><FileSignature className="h-6 w-6 text-primary"/>Define Your Startup Venture</CardTitle>
+              <CardDescription>
+                Provide details about your business concept. You've chosen the path of <span className="font-semibold text-accent">{archetypes.find(a => a.id === selectedArchetype)?.title || 'your chosen archetype'}</span>.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="startup-name-idea" className="text-sm font-medium flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground"/> Startup Name / Business Idea Summary
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSuggestNames}
+                      disabled={isLoadingAiCall || isSuggestingNames}
+                    >
+                      {isSuggestingNames ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4"/>}
+                      Need Name Ideas?
+                    </Button>
+                  </div>
+                  <Textarea
+                    id="startup-name-idea"
+                    value={startupNameIdea}
+                    onChange={(e) => setStartupNameIdea(e.target.value)}
+                    placeholder="e.g., 'ForgePress' - A SaaS platform for small businesses to manage social media with AI content suggestions..."
+                    rows={3}
                     className="w-full"
                     disabled={isLoadingAiCall}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="currency-code" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground"/> Currency Code (3 Letters)
+                  <Label htmlFor="target-market" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                    <Target className="h-4 w-4 text-muted-foreground"/> Target Market
                   </Label>
                   <Input
-                    id="currency-code"
-                    value={currencyCode}
-                    onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())}
-                    placeholder="e.g., USD, EUR, JPY"
-                    maxLength={3}
+                    id="target-market"
+                    value={targetMarket}
+                    onChange={(e) => setTargetMarket(e.target.value)}
+                    placeholder="e.g., Local coffee shops and independent retailers in urban areas with annual revenue < $500k."
                     className="w-full"
                     disabled={isLoadingAiCall}
                   />
                 </div>
-              </div>
-              
-              <Separator />
-              <p className="text-sm text-muted-foreground">Optional: Provide more details for a richer starting simulation.</p>
-
-              <div>
-                <Label htmlFor="initial-team-notes" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground"/> Initial Team Setup Notes (Optional)
-                </Label>
-                <Input
-                  id="initial-team-notes"
-                  value={initialTeamSetupNotes}
-                  onChange={(e) => setInitialTeamSetupNotes(e.target.value)}
-                  placeholder="e.g., 'Two technical co-founders (0 salary), 1 marketing intern ($1000/mo)'"
-                  className="w-full"
-                  disabled={isLoadingAiCall}
-                />
-              </div>
-               <div>
-                <Label htmlFor="initial-product-features" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-muted-foreground"/> Key Initial Product Features (Comma-separated, Optional)
-                </Label>
-                <Input
-                  id="initial-product-features"
-                  value={initialProductFeatures}
-                  onChange={(e) => setInitialProductFeatures(e.target.value)}
-                  placeholder="e.g., User Authentication, Dashboard Analytics, AI Content Suggestions"
-                  className="w-full"
-                  disabled={isLoadingAiCall}
-                />
-              </div>
-               <div>
-                <Label htmlFor="initial-ip" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground"/> Initial IP/Assets (Optional)
-                </Label>
-                <Input
-                  id="initial-ip"
-                  value={initialIP}
-                  onChange={(e) => setInitialIP(e.target.value)}
-                  placeholder="e.g., Patented algorithm for X, Exclusive dataset Y"
-                  className="w-full"
-                  disabled={isLoadingAiCall}
-                />
-              </div>
-
-              <Card className="bg-card/50 border-dashed">
-                <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="h-5 w-5 text-accent"/> Define Initial Goals (Optional)</CardTitle>
-                  <CardDescription>Help the AI tailor the initial simulation challenges and parameters.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="target-growth-rate" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground"/> Target Monthly User Growth Rate (%)
+                    <Label htmlFor="budget" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground"/> Initial Budget (Numerical Value)
                     </Label>
                     <Input
-                      id="target-growth-rate"
-                      value={targetGrowthRate}
-                      onChange={(e) => setTargetGrowthRate(e.target.value)}
-                      placeholder="e.g., 20 for 20%"
+                      id="budget"
+                      value={budget}
+                      onChange={(e) => setBudget(e.target.value)}
+                      placeholder="e.g., 50000"
                       type="number"
                       className="w-full"
                       disabled={isLoadingAiCall}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="desired-profit-margin" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                      <Percent className="h-4 w-4 text-muted-foreground"/> Desired Profit Margin (%)
+                    <Label htmlFor="currency-code" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground"/> Currency Code (3 Letters)
                     </Label>
                     <Input
-                      id="desired-profit-margin"
-                      value={desiredProfitMargin}
-                      onChange={(e) => setDesiredProfitMargin(e.target.value)}
-                      placeholder="e.g., 15 for 15%"
-                      type="number"
+                      id="currency-code"
+                      value={currencyCode}
+                      onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())}
+                      placeholder="e.g., USD, EUR, JPY"
+                      maxLength={3}
                       className="w-full"
                       disabled={isLoadingAiCall}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="target-cac" className="text-sm font-medium mb-2 block flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground"/> Target CAC ({currencyCode || 'USD'})
-                    </Label>
-                    <Input
-                      id="target-cac"
-                      value={targetCAC}
-                      onChange={(e) => setTargetCAC(e.target.value)}
-                      placeholder="e.g., 25"
-                      type="number"
-                      className="w-full"
-                      disabled={isLoadingAiCall}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Button
-                type="submit"
-                disabled={isLoadingAiCall || !startupNameIdea.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim() || currencyCode.trim().length !== 3}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto"
-                size="lg"
-              >
-                {isLoadingAiCall && !showCinematicOverlay ? ( /* Fallback if cinematic doesn't show for some reason */
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Generating Digital Twin...
-                  </>
-                ) : (
-                  "Initialize Simulation"
+                </div>
+                
+                {eveSetupFeedback && (
+                  <Alert variant="default" className="bg-secondary/20 border-secondary/50 text-sm animate-fadeIn">
+                    <MessageSquare className="h-4 w-4 text-secondary" />
+                    <AlertDescription>{eveSetupFeedback}</AlertDescription>
+                  </Alert>
                 )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
 
-        {error && !showCinematicOverlay && ( /* Only show error here if cinematic isn't active */
+                <Separator />
+                <p className="text-sm text-muted-foreground">Optional: Provide more details for a richer starting simulation.</p>
+
+                <div>
+                  <Label htmlFor="initial-team-notes" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground"/> Initial Team Setup Notes (Optional)
+                  </Label>
+                  <Input
+                    id="initial-team-notes"
+                    value={initialTeamSetupNotes}
+                    onChange={(e) => setInitialTeamSetupNotes(e.target.value)}
+                    placeholder="e.g., 'Two technical co-founders (0 salary), 1 marketing intern ($1000/mo)'"
+                    className="w-full"
+                    disabled={isLoadingAiCall}
+                  />
+                </div>
+                 <div>
+                  <Label htmlFor="initial-product-features" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-muted-foreground"/> Key Initial Product Features (Comma-separated, Optional)
+                  </Label>
+                  <Input
+                    id="initial-product-features"
+                    value={initialProductFeatures}
+                    onChange={(e) => setInitialProductFeatures(e.target.value)}
+                    placeholder="e.g., User Authentication, Dashboard Analytics, AI Content Suggestions"
+                    className="w-full"
+                    disabled={isLoadingAiCall}
+                  />
+                </div>
+                 <div>
+                  <Label htmlFor="initial-ip" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground"/> Initial IP/Assets (Optional)
+                  </Label>
+                  <Input
+                    id="initial-ip"
+                    value={initialIP}
+                    onChange={(e) => setInitialIP(e.target.value)}
+                    placeholder="e.g., Patented algorithm for X, Exclusive dataset Y"
+                    className="w-full"
+                    disabled={isLoadingAiCall}
+                  />
+                </div>
+
+                <Card className="bg-card/50 border-dashed">
+                  <CardHeader className="pb-3 pt-4">
+                    <CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="h-5 w-5 text-accent"/> Define Initial Goals (Optional)</CardTitle>
+                    <CardDescription>Help the AI tailor the initial simulation challenges and parameters.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <Label htmlFor="target-growth-rate" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground"/> Target Monthly User Growth Rate (%)
+                      </Label>
+                      <Input
+                        id="target-growth-rate"
+                        value={targetGrowthRate}
+                        onChange={(e) => setTargetGrowthRate(e.target.value)}
+                        placeholder="e.g., 20 for 20%"
+                        type="number"
+                        className="w-full"
+                        disabled={isLoadingAiCall}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="desired-profit-margin" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                        <Percent className="h-4 w-4 text-muted-foreground"/> Desired Profit Margin (%)
+                      </Label>
+                      <Input
+                        id="desired-profit-margin"
+                        value={desiredProfitMargin}
+                        onChange={(e) => setDesiredProfitMargin(e.target.value)}
+                        placeholder="e.g., 15 for 15%"
+                        type="number"
+                        className="w-full"
+                        disabled={isLoadingAiCall}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="target-cac" className="text-sm font-medium mb-2 block flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-muted-foreground"/> Target CAC ({currencyCode || 'USD'})
+                      </Label>
+                      <Input
+                        id="target-cac"
+                        value={targetCAC}
+                        onChange={(e) => setTargetCAC(e.target.value)}
+                        placeholder="e.g., 25"
+                        type="number"
+                        className="w-full"
+                        disabled={isLoadingAiCall}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <Button type="button" variant="outline" onClick={() => setCurrentStep(1)} disabled={isLoadingAiCall}>
+                        Back to Archetypes
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={isLoadingAiCall || !startupNameIdea.trim() || !targetMarket.trim() || !budget.trim() || !currencyCode.trim() || currencyCode.trim().length !== 3 || !(parseFloat(budget) > 0)}
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto"
+                        size="lg"
+                    >
+                        {isLoadingAiCall && !showCinematicOverlay ? ( 
+                        <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Generating Digital Twin...
+                        </>
+                        ) : (
+                        "Initialize Simulation"
+                        )}
+                    </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {error && !showCinematicOverlay && ( 
           <Alert variant="destructive" className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Error Generating Scenario</AlertTitle>
@@ -395,7 +519,7 @@ export default function SetupSimulationPage() {
           </Alert>
         )}
 
-        {simulationOutput && !isLoadingAiCall && !showCinematicOverlay && (
+        {simulationOutput && !isLoadingAiCall && !showCinematicOverlay && currentStep === 2 && (
           <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2 mt-8">
             <Card className="shadow-lg">
               <CardHeader>
@@ -432,7 +556,7 @@ export default function SetupSimulationPage() {
           </div>
         )}
 
-        {!isLoadingAiCall && !simulationOutput && !error && !showCinematicOverlay && (
+        {!isLoadingAiCall && !simulationOutput && !error && !showCinematicOverlay && currentStep === 2 &&(
            <Card className="shadow-lg text-center py-12 border-dashed bg-card/50">
             <CardContent>
               <Lightbulb className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -446,5 +570,3 @@ export default function SetupSimulationPage() {
     </>
   );
 }
-
-    

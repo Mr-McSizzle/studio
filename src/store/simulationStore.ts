@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission } from '@/types/simulation';
+import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission, FounderArchetype } from '@/types/simulation'; // Added FounderArchetype
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
 
@@ -87,7 +87,7 @@ export interface EarnedBadge {
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'missions' | 'earnedBadges'> = {
+const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'missions' | 'earnedBadges' | 'selectedArchetype'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -128,11 +128,13 @@ const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'histor
   startupScore: 10,
   isInitialized: false,
   initialGoals: [],
+  // selectedArchetype is omitted here, will be added in getInitialState if needed or handled by initialize
 };
 
 
 const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSnapshot[] } => ({
   ...initialBaseState,
+  selectedArchetype: undefined, // Initialize selectedArchetype
   keyEvents: [createStructuredEvent(0, "Simulation not yet initialized. Set up your venture to begin!", "System", "Neutral")],
   rewards: [],
   earnedBadges: [], // Initialize earnedBadges
@@ -154,7 +156,7 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
 });
 
 interface SimulationActions {
-  initializeSimulation: (aiOutput: PromptStartupOutput, userStartupName: string, userTargetMarket: string, userBudget: string, userCurrencyCode: string) => void;
+  initializeSimulation: (aiOutput: PromptStartupOutput, userStartupName: string, userTargetMarket: string, userBudget: string, userCurrencyCode: string, selectedArchetype?: FounderArchetype) => void; // Added selectedArchetype
   advanceMonth: () => Promise<void>;
   resetSimulation: () => void;
   setMarketingSpend: (amount: number) => void;
@@ -199,12 +201,13 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     startupScore: state.startupScore,
     keyEvents: state.keyEvents,
     rewards: state.rewards,
-    earnedBadges: state.earnedBadges, // Include earnedBadges
+    earnedBadges: state.earnedBadges, 
     initialGoals: state.initialGoals,
     missions: state.missions,
     suggestedChallenges: state.suggestedChallenges,
     isInitialized: state.isInitialized,
     currentAiReasoning: state.currentAiReasoning,
+    selectedArchetype: state.selectedArchetype, // Include selectedArchetype
     historicalRevenue: state.historicalRevenue,
     historicalUserGrowth: state.historicalUserGrowth,
     historicalBurnRate: state.historicalBurnRate,
@@ -225,7 +228,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     (set, get) => ({
       ...getInitialState(),
 
-      initializeSimulation: (aiOutput, userStartupName, userTargetMarket, userBudget, userCurrencyCode) => {
+      initializeSimulation: (aiOutput, userStartupName, userTargetMarket, userBudget, userCurrencyCode, selectedArchetype) => { // Added selectedArchetype
         let parsedConditions: AIInitialConditions = {};
         try {
           if (!aiOutput || !aiOutput.initialConditions || typeof aiOutput.initialConditions !== 'string') {
@@ -350,6 +353,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         set(state => ({
           ...initialBaseState,
           companyName: parsedConditions.companyName || userStartupName || "AI Suggested Venture",
+          selectedArchetype: selectedArchetype, // Store selected archetype
           market: {
             ...initialBaseState.market,
             targetMarketDescription: userTargetMarket || parsedConditions.market?.targetMarketDescription || "Not specified",
@@ -382,10 +386,10 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           },
           initialGoals: processedInitialGoals,
           suggestedChallenges: processedSuggestedChallenges,
-          keyEvents: [createStructuredEvent(0, `Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month.`, "System", "Positive")],
+          keyEvents: [createStructuredEvent(0, `Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month. Archetype: ${selectedArchetype || 'Not Chosen'}`, "System", "Positive")],
           rewards: [],
-          earnedBadges: [], // Ensure earnedBadges is initialized
-          missions: [...onboardingMissions], // Initialize with onboarding missions
+          earnedBadges: [], 
+          missions: [...onboardingMissions], 
           historicalRevenue: [{ month: "M0", revenue: 0, desktop: 0 }],
           historicalUserGrowth: [{ month: "M0", users: 0, desktop: 0 }],
           historicalBurnRate: [{ month: "M0", value: finalInitialBurnRate, desktop: finalInitialBurnRate }],
@@ -681,7 +685,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             isSandboxing: false,
             sandboxRelativeMonth: 0,
             savedSimulations: [], 
-            earnedBadges: [], // Reset earned badges
+            earnedBadges: [], 
         }));
       },
 
@@ -700,8 +704,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         sandboxCopy.historicalProductProgress = [];
         sandboxCopy.keyEvents = [createStructuredEvent(state.simulationMonth, `Sandbox started from main sim month ${state.simulationMonth}. Initial state copied.`, "System", "Neutral")];
         sandboxCopy.rewards = []; 
-        sandboxCopy.earnedBadges = []; // Sandbox doesn't inherit main sim badges directly
-        sandboxCopy.missions = []; // Sandbox starts with no missions
+        sandboxCopy.earnedBadges = []; 
+        sandboxCopy.missions = []; 
         sandboxCopy.simulationMonth = state.simulationMonth; 
         
         return {
@@ -959,9 +963,10 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           resources: updatedMainState.resources,
           market: updatedMainState.market,
           startupScore: updatedMainState.startupScore,
+          selectedArchetype: updatedMainState.selectedArchetype, // Preserve archetype
           keyEvents: updatedMainState.keyEvents,
           rewards: updatedMainState.rewards,
-          earnedBadges: updatedMainState.earnedBadges, // Persist earnedBadges
+          earnedBadges: updatedMainState.earnedBadges, 
           initialGoals: updatedMainState.initialGoals,
           missions: updatedMainState.missions,
           suggestedChallenges: updatedMainState.suggestedChallenges,
@@ -1026,7 +1031,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           keyEvents: [...loadedSimState.keyEvents, createStructuredEvent(loadedSimState.simulationMonth, `Simulation loaded from snapshot: ${snapshotToLoad.name}`, "System", "Positive")],
           currentAiReasoning: `Simulation state loaded from snapshot: "${snapshotToLoad.name}". Main simulation month is now ${loadedSimState.simulationMonth}.`,
           missions: Array.isArray(loadedSimState.missions) && loadedSimState.missions.length > 0 ? loadedSimState.missions : [...onboardingMissions],
-          earnedBadges: Array.isArray(loadedSimState.earnedBadges) ? loadedSimState.earnedBadges : [], // Load earnedBadges
+          earnedBadges: Array.isArray(loadedSimState.earnedBadges) ? loadedSimState.earnedBadges : [], 
+          selectedArchetype: loadedSimState.selectedArchetype || undefined, // Load archetype
         };
         
         set(newStateFromSnapshot);
@@ -1071,12 +1077,14 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
 
         mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : defaultStateArrays.rewards;
-        mergedState.earnedBadges = Array.isArray(mergedState.earnedBadges) ? mergedState.earnedBadges : defaultStateArrays.earnedBadges; // Merge earnedBadges
+        mergedState.earnedBadges = Array.isArray(mergedState.earnedBadges) ? mergedState.earnedBadges : defaultStateArrays.earnedBadges; 
         mergedState.savedSimulations = Array.isArray(mergedState.savedSimulations) ? mergedState.savedSimulations : defaultStateArrays.savedSimulations;
         
         mergedState.missions = Array.isArray(mergedState.missions) && mergedState.missions.length > 0 
                                 ? mergedState.missions 
                                 : [...onboardingMissions];
+        
+        mergedState.selectedArchetype = mergedState.selectedArchetype || undefined; // Ensure selectedArchetype is handled
 
 
         if (!mergedState.financials || !mergedState.financials.currencyCode) {
@@ -1149,7 +1157,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             mergedState.sandboxState.historicalCAC = Array.isArray(mergedState.sandboxState.historicalCAC) ? mergedState.sandboxState.historicalCAC : [];
             mergedState.sandboxState.historicalChurnRate = Array.isArray(mergedState.sandboxState.historicalChurnRate) ? mergedState.sandboxState.historicalChurnRate : [];
             mergedState.sandboxState.historicalProductProgress = Array.isArray(mergedState.sandboxState.historicalProductProgress) ? mergedState.sandboxState.historicalProductProgress : [];
-            mergedState.sandboxState.earnedBadges = Array.isArray(mergedState.sandboxState.earnedBadges) ? mergedState.sandboxState.earnedBadges : []; // Merge sandbox badges
+            mergedState.sandboxState.earnedBadges = Array.isArray(mergedState.sandboxState.earnedBadges) ? mergedState.sandboxState.earnedBadges : []; 
         }
 
         return mergedState as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
@@ -1157,3 +1165,4 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     }
   )
 );
+

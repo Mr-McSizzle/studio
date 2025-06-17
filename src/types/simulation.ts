@@ -143,6 +143,10 @@ export interface EarnedBadge {
   dateEarned: string; // ISO date string
 }
 
+// Founder Archetype
+export const FounderArchetypeEnum = z.enum(['innovator', 'scaler', 'community_builder']);
+export type FounderArchetype = z.infer<typeof FounderArchetypeEnum>;
+
 
 export interface DigitalTwinState {
   simulationMonth: number;
@@ -161,6 +165,7 @@ export interface DigitalTwinState {
   suggestedChallenges: string[];
   isInitialized: boolean;
   currentAiReasoning: string | null;
+  selectedArchetype?: FounderArchetype; // Added founder archetype
 
   historicalRevenue: RevenueDataPoint[];
   historicalUserGrowth: UserDataPoint[];

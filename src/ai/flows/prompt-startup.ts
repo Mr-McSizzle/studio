@@ -3,8 +3,8 @@
 'use server';
 /**
  * @fileOverview A flow to initialize the startup simulation (digital twin)
- * based on a user-provided business plan, target market, budget, currency, and specific goals.
- * Now includes more detailed optional parameters for setup.
+ * based on a user-provided business plan, target market, budget, currency, specific goals,
+ * and selected founder archetype.
  *
  * - promptStartup - A function that takes user input and returns initial startup conditions for the simulation.
  * - PromptStartupInput - The input type for the promptStartup function.
@@ -13,6 +13,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { FounderArchetypeEnum, type FounderArchetype } from '@/types/simulation'; // Import FounderArchetype
 
 const PromptStartupInputSchema = z.object({
   prompt: z
@@ -22,10 +23,10 @@ const PromptStartupInputSchema = z.object({
   targetGrowthRate: z.string().optional().describe('User\'s target monthly user growth rate (e.g., "20" for 20%).'),
   desiredProfitMargin: z.string().optional().describe('User\'s desired profit margin (e.g., "15" for 15%).'),
   targetCAC: z.string().optional().describe('User\'s target Customer Acquisition Cost (e.g., "25" if currency is USD).'),
-  // New detailed optional parameters
   initialTeamSetupNotes: z.string().optional().describe('User notes on desired initial team structure or key roles (e.g., "Two technical co-founders, 1 marketing intern"). AI should interpret this for the coreTeam structure.'),
   initialProductFeatures: z.array(z.string()).optional().describe('A list of key initial product features the user envisions (e.g., ["User Authentication", "Dashboard Analytics", "AI Content Suggestions"]).'),
   initialIP: z.string().optional().describe('Any initial intellectual property, unique assets, or proprietary technology the startup possesses (e.g., "Patented algorithm for X", "Exclusive dataset Y").'),
+  selectedArchetype: FounderArchetypeEnum.optional().describe("The founder's chosen archetype (e.g., 'innovator', 'scaler', 'community_builder'). This should subtly influence initial conditions."),
 });
 export type PromptStartupInput = z.infer<typeof PromptStartupInputSchema>;
 
@@ -35,7 +36,7 @@ const PromptStartupOutputSchema = z.object({
     .describe('A JSON string representing the initial conditions of the startup\'s digital twin, including market parameters, resources, initial team setup, and key financial metrics. All monetary values must be in the specified currency.'),
   suggestedChallenges: z
     .string()
-    .describe('A list of potential strategic challenges or critical decisions the startup might face early in the simulation, formatted as a JSON array of strings. These should consider any specific goals provided by the user.'),
+    .describe('A list of potential strategic challenges or critical decisions the startup might face early in thesimulation, formatted as a JSON array of strings. These should consider any specific goals provided by the user and their chosen archetype.'),
 });
 export type PromptStartupOutput = z.infer<typeof PromptStartupOutputSchema>;
 
@@ -52,6 +53,12 @@ const prompt = ai.definePrompt({
 User Startup Description:
 {{{prompt}}}
 (This includes: Business Plan/Idea Summary, Target Market Description, Initial Budget, Preferred Currency: {{{currencyCode}}})
+
+Founder Archetype Selected: {{{selectedArchetype}}}
+- If 'innovator': Slightly lean towards higher initial R&D focus or more ambitious product features. Maybe a slightly higher initial burn rate if justified by R&D.
+- If 'scaler': Slightly lean towards operational efficiency, perhaps a more defined initial team structure for execution, or goals related to market penetration.
+- If 'community_builder': Slightly lean towards lower initial marketing spend but perhaps suggest initial goals around user engagement or early adopter feedback. Consider features that foster community.
+These influences should be SUBTLE and not override the user's main prompt details significantly.
 
 Optional Specific Goals from User:
 {{#if targetGrowthRate}}Target Monthly User Growth Rate: {{{targetGrowthRate}}}%{{/if}}
@@ -75,20 +82,20 @@ Based on ALL available information, generate:
         - initialFunding: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
         - coreTeam: An array of objects (e.g., [{ role: 'Founder', count: 1, salary: 0 }, { role: 'Engineer', count: 1, salary: 5000 }]). Interpret {{{initialTeamSetupNotes}}} if provided. Ensure salaries are realistic for the {{{currencyCode}}} and startup stage.
         - initialIpOrAssets: Based on {{{initialIP}}} if provided.
-        - marketingSpend: Suggest a realistic initial monthly marketing spend.
-        - rndSpend: Suggest a realistic initial monthly R&D spend.
+        - marketingSpend: Suggest a realistic initial monthly marketing spend. Consider {{{selectedArchetype}}} for subtle adjustment.
+        - rndSpend: Suggest a realistic initial monthly R&D spend. Consider {{{selectedArchetype}}} for subtle adjustment.
     - productService: (Note: use 'productService' as the key for the product object in the JSON)
         - name: A suitable name for the product/service, derived from user's prompt or {{{prompt}}}.
         - initialDevelopmentStage: (e.g., 'idea', 'prototype', 'mvp'). This should map to 'idea', 'prototype', 'mvp', 'growth', or 'mature'.
-        - features: An array of strings. Incorporate {{{initialProductFeatures}}} if provided.
+        - features: An array of strings. Incorporate {{{initialProductFeatures}}} if provided. Consider {{{selectedArchetype}}} for thematic feature hints if appropriate.
         - pricePerUser: Suggest an initial monthly price per user/customer.
     - financials:
         - startingCash: CRITICALLY IMPORTANT - Set this to the numerical value of the user's provided 'Initial Budget'. Ensure this is a clean number.
-        - estimatedInitialMonthlyBurnRate: CRITICALLY IMPORTANT - Provide a realistic estimate of the *total* initial monthly burn rate, factoring in all team salaries, marketing, R&D, and operational costs.
+        - estimatedInitialMonthlyBurnRate: CRITICALLY IMPORTANT - Provide a realistic estimate of the *total* initial monthly burn rate, factoring in all team salaries, marketing, R&D, and operational costs. Consider {{{selectedArchetype}}} for slight adjustments to spend which affects burn.
         - currencyCode: Set this to {{{currencyCode}}}.
-    - initialGoals: One or two key short-term objectives. If the user provided specific goals (growth, profit, CAC), incorporate them or related stepping stones here.
+    - initialGoals: One or two key short-term objectives. If the user provided specific goals (growth, profit, CAC), incorporate them or related stepping stones here. Consider {{{selectedArchetype}}} for thematic goals.
 
-2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges. These should be specific and actionable. If the user set ambitious goals, challenges should reflect the difficulty of achieving these.
+2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges. These should be specific and actionable. If the user set ambitious goals, challenges should reflect the difficulty of achieving these. Consider the chosen {{{selectedArchetype}}} for thematic challenges (e.g., an 'innovator' might face challenges in market adoption, a 'scaler' in maintaining quality).
 
 CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
 - The 'initialConditions' field MUST be a single, valid, strictly parsable JSON string. NO EXCEPTIONS.
@@ -151,4 +158,3 @@ const promptStartupFlow = ai.defineFlow(
     return output;
   }
 );
-
