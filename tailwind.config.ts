@@ -163,7 +163,7 @@ export default {
             '20%, 80%': { opacity: '0.3' },
             '100%': { transform: 'translateY(100%)', opacity: '0' },
         },
-        'subtle-pulse-orb': { /* For EVE's orb */
+        'subtle-pulse-orb': { /* For EVE's orb on dashboard */
           '0%, 100%': { filter: 'drop-shadow(0 0 10px hsl(var(--accent)/0.5)) brightness(1)', transform: 'scale(1)' },
           '50%': { filter: 'drop-shadow(0 0 18px hsl(var(--accent)/0.7)) brightness(1.1)', transform: 'scale(1.03)' },
         },
@@ -177,13 +177,25 @@ export default {
             'border-color': 'var(--border-color-active, hsl(var(--accent)))',
           },
         },
+        'float-pulse': { /* For EVE's orb in dashboard top */
+          '0%, 100%': { transform: 'translateY(0px) scale(1)', filter: 'drop-shadow(0 0 12px hsl(var(--accent)/0.5))'},
+          '50%': { transform: 'translateY(-5px) scale(1.02)', filter: 'drop-shadow(0 0 18px hsl(var(--accent)/0.65))'},
+        },
+        'subtle-grid-pan': { /* For dashboard background grid */
+          '0%': { 'background-position': '0 0' },
+          '100%': { 'background-position': '80px 80px' }, /* Should be 2x grid size */
+        },
+         'shimmer': { /* For hex card hover */
+          '0%': { transform: 'translateX(-100%) skewX(-20deg)' },
+          '100%': { transform: 'translateX(200%) skewX(-20deg)' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'subtle-pulse': 'subtle-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
-        'orbit': 'orbit 20s linear infinite',
+        'orbit': 'orbit var(--orbit-duration, 20s) linear infinite', /* Allow overriding duration */
         'fadeIn': 'fadeIn 1s ease-out forwards',
         'fadeInUp': 'fadeInUp 0.8s ease-out forwards',
         'background-pan': 'background-pan 15s ease infinite',
@@ -198,8 +210,11 @@ export default {
         'orb-pulse': 'orb-pulse 3s ease-in-out infinite',
         'ring-rotate-scale': 'ring-rotate-scale 5s linear infinite',
         'data-stream': 'data-stream 3s linear infinite',
-        'subtle-pulse-orb': 'subtle-pulse-orb 3s infinite ease-in-out', /* New */
-        'pulse-glow-border': 'pulse-glow-border 2s infinite ease-in-out', /* New */
+        'subtle-pulse-orb': 'subtle-pulse-orb 3s infinite ease-in-out', 
+        'pulse-glow-border': 'pulse-glow-border 2s infinite ease-in-out', 
+        'float-pulse': 'float-pulse 4s infinite ease-in-out', /* New */
+        'subtle-grid-pan': 'subtle-grid-pan 60s linear infinite', /* New */
+        'shimmer': 'shimmer 1s ease-in-out', /* New */
       },
       boxShadow: { 
         'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',
@@ -209,6 +224,7 @@ export default {
         'card-deep': '0 10px 30px -5px hsl(var(--background) / 0.6), 0 8px 15px -8px hsl(var(--background) / 0.8)',
         'epic-depth': '0 15px 35px -10px hsl(var(--background) / 0.7), 0 10px 20px -12px hsl(var(--background) / 0.9)', 
         'inner-soft-gold': 'inset 0 2px 4px 0 hsl(var(--accent) / 0.1), inset 0 -1px 2px 0 hsl(var(--background) / 0.3)',
+        'inner-soft-dim': 'inset 0 1px 3px 0 hsl(var(--background) / 0.5), inset 0 -1px 2px 0 hsl(var(--foreground) / 0.05)',
       },
       backgroundImage: { 
         'nexus-gradient-main': 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--secondary) / 0.3) 50%, hsl(var(--background)) 100%)',
@@ -224,8 +240,8 @@ export default {
         '1.5s': '1.5s', '1.6s': '1.6s', '1.8s': '1.8s', '2s':'2s', '2.3s': '2.3s'
       },
       rotate: { 
-        'y-10': 'rotateY(10deg)', 'y-15': 'rotateY(15deg)',
-        'x-3': 'rotateX(3deg)', 'x-5': 'rotateX(5deg)',
+        'y-2': 'rotateY(2deg)', 'y-5': 'rotateY(5deg)', 'y-10': 'rotateY(10deg)', 'y-15': 'rotateY(15deg)',
+        'x-1': 'rotateX(1deg)', 'x-2': 'rotateX(2deg)', 'x-3': 'rotateX(3deg)', 'x-5': 'rotateX(5deg)',
       }
     },
   },
@@ -235,6 +251,9 @@ export default {
       const newUtilities: {[key: string]: any} = {
         '.perspective-1000': { perspective: '1000px' },
         '.transform-style-preserve-3d': { 'transform-style': 'preserve-3d' },
+        '.rotate-y-2': { transform: 'rotateY(2deg)' },
+        '.rotate-x-1': { transform: 'rotateX(1deg)' },
+        '.backdrop-blur-xs': { 'backdrop-filter': 'blur(2px)'},
       };
       const animationDelays = theme('animationDelay');
       if (animationDelays) {
@@ -249,9 +268,7 @@ export default {
           newUtilities[`.animation-duration-\\[${key}\\]`] = { 'animation-duration': value as string };
         });
       }
-      addUtilities(newUtilities, ['responsive', 'hover']);
+      addUtilities(newUtilities, ['responsive', 'hover', 'group-hover']);
     }
   ],
 } satisfies Config;
-
-    
