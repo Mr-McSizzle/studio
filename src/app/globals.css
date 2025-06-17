@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -141,6 +140,27 @@
     transition: all 0.3s ease-in-out;
     animation: guidance-pulse 1.5s infinite ease-in-out;
   }
+  
+  /* Game UI Components */
+  .game-card {
+    @apply bg-gradient-to-br from-card via-card/90 to-accent/10 border-accent/30 shadow-lg transition-all duration-300 hover:shadow-accent-glow-sm hover:scale-[1.02];
+  }
+  
+  .game-button {
+    @apply bg-gradient-to-r from-accent to-yellow-400 hover:from-accent/90 hover:to-yellow-400/90 text-black font-bold shadow-lg hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-[1.02];
+  }
+  
+  .level-badge {
+    @apply bg-gradient-to-r from-primary to-red-400 text-white font-bold px-2 py-0.5 rounded-full text-xs shadow-sm;
+  }
+  
+  .xp-badge {
+    @apply bg-gradient-to-r from-accent to-yellow-400 text-black font-bold px-2 py-0.5 rounded-full text-xs shadow-sm;
+  }
+  
+  .achievement-card {
+    @apply bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30 p-4 rounded-lg shadow-md hover:shadow-purple-500/20 transition-all duration-300 hover:scale-[1.02];
+  }
 }
 
 
@@ -210,5 +230,38 @@
     50% {
       box-shadow: 0 0 0 5px hsl(var(--accent) / 0), 0 0 20px 3px hsl(var(--accent) / 0.7);
     }
+  }
+  
+  /* XP Animation */
+  @keyframes xp-pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  .animate-xp-pop {
+    animation: xp-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+  
+  /* Level Up Animation */
+  @keyframes level-up {
+    0% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-20px); opacity: 0.8; }
+    100% { transform: translateY(-40px); opacity: 0; }
+  }
+  
+  .animate-level-up {
+    animation: level-up 1.5s ease-out forwards;
+  }
+  
+  /* Reward Unlock Animation */
+  @keyframes unlock-pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+  }
+  
+  .animate-unlock-pulse {
+    animation: unlock-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }

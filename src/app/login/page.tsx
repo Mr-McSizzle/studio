@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type FormEvent, useEffect } from 'react';
@@ -10,14 +9,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ForgeSimLogo } from '@/components/icons/logo';
-import { Mail, Lock, LogInIcon, Home } from 'lucide-react';
+import { Mail, Lock, LogInIcon, Home, Zap } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from '@/components/ui/badge';
 
 const NexusBackground = () => (
   <div className="fixed inset-0 z-0 pointer-events-none">
     <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/10 to-background opacity-90" />
     <div className="absolute top-1/4 left-1/4 w-[30rem] h-[30rem] bg-primary/5 rounded-full blur-3xl animate-pulse animation-delay-none" />
     <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-accent/5 rounded-full blur-3xl animate-pulse animation-delay-[1s]" />
+    
+    {/* Animated particles */}
+    <div className="absolute top-[10%] left-[15%] w-4 h-4 border border-primary/30 rotate-45 animate-spin" style={{ animationDuration: "20s" }} />
+    <div className="absolute top-[30%] right-[20%] w-6 h-6 border border-accent/30 animate-bounce animation-delay-[0.5s]" />
+    <div className="absolute bottom-[25%] left-[30%] w-3 h-3 bg-primary/20 rotate-45 animate-pulse animation-delay-[1.5s]" />
+    <div className="absolute bottom-[15%] right-[10%] w-8 h-8 border-2 border-accent/20 rounded-full animate-pulse animation-delay-[2s]" />
   </div>
 );
 
@@ -46,7 +52,16 @@ export default function LoginPage() {
     const loginSuccess = login(email, password);
 
     if (loginSuccess) {
-      toast({ title: "Login Successful", description: `Access granted! Charting course for ForgeSim...`, duration: 3000 });
+      toast({ 
+        title: "🎮 Login Successful!", 
+        description: (
+          <div className="flex flex-col gap-2">
+            <p>Access granted! Entering simulation...</p>
+            <Badge variant="xp" className="w-fit">+10 XP Earned!</Badge>
+          </div>
+        ),
+        duration: 3000 
+      });
       router.push('/app'); 
     } else {
       toast({ title: "Login Failed", description: "Invalid email or password. Please try again.", variant: "destructive" });
@@ -58,18 +73,23 @@ export default function LoginPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6">
       <NexusBackground />
       <div className="relative z-10 w-full max-w-md">
-        <Card className="bg-card/80 backdrop-blur-lg border border-primary/30 shadow-primary-glow-md animate-fadeInUp">
+        <Card className="bg-card/80 backdrop-blur-lg border-2 border-accent/30 shadow-accent-glow-md animate-fadeInUp">
           <CardHeader className="text-center pt-8 pb-6">
             <Link href="/" className="flex justify-center mb-6 group">
-              <ForgeSimLogo className="h-20 w-20 text-primary group-hover:text-accent transition-colors duration-300 animate-subtle-pulse" />
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent to-yellow-400 shadow-lg group-hover:shadow-accent-glow-sm transition-all duration-300">
+                <ForgeSimLogo className="h-16 w-16 text-black" />
+              </div>
             </Link>
             <CardTitle className="text-3xl font-headline text-glow-primary">
-              Welcome Back, Founder
+              Enter The Simulation
             </CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
               Log in to your ForgeSim Digital Twin.
               <br />
-              <span className="text-xs">(Test with: founder@forgesim.ai / password123)</span>
+              <Badge variant="outline" className="mt-2">
+                <Zap className="h-3 w-3 mr-1 text-accent" />
+                <span className="text-xs">Test with: founder@forgesim.ai / password123</span>
+              </Badge>
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6 sm:px-8 py-6">
@@ -86,7 +106,7 @@ export default function LoginPage() {
                   placeholder="founder@forgesim.ai"
                   required
                   disabled={isLoading}
-                  className="bg-input/70 border-border focus:bg-input focus:border-accent placeholder:text-muted-foreground/60 py-3 text-base"
+                  className="bg-input/70 border-accent/30 focus:bg-input focus:border-accent placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
               <div className="space-y-2">
@@ -101,15 +121,25 @@ export default function LoginPage() {
                   placeholder="••••••••••••"
                   required
                   disabled={isLoading}
-                  className="bg-input/70 border-border focus:bg-input focus:border-accent placeholder:text-muted-foreground/60 py-3 text-base"
+                  className="bg-input/70 border-accent/30 focus:bg-input focus:border-accent placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-accent to-yellow-400 hover:from-accent/90 hover:to-yellow-400/90 text-black font-bold text-lg py-6 shadow-lg hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105"
               >
-                {isLoading ? "Authenticating..." : <><LogInIcon className="mr-2 h-5 w-5"/>Secure Login</>}
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <span>Accessing...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <LogInIcon className="h-5 w-5"/>
+                    <span>Enter Simulation</span>
+                  </div>
+                )}
               </Button>
             </form>
           </CardContent>
