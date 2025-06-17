@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, type ChangeEvent, useRef } from "react"; // Added useRef
+import { useState, useEffect, type ChangeEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { promptStartup, type PromptStartupInput, type PromptStartupOutput } from "@/ai/flows/prompt-startup";
 import { suggestNames, type SuggestNamesInput, type SuggestNamesOutput } from "@/ai/flows/suggest-names-flow";
@@ -85,7 +85,6 @@ export default function SetupSimulationPage() {
   const router = useRouter();
   const initializeSimulationInStore = useSimulationStore(state => state.initializeSimulation);
   const resetSimStore = useSimulationStore(state => state.resetSimulation);
-  const setSelectedArchetypeInStore = useSimulationStore(state => state.setSelectedArchetype);
 
 
   const displayEveFeedback = (feedbackKey: keyof typeof eveFeedbacks, value: string | number) => {
@@ -161,8 +160,6 @@ export default function SetupSimulationPage() {
         return;
     }
 
-    setSelectedArchetypeInStore(selectedArchetype); // Store archetype
-
     setIsLoadingAiCall(true);
     setShowCinematicOverlay(true);
     setCinematicStepIndex(0);
@@ -200,6 +197,7 @@ export default function SetupSimulationPage() {
 
       const result = await promptStartup(input);
       setSimulationOutput(result);
+      // The selectedArchetype is passed to initializeSimulationInStore and handled within that action
       initializeSimulationInStore(result, startupNameIdea, targetMarket, budget, currencyCode.toUpperCase(), selectedArchetype);
 
       setTimeout(() => {
