@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import type { StructuredKeyEvent } from "@/types/simulation";
 import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
 
-const MAX_SIMULATION_MONTHS = 24; 
+const MAX_SIMULATION_MONTHS = 24;
 
 interface SimulationPhase {
   id: string;
@@ -34,7 +34,7 @@ interface SimulationPhase {
   ringColor: string;
   shadowColor: string;
   bgColor: string;
-  glowColorVar: string; 
+  glowColorVar: string;
 }
 
 const simulationPhases: SimulationPhase[] = [
@@ -68,7 +68,7 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
     IconComponent = LockIcon;
   } else if (isActive) {
     cardClasses += `${phase.bgColor} ${phase.ringColor} shadow-lg ${phase.shadowColor} animate-pulse-glow-border-alt`;
-  } else { 
+  } else {
     cardClasses += "bg-card/50 border-green-600/50 opacity-80 shadow-md";
     IconComponent = CheckCircle;
   }
@@ -132,7 +132,9 @@ const ScoreDisplay = ({ score, maxScore = 100 }: { score: number, maxScore?: num
 export default function DashboardPage() {
   const router = useRouter();
   const {
-    companyName, simulationMonth, financials, userMetrics, product, startupScore,
+    companyName, simulationMonth, financials, userMetrics, product,
+    market: storeMarket, // Renamed to avoid potential conflicts
+    startupScore,
     keyEvents, isInitialized, currentAiReasoning, historicalRevenue, historicalUserGrowth,
     historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
     historicalChurnRate, historicalProductProgress, advanceMonth, resetSimulation,
@@ -171,35 +173,43 @@ export default function DashboardPage() {
   }, [simulationMonth, isInitialized, prevSimulationMonth]);
 
   const handleAnimationComplete = () => setUnlockedStageForAnimation(null);
-  
-  const handleAdvanceMonth = async () => { 
+
+  const handleAdvanceMonth = async () => {
     if (isInitialized && financials.cashOnHand > 0 && !isSimulating) {
       setIsSimulating(true);
-      await advanceMonth(); 
+      await advanceMonth();
       setIsSimulating(false);
     }
   };
   const handleReset = () => { resetSimulation(); router.push('/app/setup'); };
 
   useEffect(() => {
-    const messages = [
-      `EVE: Currently in month ${simulationMonth}. Financials: ${currencySymbol}${financials.cashOnHand.toLocaleString()} cash.`,
-      `EVE: User base at ${userMetrics.activeUsers.toLocaleString()}. Product '${product.name}' is at ${product.stage} stage.`,
-      "EVE: Strategic projections updated. Analyzing next optimal move.",
-      "EVE: All systems nominal. Ready for your command.",
-      `EVE: Monitoring market conditions for '${market.targetMarketDescription}'. Competition: ${market.competitionLevel}.`
+    let baseMessages = [
+        "EVE: Strategic projections updated. Analyzing next optimal move.",
+        "EVE: All systems nominal. Ready for your command.",
     ];
-    if (financials.cashOnHand < financials.burnRate * 2 && financials.cashOnHand > 0) {
-      messages.push("EVE: Warning: Cash reserves approaching critical threshold. Recommend strategic review.");
+
+    if (isInitialized && financials && userMetrics && product && storeMarket && currencySymbol) {
+        baseMessages = [
+            `EVE: Currently in month ${simulationMonth}. Financials: ${currencySymbol}${financials.cashOnHand.toLocaleString()} cash.`,
+            `EVE: User base at ${userMetrics.activeUsers.toLocaleString()}. Product '${product.name}' is at ${product.stage} stage.`,
+            "EVE: Strategic projections updated. Analyzing next optimal move.",
+            "EVE: All systems nominal. Ready for your command.",
+            `EVE: Monitoring market conditions for '${storeMarket.targetMarketDescription}'. Competition: ${storeMarket.competitionLevel}.`
+        ];
+        if (financials.cashOnHand < financials.burnRate * 2 && financials.cashOnHand > 0) {
+            baseMessages.push("EVE: Warning: Cash reserves approaching critical threshold. Recommend strategic review.");
+        }
+        if (product.developmentProgress > 85 && product.stage !== 'mature') {
+            baseMessages.push(`EVE: Product '${product.name}' is ${product.developmentProgress}% complete. Next stage nearing.`);
+        }
     }
-    if (product.developmentProgress > 85 && product.stage !== 'mature') {
-      messages.push(`EVE: Product '${product.name}' is ${product.developmentProgress}% complete. Next stage nearing.`);
-    }
+
     const interval = setInterval(() => {
-      setEveTooltipMessage(messages[Math.floor(Math.random() * messages.length)]);
-    }, 10000); 
+      setEveTooltipMessage(baseMessages[Math.floor(Math.random() * baseMessages.length)]);
+    }, 10000);
     return () => clearInterval(interval);
-  }, [simulationMonth, financials, userMetrics, product, market, currencySymbol]);
+  }, [isInitialized, simulationMonth, financials, userMetrics, product, storeMarket, currencySymbol]);
 
 
   if (typeof simulationMonth === 'number' && simulationMonth === 0 && !isInitialized) {
@@ -228,7 +238,7 @@ export default function DashboardPage() {
         />
       )}
       <div className={cn("dashboard-hub-container relative container mx-auto py-8 px-4 md:px-0 space-y-6 overflow-hidden", unlockedStageForAnimation && "blur-md pointer-events-none")}>
-        
+
         <div className="absolute inset-0 z-[-1] opacity-30 overflow-hidden">
           <div className="neural-grid-bg"></div>
           {Array.from({length: 5}).map((_, i) => (
@@ -252,7 +262,7 @@ export default function DashboardPage() {
                     <Image
                       src="/new-assets/eve-avatar.png"
                       alt="EVE - AI Hive Mind Assistant"
-                      width={72} 
+                      width={72}
                       height={72}
                       className="rounded-full border-2 border-accent/70 shadow-accent-glow-md filter drop-shadow-[0_0_15px_hsl(var(--accent)/0.6)]"
                       data-ai-hint="bee queen"
@@ -278,8 +288,9 @@ export default function DashboardPage() {
                     onClick={handleAdvanceMonth}
                     className={cn(
                         "bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200",
-                        "active:scale-95 active:shadow-inner-soft-gold", 
-                        isSimulating && "animate-subtle-button-pulse"
+                        "active:scale-95 active:shadow-inner-soft-gold",
+                        "animate-subtle-button-pulse", // Added for continuous pulse
+                        isSimulating && "opacity-70 cursor-not-allowed"
                     )}
                     size="default"
                     disabled={!isInitialized || isGameOver || isSimulating || !!unlockedStageForAnimation}
@@ -311,7 +322,7 @@ export default function DashboardPage() {
 
         <section className="relative z-10">
           <h2 className="text-xl font-headline text-foreground mb-4 flex items-center gap-2"><Settings2 className="h-6 w-6 text-accent"/>Phase Matrix</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"> 
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {simulationPhases.map(phase => (
               <PhaseCard key={phase.id} phase={phase} currentSimMonth={simulationMonth} />
             ))}
@@ -491,3 +502,5 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
+
+    
