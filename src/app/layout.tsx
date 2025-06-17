@@ -19,10 +19,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased min-h-screen bg-background text-foreground selection:bg-accent selection:text-accent-foreground">
+        {/* Nexus Background animations persist across all pages */}
         <div className="nexus-bg-animations">
-          <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-background" />
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse animation-delay-none opacity-70" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse animation-delay-1000 opacity-70" />
+          <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-background opacity-80" /> {/* Slightly reduced opacity for dashboard clarity */}
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse animation-delay-none opacity-60" /> {/* Slightly reduced opacity */}
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse animation-delay-1000 opacity-60" /> {/* Slightly reduced opacity */}
         </div>
         <div className="relative z-10"> 
           {children}

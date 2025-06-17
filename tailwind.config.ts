@@ -149,19 +149,33 @@ export default {
            '0%': { opacity: '0', transform: 'scale(0.9)' },
            '100%': { opacity: '1', transform: 'scale(1)' },
         },
-        'orb-pulse': { // For cinematic setup orb
+        'orb-pulse': { 
           '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px hsl(var(--accent)/0.6))' },
           '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 25px hsl(var(--accent)/0.8))' },
         },
-        'ring-rotate-scale': { // For cinematic setup rings
+        'ring-rotate-scale': { 
           '0%': { transform: 'rotate(0deg) scale(0.8)', opacity: '0.7' },
           '50%': { transform: 'rotate(180deg) scale(1)', opacity: '0.3' },
           '100%': { transform: 'rotate(360deg) scale(0.8)', opacity: '0.7' },
         },
-        'data-stream': { // Simple data stream effect
+        'data-stream': { 
             '0%': { transform: 'translateY(-100%)', opacity: '0' },
             '20%, 80%': { opacity: '0.3' },
             '100%': { transform: 'translateY(100%)', opacity: '0' },
+        },
+        'subtle-pulse-orb': { /* For EVE's orb */
+          '0%, 100%': { filter: 'drop-shadow(0 0 10px hsl(var(--accent)/0.5)) brightness(1)', transform: 'scale(1)' },
+          '50%': { filter: 'drop-shadow(0 0 18px hsl(var(--accent)/0.7)) brightness(1.1)', transform: 'scale(1.03)' },
+        },
+        'pulse-glow-border': { /* For active phase card border */
+          '0%, 100%': { 
+            'box-shadow': '0 0 0px 0px var(--glow-color, hsl(var(--accent)/0.4)), inset 0 0 0px 0px var(--glow-color, hsl(var(--accent)/0.2))',
+            'border-color': 'var(--border-color, hsl(var(--accent)/0.7))',
+          },
+          '50%': { 
+            'box-shadow': '0 0 15px 3px var(--glow-color, hsl(var(--accent)/0.4)), inset 0 0 5px 1px var(--glow-color, hsl(var(--accent)/0.2))',
+            'border-color': 'var(--border-color-active, hsl(var(--accent)))',
+          },
         },
       },
       animation: {
@@ -184,6 +198,8 @@ export default {
         'orb-pulse': 'orb-pulse 3s ease-in-out infinite',
         'ring-rotate-scale': 'ring-rotate-scale 5s linear infinite',
         'data-stream': 'data-stream 3s linear infinite',
+        'subtle-pulse-orb': 'subtle-pulse-orb 3s infinite ease-in-out', /* New */
+        'pulse-glow-border': 'pulse-glow-border 2s infinite ease-in-out', /* New */
       },
       boxShadow: { 
         'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',
