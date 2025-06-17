@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PerformanceChart } from "@/components/dashboard/performance-chart";
-import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +11,99 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { StructuredKeyEvent } from "@/types/simulation";
+
+// 3D Globe Component
+const Globe3D = () => {
+  return (
+    <div className="relative w-full h-full aspect-square max-w-[600px] mx-auto">
+      {/* Background glow effects */}
+      <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl animate-subtle-pulse"></div>
+      <div className="absolute inset-0 bg-accent/5 rounded-full blur-xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+      
+      {/* Globe container with 3D-like styling */}
+      <div className="relative w-full h-full rounded-full overflow-hidden border border-accent/20 shadow-accent-glow-lg">
+        {/* Base globe gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a20] via-[#101035] to-[#0a0a20]"></div>
+        
+        {/* Globe grid lines - horizontal */}
+        {[...Array(8)].map((_, i) => (
+          <div 
+            key={`h-${i}`} 
+            className="absolute w-full h-[1px] bg-accent/10"
+            style={{ top: `${12 + i * 10}%`, transform: `rotate(${i * 3}deg)` }}
+          ></div>
+        ))}
+        
+        {/* Globe grid lines - vertical */}
+        {[...Array(12)].map((_, i) => (
+          <div 
+            key={`v-${i}`} 
+            className="absolute h-full w-[1px] bg-accent/10"
+            style={{ left: `${8 + i * 7}%`, transform: `rotate(${i * 3}deg)` }}
+          ></div>
+        ))}
+        
+        {/* Continents represented as glowing areas */}
+        <div className="absolute top-[25%] left-[20%] w-[30%] h-[15%] bg-accent/20 rounded-full blur-md"></div>
+        <div className="absolute top-[40%] left-[55%] w-[25%] h-[20%] bg-primary/20 rounded-full blur-md"></div>
+        <div className="absolute top-[65%] left-[30%] w-[20%] h-[10%] bg-accent/15 rounded-full blur-md"></div>
+        
+        {/* Data points/nodes */}
+        {[...Array(12)].map((_, i) => (
+          <div 
+            key={`node-${i}`} 
+            className="absolute w-1.5 h-1.5 rounded-full bg-accent animate-pulse"
+            style={{ 
+              top: `${20 + Math.random() * 60}%`, 
+              left: `${20 + Math.random() * 60}%`,
+              animationDelay: `${i * 0.2}s`
+            }}
+          ></div>
+        ))}
+        
+        {/* Connection lines between nodes */}
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M30,30 Q50,50 70,40" stroke="hsla(var(--accent)/0.3)" fill="none" strokeWidth="0.2" />
+          <path d="M25,60 Q40,50 60,70" stroke="hsla(var(--primary)/0.3)" fill="none" strokeWidth="0.2" />
+          <path d="M70,30 Q50,40 40,60" stroke="hsla(var(--accent)/0.2)" fill="none" strokeWidth="0.2" />
+        </svg>
+        
+        {/* Highlight/glow effect on top */}
+        <div className="absolute top-0 left-[10%] w-[80%] h-[30%] bg-gradient-to-b from-accent/10 to-transparent rounded-full blur-lg"></div>
+        
+        {/* Central pulse */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-accent rounded-full animate-ping"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full"></div>
+      </div>
+      
+      {/* Data flow animations around the globe */}
+      <div className="absolute top-0 left-0 w-full h-full">
+        {[...Array(5)].map((_, i) => (
+          <div 
+            key={`flow-${i}`} 
+            className="absolute w-1 h-1 bg-accent rounded-full animate-orbit"
+            style={{ 
+              animationDuration: `${15 + i * 5}s`, 
+              animationDelay: `${i * 2}s`
+            }}
+          ></div>
+        ))}
+      </div>
+      
+      {/* Overlay stats */}
+      <div className="absolute bottom-[10%] left-[10%] bg-black/50 backdrop-blur-sm p-2 rounded-lg border border-accent/30">
+        <div className="text-xs text-accent font-mono">GLOBAL REACH</div>
+        <div className="text-lg font-bold">24/75</div>
+        <div className="text-xs text-green-400">+15% vs last month</div>
+      </div>
+      
+      <div className="absolute top-[20%] right-[10%] bg-black/50 backdrop-blur-sm p-2 rounded-lg border border-primary/30">
+        <div className="text-xs text-primary font-mono">ACTIVE MARKETS</div>
+        <div className="text-lg font-bold">12</div>
+      </div>
+    </div>
+  );
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -250,228 +341,239 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Key Metrics Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="game-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Monthly Revenue
-            </CardTitle>
-            <div className="p-2 rounded-lg bg-gradient-to-br from-green-400 to-green-600">
-              <DollarSign className="h-4 w-4 text-white" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {isInitialized ? `${currencySymbol}${financials.revenue.toLocaleString()}` : "N/A"}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              MRR: {isInitialized ? `${currencySymbol}${userMetrics.monthlyRecurringRevenue.toLocaleString()}` : "N/A"}
-            </p>
-            {isInitialized && financials.revenue > 0 && (
-              <Badge variant="success" className="mt-2 text-xs">
-                💰 Revenue Active
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="game-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Active Users
-            </CardTitle>
-            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600">
-              <Users className="h-4 w-4 text-white" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground flex items-center">
-              {isInitialized ? userMetrics.activeUsers.toLocaleString() : "N/A"}
-              {isInitialized && userMetrics.newUserAcquisitionRate < 0 && (
-                <TrendingDown className="h-5 w-5 text-destructive ml-2" />
-              )}
-            </div>
-            <p className={cn("text-xs text-muted-foreground", isInitialized && userMetrics.newUserAcquisitionRate < 0 && "text-destructive")}>
-              New this month: {isInitialized ? userMetrics.newUserAcquisitionRate.toLocaleString() : "N/A"}
-            </p>
-            {isInitialized && userMetrics.activeUsers > 100 && (
-              <Badge variant="info" className="mt-2 text-xs">
-                🚀 Growing
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className={cn("game-card", 
-          isLowCash ? "border-yellow-500/30" : "border-purple-500/20"
-        )}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Cash Reserves
-            </CardTitle>
-            <div className={cn("p-2 rounded-lg", 
-              isLowCash 
-                ? "bg-gradient-to-br from-yellow-400 to-yellow-600" 
-                : "bg-gradient-to-br from-purple-400 to-purple-600"
-            )}>
-              <PiggyBank className="h-4 w-4 text-white" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className={cn(
-                "text-2xl font-bold", 
-                financials.cashOnHand <= 0 && isInitialized ? 'text-destructive' : 
-                isLowCash ? 'text-yellow-500' : 'text-foreground'
-            )}>
-               {isInitialized ? `${currencySymbol}${financials.cashOnHand.toLocaleString()}` : "N/A"}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Monthly Burn: {isInitialized ? `${currencySymbol}${financials.burnRate.toLocaleString()}` : "N/A"}
-            </p>
-            {isLowCash && (
-              <Badge variant="warning" className="mt-2 text-xs">
-                ⚠️ Low Runway!
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="game-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Startup Score
-            </CardTitle>
-            <div className="p-2 rounded-lg bg-gradient-to-br from-accent to-yellow-400">
-              <BarChartBig className="h-4 w-4 text-black" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{isInitialized ? startupScore : "0"}/100</div>
-            <div className="mt-2">
-              <Progress 
-                value={isInitialized ? startupScore : 0} 
-                className="h-2.5"
-                indicatorClassName="bg-gradient-to-r from-accent to-yellow-400"
-              />
-            </div>
-            <Badge variant="xp" className="mt-2 text-xs">
-              {isInitialized && startupScore >= 80 ? "🏆 Elite" : 
-               isInitialized && startupScore >= 60 ? "⭐ Strong" : 
-               isInitialized && startupScore >= 40 ? "📈 Growing" : "🌱 Starting"}
-            </Badge>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* AI Reasoning Card */}
-      <Card className="game-card">
-        <CardHeader>
-          <CardTitle className="font-headline flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-red-400">
-              <Brain className="h-5 w-5 text-white"/>
-            </div>
-            Hive Mind Intelligence
-          </CardTitle>
-          <CardDescription>AI's real-time analysis and reasoning for month {simulationMonth}.</CardDescription>
-        </CardHeader>
-        <CardContent className="min-h-[80px] relative overflow-hidden">
-          {/* Animated background for AI section */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-background-pan opacity-30" />
-          
-          {currentAiReasoning && currentAiReasoning.includes("simulating month...") ? (
-              <div className="flex items-center gap-3 text-muted-foreground relative z-10">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  <p className="text-sm">{currentAiReasoning}</p>
+      {/* Main Dashboard Content with 3D Globe */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left Column - Key Metrics */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="game-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Monthly Revenue
+              </CardTitle>
+              <div className="p-2 rounded-lg bg-gradient-to-br from-green-400 to-green-600">
+                <DollarSign className="h-4 w-4 text-white" />
               </div>
-          ) : (
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed relative z-10">
-                {currentAiReasoning || "AI intelligence is monitoring your simulation. Advance a month to see strategic insights."}
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">
+                {isInitialized ? `${currencySymbol}${financials.revenue.toLocaleString()}` : "N/A"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                MRR: {isInitialized ? `${currencySymbol}${userMetrics.monthlyRecurringRevenue.toLocaleString()}` : "N/A"}
               </p>
-          )}
-        </CardContent>
-      </Card>
+              {isInitialized && financials.revenue > 0 && (
+                <Badge variant="success" className="mt-2 text-xs">
+                  💰 Revenue Active
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
 
-      {/* Charts Grid */}
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
-        <Card className="game-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-400 to-green-600">
-                <DollarSign className="h-4 w-4 text-white"/>
+          <Card className="game-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Active Users
+              </CardTitle>
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600">
+                <Users className="h-4 w-4 text-white" />
               </div>
-              Revenue Trajectory
-            </CardTitle>
-            <CardDescription>{`Revenue trends in ${currencySymbol} (${financials.currencyCode})`}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PerformanceChart title="Revenue Trajectory" description={`Revenue trends in ${currencySymbol} (${financials.currencyCode})`} dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
-          </CardContent>
-        </Card>
-        
-        <Card className="game-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600">
-                <Users className="h-4 w-4 text-white"/>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground flex items-center">
+                {isInitialized ? userMetrics.activeUsers.toLocaleString() : "N/A"}
+                {isInitialized && userMetrics.newUserAcquisitionRate < 0 && (
+                  <TrendingDown className="h-5 w-5 text-destructive ml-2" />
+                )}
               </div>
-              User Growth
-            </CardTitle>
-            <CardDescription>User acquisition trends</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PerformanceChart title="User Growth" description="User acquisition trends." dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
-          </CardContent>
-        </Card>
-        
-        <Card className="game-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-red-400 to-red-600">
-                <TrendingDown className="h-4 w-4 text-white"/>
-              </div>
-              Burn Rate
-            </CardTitle>
-            <CardDescription>{`Cash burned per month in ${currencySymbol}`}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PerformanceChart title="Burn Rate" description={`Cash burned per month in ${currencySymbol}`} dataKey="value" data={isInitialized ? historicalBurnRate : []} />
-          </CardContent>
-        </Card>
-      </div>
+              <p className={cn("text-xs text-muted-foreground", isInitialized && userMetrics.newUserAcquisitionRate < 0 && "text-destructive")}>
+                New this month: {isInitialized ? userMetrics.newUserAcquisitionRate.toLocaleString() : "N/A"}
+              </p>
+              {isInitialized && userMetrics.activeUsers > 100 && (
+                <Badge variant="info" className="mt-2 text-xs">
+                  🚀 Growing
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1"> 
-        <Card className="game-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600">
-                <Target className="h-4 w-4 text-white"/>
+          <Card className={cn("game-card", 
+            isLowCash ? "border-yellow-500/30" : "border-purple-500/20"
+          )}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Cash Reserves
+              </CardTitle>
+              <div className={cn("p-2 rounded-lg", 
+                isLowCash 
+                  ? "bg-gradient-to-br from-yellow-400 to-yellow-600" 
+                  : "bg-gradient-to-br from-purple-400 to-purple-600"
+              )}>
+                <PiggyBank className="h-4 w-4 text-white" />
               </div>
-              Product Development: {product.name} ({product.stage})
-            </CardTitle>
-            <CardDescription>Development progress towards next stage (0-100%)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PerformanceChart title={`Product: ${product.name} (${product.stage})`} description="Development progress towards next stage (0-100%)." dataKey="value" data={isInitialized ? historicalProductProgress : []} />
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="mt-8">
-        <Card className="game-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600">
-                <Activity className="h-4 w-4 text-white"/>
+            </CardHeader>
+            <CardContent>
+              <div className={cn(
+                  "text-2xl font-bold", 
+                  financials.cashOnHand <= 0 && isInitialized ? 'text-destructive' : 
+                  isLowCash ? 'text-yellow-500' : 'text-foreground'
+              )}>
+                 {isInitialized ? `${currencySymbol}${financials.cashOnHand.toLocaleString()}` : "N/A"}
               </div>
-              Expense Breakdown
-            </CardTitle>
-            <CardDescription>Visualizing how your cash is being spent each month in {currencySymbol}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ExpenseBreakdownChart data={isInitialized ? historicalExpenseBreakdown : []} currencySymbol={currencySymbol} />
-          </CardContent>
-        </Card>
+              <p className="text-xs text-muted-foreground">
+                Monthly Burn: {isInitialized ? `${currencySymbol}${financials.burnRate.toLocaleString()}` : "N/A"}
+              </p>
+              {isLowCash && (
+                <Badge variant="warning" className="mt-2 text-xs">
+                  ⚠️ Low Runway!
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="game-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Startup Score
+              </CardTitle>
+              <div className="p-2 rounded-lg bg-gradient-to-br from-accent to-yellow-400">
+                <BarChartBig className="h-4 w-4 text-black" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{isInitialized ? startupScore : "0"}/100</div>
+              <div className="mt-2">
+                <Progress 
+                  value={isInitialized ? startupScore : 0} 
+                  className="h-2.5"
+                  indicatorClassName="bg-gradient-to-r from-accent to-yellow-400"
+                />
+              </div>
+              <Badge variant="xp" className="mt-2 text-xs">
+                {isInitialized && startupScore >= 80 ? "🏆 Elite" : 
+                 isInitialized && startupScore >= 60 ? "⭐ Strong" : 
+                 isInitialized && startupScore >= 40 ? "📈 Growing" : "🌱 Starting"}
+              </Badge>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Center Column - 3D Globe */}
+        <div className="lg:col-span-1">
+          <Card className="game-card h-full flex flex-col">
+            <CardHeader>
+              <CardTitle className="font-headline flex items-center gap-2">
+                <Globe className="h-5 w-5 text-accent"/>
+                Global Business Presence
+              </CardTitle>
+              <CardDescription>
+                Your startup's digital twin visualization
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow flex items-center justify-center p-0">
+              <Globe3D />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - AI Reasoning and Product */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* AI Reasoning Card */}
+          <Card className="game-card">
+            <CardHeader>
+              <CardTitle className="font-headline flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-red-400">
+                  <Brain className="h-5 w-5 text-white"/>
+                </div>
+                Hive Mind Intelligence
+              </CardTitle>
+              <CardDescription>AI's real-time analysis and reasoning for month {simulationMonth}.</CardDescription>
+            </CardHeader>
+            <CardContent className="min-h-[80px] relative overflow-hidden">
+              {/* Animated background for AI section */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-background-pan opacity-30" />
+              
+              {currentAiReasoning && currentAiReasoning.includes("simulating month...") ? (
+                  <div className="flex items-center gap-3 text-muted-foreground relative z-10">
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <p className="text-sm">{currentAiReasoning}</p>
+                  </div>
+              ) : (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed relative z-10">
+                    {currentAiReasoning || "AI intelligence is monitoring your simulation. Advance a month to see strategic insights."}
+                  </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Product Development Card */}
+          <Card className="game-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-bold flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600">
+                  <Target className="h-4 w-4 text-white"/>
+                </div>
+                Product: {product.name}
+              </CardTitle>
+              <CardDescription>Development stage: {product.stage}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Progress to Next Stage</span>
+                  <span>{product.developmentProgress}%</span>
+                </div>
+                <Progress 
+                  value={product.developmentProgress} 
+                  className="h-2.5"
+                  indicatorClassName="bg-gradient-to-r from-purple-400 to-purple-600"
+                />
+                <div className="flex justify-between text-xs mt-2">
+                  <span className="text-muted-foreground">Price Per User</span>
+                  <span>{currencySymbol}{product.pricePerUser}</span>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {product.features.map((feature, index) => (
+                    <Badge key={index} variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Stats Card */}
+          <Card className="game-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-bold flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600">
+                  <Activity className="h-4 w-4 text-white"/>
+                </div>
+                Key Metrics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
+                  <div className="text-xs text-blue-400">Churn Rate</div>
+                  <div className="text-lg font-bold">{(userMetrics.churnRate * 100).toFixed(1)}%</div>
+                </div>
+                <div className="bg-green-500/10 p-2 rounded-lg border border-green-500/20">
+                  <div className="text-xs text-green-400">CAC</div>
+                  <div className="text-lg font-bold">{currencySymbol}{userMetrics.customerAcquisitionCost}</div>
+                </div>
+                <div className="bg-orange-500/10 p-2 rounded-lg border border-orange-500/20">
+                  <div className="text-xs text-orange-400">Monthly Expenses</div>
+                  <div className="text-lg font-bold">{currencySymbol}{financials.expenses.toLocaleString()}</div>
+                </div>
+                <div className="bg-purple-500/10 p-2 rounded-lg border border-purple-500/20">
+                  <div className="text-xs text-purple-400">R&D Spend</div>
+                  <div className="text-lg font-bold">{currencySymbol}{resources.rndSpend.toLocaleString()}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       
       {/* Events Timeline */}
