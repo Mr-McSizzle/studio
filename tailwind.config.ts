@@ -114,7 +114,6 @@ export default {
           '50%': { 'background-position': '100% 50%' },
           '100%': { 'background-position': '0% 50%' },
         },
-        // Luxury/Game Homepage animations (re-added if needed, can be culled later)
         'float-rotate-3d': {
           '0%': { transform: 'translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1)', opacity: 'var(--start-opacity, 0.3)' },
           '50%': { transform: 'translateZ(calc(var(--start-z, 0px) + 20px)) rotateX(calc(var(--start-rotateX, 0deg) + 20deg)) rotateY(calc(var(--start-rotateY, 0deg) + 30deg)) translateY(-20px) scale(1.05)', opacity: 'calc(var(--start-opacity, 0.3) + 0.2)' },
@@ -134,6 +133,22 @@ export default {
             transform: 'rotate(360deg)',
           },
         },
+         'honeycomb-ripple-scale-fade': {
+          '0%': { transform: 'scale(0.5)', opacity: '0.8' },
+          '100%': { transform: 'scale(16)', opacity: '0' },
+        },
+        'particle-burst-rise-fade': {
+          '0%': { transform: 'translateY(0) scale(0.5)', opacity: '0.9' },
+          '100%': { transform: 'translateY(-250px) scale(0.3)', opacity: '0' },
+        },
+        'avatar-glide-in': {
+          '0%': { opacity: '0', transform: 'translateY(50px) scale(0.5)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'text-fade-in-scale-up': {
+           '0%': { opacity: '0', transform: 'scale(0.9)' },
+           '100%': { opacity: '1', transform: 'scale(1)' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -144,11 +159,14 @@ export default {
         'fadeIn': 'fadeIn 1s ease-out forwards',
         'fadeInUp': 'fadeInUp 0.8s ease-out forwards',
         'background-pan': 'background-pan 15s ease infinite',
-        // Luxury/Game Homepage animations (re-added if needed)
         'float-rotate-3d': 'float-rotate-3d ease-in-out infinite',
         'sparkle': 'sparkle ease-in-out infinite',
         'spin-slow': 'spin-slow 20s linear infinite', 
         'spin-slowest': 'spin-slowest 120s linear infinite',
+        'honeycomb-ripple': 'honeycomb-ripple-scale-fade var(--ripple-duration, 1.2s) ease-out var(--ripple-delay, 0s) forwards',
+        'particle-burst': 'particle-burst-rise-fade var(--particle-duration, 1.5s) ease-out var(--particle-delay, 0s) forwards',
+        'avatar-glide': 'avatar-glide-in 0.7s ease-out forwards',
+        'text-fade-in': 'text-fade-in-scale-up 0.6s ease-out forwards',
       },
       boxShadow: { 
         'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',
@@ -170,7 +188,7 @@ export default {
         '0s': '0s', '0.1s': '0.1s', '0.2s': '0.2s', '0.3s': '0.3s', '0.4s': '0.4s', '0.5s': '0.5s',
         '0.6s': '0.6s', '0.7s': '0.7s', '0.8s': '0.8s', '0.9s': '0.9s',
         '1s': '1s', '1.1s': '1.1s', '1.2s': '1.2s', '1.3s': '1.3s', '1.4s': '1.4s',
-        '1.5s': '1.5s', '1.6s': '1.6s', '2s':'2s'
+        '1.5s': '1.5s', '1.6s': '1.6s', '1.8s': '1.8s', '2s':'2s', '2.3s': '2.3s'
       },
       rotate: { 
         'y-10': 'rotateY(10deg)', 'y-15': 'rotateY(15deg)',
@@ -188,9 +206,7 @@ export default {
       const animationDelays = theme('animationDelay');
       if (animationDelays) {
         Object.entries(animationDelays).forEach(([key, value]) => {
-           // Ensure key is treated as a string for CSS class generation
-          // The key already includes 's', so no need to add it here for the class name.
-          const sanitizedKey = key.replace(/\./g, '\\.'); // Escape dots for CSS classes if they were present (e.g. 0.5s)
+          const sanitizedKey = key.replace(/\./g, '\\.'); 
           newUtilities[`.animation-delay-\\[${sanitizedKey}\\]`] = { 'animation-delay': value as string };
         });
       }

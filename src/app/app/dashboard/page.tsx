@@ -1,6 +1,6 @@
 
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react"; // Added useState for prevSimulationMonth
 import { useRouter } from "next/navigation";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { StructuredKeyEvent } from "@/types/simulation";
+import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay"; // New import
 
 interface MetricPanelProps {
   title: string;
@@ -142,12 +143,36 @@ export default function DashboardPage() {
   } = useSimulationStore();
 
   const currencySymbol = financials.currencySymbol || "$"; 
+  const [prevSimulationMonth, setPrevSimulationMonth] = useState<number | null>(null);
+  const [unlockedStageForAnimation, setUnlockedStageForAnimation] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
         router.replace('/app/setup');
     }
   }, [isInitialized, simulationMonth, router]);
+
+  useEffect(() => {
+    if (isInitialized && prevSimulationMonth !== null && simulationMonth > prevSimulationMonth) {
+      const newlyUnlockedStage = simulationStages.find(
+        stage => simulationMonth >= stage.unlockMonth && prevSimulationMonth < stage.unlockMonth
+      );
+      if (newlyUnlockedStage) {
+        setUnlockedStageForAnimation(newlyUnlockedStage.id);
+        // Log the unlock for debugging or analytics
+        console.log(`Stage Unlocked for Animation: ${newlyUnlockedStage.title} (ID: ${newlyUnlockedStage.id}) at month ${simulationMonth}`);
+      }
+    }
+    // Always update prevSimulationMonth after checks, or on first load if simulation is initialized
+    if (isInitialized) {
+      setPrevSimulationMonth(simulationMonth);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [simulationMonth, isInitialized]); // prevSimulationMonth removed from deps to avoid re-triggering on its own update
+
+  const handleAnimationComplete = () => {
+    setUnlockedStageForAnimation(null);
+  };
 
   const handleAdvanceMonth = () => {
     if (isInitialized && financials.cashOnHand > 0) {
@@ -177,15 +202,22 @@ export default function DashboardPage() {
   const isLowCash = isInitialized && financials.cashOnHand > 0 && financials.burnRate > 0 && financials.cashOnHand < (2 * financials.burnRate);
   const isGameOver = financials.cashOnHand <= 0 && isInitialized;
 
-  // Founder Progress Calculation
-  const maxLevels = 10; // Example: 10 levels for simulation
-  const monthsPerLevel = 3; // Example: new level every 3 months
+  const maxLevels = 10; 
+  const monthsPerLevel = 3; 
   const currentLevel = isInitialized ? Math.min(maxLevels, Math.floor(simulationMonth / monthsPerLevel) + 1) : 1;
   const progressToNextLevel = isInitialized ? (simulationMonth % monthsPerLevel) / monthsPerLevel * 100 : 0;
   const xpTowardsNextLevel = isInitialized ? (simulationMonth % monthsPerLevel) : 0;
 
   return (
-    <div className="container mx-auto py-8 px-4 md:px-0 space-y-8">
+    <>
+    {unlockedStageForAnimation && isInitialized && (
+        <StageUnlockAnimationOverlay
+          stageId={unlockedStageForAnimation}
+          stageName={simulationStages.find(s => s.id === unlockedStageForAnimation)?.title || "New Stage"}
+          onComplete={handleAnimationComplete}
+        />
+      )}
+    <div className={cn("container mx-auto py-8 px-4 md:px-0 space-y-8", unlockedStageForAnimation && "blur-sm pointer-events-none")}>
       {!isInitialized && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
@@ -214,12 +246,12 @@ export default function DashboardPage() {
             onClick={handleAdvanceMonth} 
             className="bg-gradient-to-r from-accent to-yellow-400 hover:from-accent/90 hover:to-yellow-500 text-accent-foreground shadow-lg hover:shadow-accent-glow-sm transition-all duration-200 transform hover:scale-105" 
             size="lg"
-            disabled={!isInitialized || isGameOver || (currentAiReasoning || "").includes("simulating month...")}
+            disabled={!isInitialized || isGameOver || (currentAiReasoning || "").includes("simulating month...") || !!unlockedStageForAnimation}
           >
               { (currentAiReasoning || "").includes("simulating month...") ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ChevronsRight className="mr-2 h-5 w-5"/> }
               { (currentAiReasoning || "").includes("simulating month...") ? "Processing Turn..." : "Advance Mission Month" }
           </Button>
-          <Button onClick={handleReset} variant="outline" size="lg" title="Reset Simulation & Start New Campaign" className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
+          <Button onClick={handleReset} variant="outline" size="lg" title="Reset Simulation & Start New Campaign" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" disabled={!!unlockedStageForAnimation}>
               <RefreshCcw className="h-5 w-5"/>
               <span className="ml-2">New Campaign</span>
           </Button>
@@ -236,7 +268,6 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      {/* Founder Progress & Startup Score */}
       <Card className="shadow-xl border-primary/20 bg-card/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2 text-primary">
@@ -261,7 +292,6 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Simulation Journey / Mission Path */}
       <section className="space-y-4">
         <h2 className="text-2xl font-headline text-foreground flex items-center gap-2"><Zap className="h-6 w-6 text-accent"/>Simulation Journey Phases</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -275,7 +305,6 @@ export default function DashboardPage() {
             
             const currentMonthInThisPhase = status === "current" ? (simulationMonth - stage.unlockMonth +1) : status === "completed" ? (nextUnlockMonth - stage.unlockMonth) : 0;
             const totalMonthsForThisPhase = status !== "locked" ? (nextUnlockMonth - stage.unlockMonth) : (simulationStages[index+1]?.unlockMonth || (stage.unlockMonth + monthsPerLevel)) - stage.unlockMonth;
-
 
             return (
               <StageCard
@@ -293,7 +322,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Core Operations Dashboard (Metrics & Logs) */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
             <MetricPanel 
@@ -367,7 +395,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Detailed Analysis Charts */}
       <section className="space-y-6">
         <h2 className="text-2xl font-headline text-foreground flex items-center gap-2"><BarChartBig className="h-6 w-6 text-accent"/>Strategic Intel & Reports</h2>
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
@@ -386,5 +413,6 @@ export default function DashboardPage() {
         </div>
       </section>
     </div>
+    </>
   );
 }
