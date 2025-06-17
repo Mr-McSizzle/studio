@@ -14,7 +14,7 @@ import {
   User as UserIcon, 
   Beaker, 
   Users, 
-  ListTodo, // Added ListTodo icon
+  ListTodo, 
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ const navItems = [
   { href: "/app/strategy", label: "Strategy & Analytics", icon: Lightbulb },
   { href: "/app/lab", label: "Innovation Lab", icon: Beaker },
   { href: "/app/gamification", label: "Milestones & Score", icon: Trophy },
-  { href: "/app/todo", label: "Todo List", icon: ListTodo }, // New Todo List item
+  { href: "/app/todo", label: "Todo List", icon: ListTodo }, 
   { href: "/app/profile", label: "Founder Profile", icon: UserIcon },
 ];
 
@@ -53,26 +53,27 @@ export function SidebarNav() {
         
         return (
           <SidebarMenuItem key={item.label}>
-            <Tooltip>
+            <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                  <SidebarMenuButton
                   asChild
                   variant="default"
                   size="default"
                   className={cn(
-                    "w-full justify-start",
-                      isActive && "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90"
+                    "w-full justify-start group/menu-button", // Added group/menu-button
+                      isActive && "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90 shadow-accent-glow-sm",
+                      !isActive && "hover:shadow-accent-glow-sm" // Glow on hover for non-active items
                   )}
                   isActive={isActive}
                 >
                   <Link href={item.href}>
-                    <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground")} />
+                    <Icon className={cn("h-5 w-5 shrink-0 transition-transform duration-200 group-hover/menu-button:scale-110", isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground")} />
                     <span className={cn(state === "collapsed" && !isMobile && "hidden")}>{item.label}</span>
                   </Link>
                 </SidebarMenuButton>
               </TooltipTrigger>
               {(state === "collapsed" || isMobile) && (
-                <TooltipContent side="right" className="bg-popover text-popover-foreground">
+                <TooltipContent side="right" className="bg-popover text-popover-foreground border-accent/50 shadow-lg">
                   {item.label}
                 </TooltipContent>
               )}
@@ -97,7 +98,7 @@ export function MobileSidebarNav({ onLinkClick }: { onLinkClick?: () => void }) 
               href={item.href}
               onClick={onLinkClick} 
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary hover:bg-muted", // Added hover:bg-muted
                 isActive ? "bg-muted text-primary" : "text-muted-foreground"
               )}
             >
@@ -127,5 +128,4 @@ export function SidebarToggleButton() {
     </Button>
   );
 }
-
     

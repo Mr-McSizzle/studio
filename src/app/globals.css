@@ -6,10 +6,10 @@
 @layer base {
   :root {
     /* ForgeSim PRD Inspired Dark Theme */
-    --background: 240 10% 3.5%; /* Even darker base for more contrast */
+    --background: 240 10% 3.5%; 
     --foreground: 0 0% 95%;
 
-    --card: 240 8% 6%; /* Darker cards */
+    --card: 240 8% 6%; 
     --card-foreground: 0 0% 90%;
 
     --popover: 240 10% 5%;
@@ -17,47 +17,47 @@
 
     /* PRD Colors */
     --primary: 0 100% 25%; /* Dark Maroon Wine (#800020) */
-    --primary-foreground: 0 0% 98%; /* Light text on maroon */
+    --primary-foreground: 0 0% 98%; 
 
     --secondary: 0 0% 20%; /* Dark Gray (#333333) */
     --secondary-foreground: 0 0% 90%;
 
-    --muted: 0 0% 12%; /* Slightly lighter dark gray for muted elements */
+    --muted: 0 0% 12%; 
     --muted-foreground: 0 0% 60%; 
 
     --accent: 50 60% 50%; /* Metal Gold (#CFB53B) */
-    --accent-foreground: 0 0% 10%; /* Dark text on gold */
+    --accent-foreground: 0 0% 10%; 
 
     --destructive: 0 70% 45%; 
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 15%; /* Darker border, can use primary/accent for highlights */
+    --border: 0 0% 15%; 
     --input: 240 10% 8%; 
-    --ring: 50 60% 55%; /* Gold for focus rings, consistent with accent */
+    --ring: 50 60% 55%; 
 
-    --chart-1: 50 60% 55%;  /* Gold shade (Accent) */
-    --chart-2: 0 100% 30%; /* Maroon shade (Primary slightly lighter for chart) */
-    --chart-3: 30 50% 55%;  /* Lighter Gold/Orange - muted */
-    --chart-4: 0 0% 75%;    /* Light Gray/Silver for contrast */
-    --chart-5: 0 80% 35%; /* Muted Desaturated Red */
+    --chart-1: 50 60% 55%;  
+    --chart-2: 0 100% 30%; 
+    --chart-3: 30 50% 55%;  
+    --chart-4: 0 0% 75%;    
+    --chart-5: 0 80% 35%; 
 
     --radius: 0.5rem;
 
     /* Sidebar Theme - Consistent with main theme */
-    --sidebar-background: 240 10% 2.5%; /* Very dark, almost black */
+    --sidebar-background: 240 10% 2.5%; 
     --sidebar-foreground: 0 0% 80%; 
-    --sidebar-primary: 0 100% 25%; /* Maroon for active/primary items in sidebar */
+    --sidebar-primary: 0 100% 25%; 
     --sidebar-primary-foreground: 0 0% 98%; 
-    --sidebar-accent: 50 60% 50%; /* Gold for hover/accent in sidebar */
+    --sidebar-accent: 50 60% 50%; 
     --sidebar-accent-foreground: 0 0% 10%; 
     --sidebar-border: 0 0% 12%; 
     --sidebar-ring: 50 60% 55%;
 
     /* Theme Colors for Phase Cards (derived from PRD palette) */
-    --sky: 200 80% 50%; /* Example: Light Blue for Genesis */
-    --amber: 40 90% 50%; /* Example: Orange/Amber for Aegis */
-    --emerald: 150 70% 40%; /* Example: Green for Vanguard */
-    --purple: 270 70% 55%; /* Example: Purple for Dominion */
+    --sky: 200 80% 50%; 
+    --amber: 40 90% 50%; 
+    --emerald: 150 70% 40%; 
+    --purple: 270 70% 55%; 
 
   }
 
@@ -109,7 +109,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Removed original dot grid for cleaner dashboard-specific background */
   }
 }
 
@@ -128,17 +127,17 @@
     @apply transition-all duration-300 ease-in-out;
   }
   .card-glow-hover-accent:hover {
-    box-shadow: 0 0 12px 0px hsl(var(--accent) / 0.3), 0 0 20px 0px hsl(var(--accent) / 0.2), 0 4px 15px -3px hsl(var(--accent) / 0.2);
+    box-shadow: 0 0 12px 0px hsl(var(--accent) / 0.4), 0 0 20px 0px hsl(var(--accent) / 0.3), 0 4px 15px -3px hsl(var(--accent) / 0.2);
     transform: translateY(-2px) scale(1.01);
-    border-color: hsl(var(--accent) / 0.6);
+    border-color: hsl(var(--accent) / 0.7);
   }
   .card-glow-hover-primary {
     @apply transition-all duration-300 ease-in-out;
   }
   .card-glow-hover-primary:hover {
-    box-shadow: 0 0 12px 0px hsl(var(--primary) / 0.4), 0 0 20px 0px hsl(var(--primary) / 0.3), 0 4px 15px -3px hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 12px 0px hsl(var(--primary) / 0.5), 0 0 20px 0px hsl(var(--primary) / 0.4), 0 4px 15px -3px hsl(var(--primary) / 0.2);
     transform: translateY(-2px) scale(1.01);
-    border-color: hsl(var(--primary) / 0.5);
+    border-color: hsl(var(--primary) / 0.6);
   }
 
   .nexus-bg-animations { 
@@ -174,20 +173,13 @@
   .shadow-inner-soft-gold {
     box-shadow: inset 0 2px 4px 0 hsl(var(--accent) / 0.1), inset 0 -1px 2px 0 hsl(var(--background) / 0.3);
   }
-  .shadow-inner-soft-dim { /* For locked cards */
+  .shadow-inner-soft-dim { 
     box-shadow: inset 0 1px 3px 0 hsl(var(--background) / 0.5), inset 0 -1px 2px 0 hsl(var(--foreground) / 0.05);
   }
 
-  /* Hexagon cell styling for dashboard phase cards */
   .hive-cell {
     @apply bg-card border border-border rounded-xl shadow-lg; 
-    /* Basic soft hex/tech panel shape using clip-path */
-    /* clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%); */
-    /* Using rounded-xl for softer edges, clip-path can be aggressive with content */
   }
-   .hive-cell:hover {
-     /* Add hover shimmer effect */
-   }
   .shimmer-effect {
     position: absolute;
     top: 0;
@@ -197,31 +189,23 @@
     background: linear-gradient(100deg, transparent 20%, hsl(var(--accent)/0.15) 50%, transparent 80%);
     transition: left 0.6s ease-in-out;
     opacity: 0;
-    pointer-events: none; /* Important */
+    pointer-events: none; 
   }
   .hive-cell:hover .shimmer-effect {
     left: 100%;
     opacity: 1;
   }
 
-
-  /* For the central orb's pulse */
   .animate-subtle-pulse-orb {
     animation: subtle-pulse-orb 3s infinite ease-in-out;
   }
-  /* For active phase card border pulse */
-  .animate-pulse-glow-border {
-    animation: pulse-glow-border 2.5s infinite ease-in-out;
-  }
-  .animate-pulse-glow-border-alt { /* Slightly different timing */
+  .animate-pulse-glow-border-alt { 
     animation: pulse-glow-border 2s infinite ease-in-out;
-     /* --glow-color, --border-color, --border-color-active must be set inline via style prop */
   }
   .animate-float-pulse {
     animation: float-pulse 4s infinite ease-in-out;
   }
 
-  /* Dashboard specific background grid */
   .neural-grid-bg {
     position: absolute;
     inset: 0;
@@ -230,7 +214,7 @@
     background-image:
       linear-gradient(to right, hsl(var(--border)/0.15) 1px, transparent 1px),
       linear-gradient(to bottom, hsl(var(--border)/0.15) 1px, transparent 1px);
-    background-size: 40px 40px; /* Adjust grid size */
+    background-size: 40px 40px; 
     animation: subtle-grid-pan 60s linear infinite;
   }
   .orbit-line {
@@ -246,32 +230,33 @@
     animation-delay: var(--orbit-delay);
     opacity: 0.5;
   }
-  .glow-progress-bar .progress-indicator { /* Target the inner indicator */
+  .glow-progress-bar .progress-indicator { 
      box-shadow: 0 0 8px hsl(var(--accent)/0.5);
+  }
+
+  .glowing-title-underline {
+    @apply relative pb-1;
+  }
+  .glowing-title-underline::after {
+    @apply content-[''] absolute bottom-0 left-0 w-2/3 h-[2px] bg-gradient-to-r from-accent via-primary to-accent rounded-full;
+    animation: title-underline-glow 2.5s ease-in-out infinite alternate;
+    filter: blur(1px);
+  }
+   .animate-subtle-button-pulse {
+    animation: subtle-button-pulse 2s infinite ease-in-out;
   }
 
 }
 
 
 @layer utilities {
-  /* Keyframes for Editorial Homepage - primarily fadeInUp */
   @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
    @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes float-pulse {
@@ -280,103 +265,55 @@
   }
   @keyframes subtle-grid-pan {
     0% { background-position: 0 0; }
-    100% { background-position: 80px 80px; } /* Twice the grid size for seamless loop */
+    100% { background-position: 80px 80px; } 
   }
    @keyframes orbit {
     from { transform: translate(-50%, -50%) rotate(0deg); }
     to { transform: translate(-50%, -50%) rotate(360deg); }
   }
 
-
-  /* Keyframes from Luxury/Game Homepage (can be culled if not used by editorial or other pages) */
   @keyframes float-rotate-3d {
-    0% {
-      transform: translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1);
-      opacity: var(--start-opacity, 0.3);
-    }
-    50% {
-      transform: translateZ(calc(var(--start-z, 0px) + 20px)) rotateX(calc(var(--start-rotateX, 0deg) + 20deg)) rotateY(calc(var(--start-rotateY, 0deg) + 30deg)) translateY(-20px) scale(1.05);
-      opacity: calc(var(--start-opacity, 0.3) + 0.2);
-    }
-    100% {
-      transform: translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1);
-      opacity: var(--start-opacity, 0.3);
-    }
+    0% { transform: translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1); opacity: var(--start-opacity, 0.3); }
+    50% { transform: translateZ(calc(var(--start-z, 0px) + 20px)) rotateX(calc(var(--start-rotateX, 0deg) + 20deg)) rotateY(calc(var(--start-rotateY, 0deg) + 30deg)) translateY(-20px) scale(1.05); opacity: calc(var(--start-opacity, 0.3) + 0.2); }
+    100% { transform: translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1); opacity: var(--start-opacity, 0.3); }
   }
-  .animate-float-rotate-3d {
-    animation-name: float-rotate-3d;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
-  }
+  .animate-float-rotate-3d { animation-name: float-rotate-3d; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
 
   @keyframes sparkle {
     0%, 100% { opacity: var(--start-opacity, 0.3); transform: scale(0.8); }
     50% { opacity: calc(var(--start-opacity, 0.3) + 0.5); transform: scale(1.2); box-shadow: 0 0 10px 2px hsl(var(--accent)/0.8); }
   }
-  .animate-sparkle {
-    animation-name: sparkle;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
-  }
+  .animate-sparkle { animation-name: sparkle; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
 
   @keyframes guidance-pulse {
-    0%, 100% {
-      box-shadow: 0 0 0 0 hsl(var(--accent) / 0.7), 0 0 10px 1px hsl(var(--accent) / 0.6);
-    }
-    50% {
-      box-shadow: 0 0 0 5px hsl(var(--accent) / 0), 0 0 20px 3px hsl(var(--accent) / 0.7);
-    }
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0.7), 0 0 10px 1px hsl(var(--accent) / 0.6); }
+    50% { box-shadow: 0 0 0 5px hsl(var(--accent) / 0), 0 0 20px 3px hsl(var(--accent) / 0.7); }
   }
 
-  @keyframes spin-slow {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  .animate-spin-slow {
-    animation: spin-slow 20s linear infinite;
-  }
-  .animate-spin-slowest {
-    animation: spin-slow 120s linear infinite;
-  }
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+  .animate-spin-slow { animation: spin-slow 20s linear infinite; }
+  .animate-spin-slowest { animation: spin-slow 120s linear infinite; }
   
   @keyframes ember-float {
     0% { transform: translateY(0) translateX(0) scale(1); opacity: var(--start-opacity, 0.7); }
     50% { transform: translateY(-100px) translateX(15px) scale(1.2); opacity: calc(var(--start-opacity, 0.7) * 0.5); }
     100% { transform: translateY(-200px) translateX(-10px) scale(0.8); opacity: 0; }
   }
-  .animate-ember-float {
-    animation-name: ember-float;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
-  }
+  .animate-ember-float { animation-name: ember-float; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
   
   @keyframes fog-drift {
     0% { transform: translateX(-5%); opacity: 0.3; }
     50% { transform: translateX(5%); opacity: 0.6; }
     100% { transform: translateX(-5%); opacity: 0.3; }
   }
-  .animate-fog-drift {
-    animation-name: fog-drift;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
-  }
+  .animate-fog-drift { animation-name: fog-drift; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
 
   @keyframes ping-slow {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 0.7;
-    }
-    50% {
-      transform: scale(1.1);
-      opacity: 1;
-    }
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
   }
-  .animate-ping-slow {
-      animation: ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-  }
+  .animate-ping-slow { animation: ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite; }
 
-  /* Stage Unlock Animation Keyframes */
   @keyframes honeycomb-ripple-scale-fade {
     0% { transform: scale(0.5); opacity: 0.8; }
     100% { transform: scale(16); opacity: 0; }
@@ -394,13 +331,11 @@
      100% { opacity: 1; transform: scale(1); }
   }
 
-
-  /* Animation for Hiveverse Dashboard */
   @keyframes subtle-pulse-orb {
     0%, 100% { filter: drop-shadow(0 0 10px hsl(var(--accent)/0.5)) brightness(1); transform: scale(1); }
     50% { filter: drop-shadow(0 0 18px hsl(var(--accent)/0.7)) brightness(1.1); transform: scale(1.03); }
   }
-  @keyframes pulse-glow-border { /* Generic, use with inline CSS vars for color */
+  @keyframes pulse-glow-border { 
     0%, 100% { 
       box-shadow: 0 0 0px 0px var(--glow-color, hsl(var(--accent)/0.4)), inset 0 0 0px 0px var(--glow-color, hsl(var(--accent)/0.2));
       border-color: var(--border-color, hsl(var(--accent)/0.7));
@@ -411,5 +346,12 @@
     }
   }
   
+  @keyframes title-underline-glow {
+    0%, 100% { width: 40%; filter: blur(0.5px) brightness(0.9); opacity: 0.8; background-color: hsl(var(--accent) / 0.7); }
+    50% { width: 66.66%; filter: blur(1px) brightness(1.2); opacity: 1; background-color: hsl(var(--accent)); }
+  }
+  @keyframes subtle-button-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 5px hsl(var(--accent)/0.3); }
+    50% { transform: scale(1.03); box-shadow: 0 0 12px hsl(var(--accent)/0.5); }
+  }
 }
-

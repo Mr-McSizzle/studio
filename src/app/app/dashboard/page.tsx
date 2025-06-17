@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
-  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Map, Target, Shield, BookOpen, Server, Rocket, Megaphone, PackageCheck, Flag, CheckCircle, LockIcon, Eye, Aperture, Layers, Network, Gamepad2, Star, Settings2
+  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Map, Target, Shield, BookOpen, Server, Rocket, Megaphone, PackageCheck, Flag, CheckCircle, LockIcon, Eye, Aperture, Layers, Network, Gamepad2, Star, Settings2, Info
 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import type { StructuredKeyEvent } from "@/types/simulation";
 import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
 
-const MAX_SIMULATION_MONTHS = 24; // Example, adjust as needed
+const MAX_SIMULATION_MONTHS = 24; 
 
 interface SimulationPhase {
   id: string;
@@ -34,7 +34,7 @@ interface SimulationPhase {
   ringColor: string;
   shadowColor: string;
   bgColor: string;
-  glowColorVar: string; // e.g., '--glow-sky'
+  glowColorVar: string; 
 }
 
 const simulationPhases: SimulationPhase[] = [
@@ -58,25 +58,24 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
   const currentMonthInPhase = isLocked ? 0 : Math.min(phase.totalMonthsInPhase, Math.max(0, currentSimMonth - phase.unlockMonth));
   const progressPercentage = phase.totalMonthsInPhase > 0 ? (currentMonthInPhase / phase.totalMonthsInPhase) * 100 : (isCompleted ? 100 : 0);
 
-  let cardClasses = "hive-cell relative flex flex-col justify-between p-4 min-h-[280px] transition-all duration-300 ease-in-out transform hover:scale-[1.02] border-2 ";
+  let cardClasses = "hive-cell relative flex flex-col justify-between p-4 min-h-[280px] transition-all duration-300 ease-in-out transform group ";
   let IconComponent = phase.icon;
 
-  // 3D Tilt on hover
-  cardClasses += " hover:shadow-2xl hover:-translate-y-1";
+  cardClasses += " hover:shadow-2xl hover:-translate-y-1 hover:rotate-y-2 hover:rotate-x-1";
 
   if (isLocked) {
-    cardClasses += "bg-card/20 border-border/30 opacity-60 backdrop-blur-sm cursor-not-allowed shadow-inner-soft-dim";
+    cardClasses += "bg-card/20 backdrop-blur-xs opacity-60 cursor-not-allowed shadow-inner-soft-dim border-border/30";
     IconComponent = LockIcon;
   } else if (isActive) {
     cardClasses += `${phase.bgColor} ${phase.ringColor} shadow-lg ${phase.shadowColor} animate-pulse-glow-border-alt`;
-  } else { // Completed
+  } else { 
     cardClasses += "bg-card/50 border-green-600/50 opacity-80 shadow-md";
     IconComponent = CheckCircle;
   }
 
   return (
     <div
-      className={cn(cardClasses, "perspective-1000 group")}
+      className={cn(cardClasses, "perspective-1000")}
       style={{
         '--glow-color': `hsl(var(${phase.glowColorVar}))`,
         '--border-color': `hsl(var(${phase.glowColorVar}) / 0.7)`,
@@ -85,7 +84,7 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
     >
       <div className="transform-style-preserve-3d group-hover:rotate-y-2 group-hover:rotate-x-1 transition-transform duration-300">
         <div className="flex items-center justify-between mb-3">
-          <h3 className={cn("text-lg font-headline leading-tight", isLocked ? "text-muted-foreground/80" : phase.themeColor)}>{phase.title}</h3>
+          <h3 className={cn("text-lg font-headline leading-tight tracking-tight", isLocked ? "text-muted-foreground/80" : phase.themeColor)}>{phase.title}</h3>
           <IconComponent className={cn("h-7 w-7", isLocked ? "text-muted-foreground/60" : phase.themeColor)} />
         </div>
         <p className={cn("text-xs mb-3 leading-snug min-h-[3em]", isLocked ? "text-muted-foreground/60" : "text-muted-foreground")}>
@@ -94,7 +93,6 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
         {!isLocked && (
           <div className="mt-auto space-y-2">
             <div className="text-xs text-muted-foreground/80">Progress: {currentMonthInPhase} / {phase.totalMonthsInPhase} months</div>
-            {/* Ring-style progress could be complex; using themed Progress for now */}
             <Progress value={progressPercentage} className="h-1.5" indicatorClassName={cn(isActive ? phase.themeColor.replace('text-', 'bg-') : 'bg-green-500', 'shadow-md')} />
             <ul className="mt-2 space-y-1 text-[11px] text-muted-foreground/70 list-disc list-inside pl-1">
               {phase.milestones.slice(0, 2).map(ms => <li key={ms} className="truncate">{ms}</li>)}
@@ -103,7 +101,6 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
         )}
       </div>
       {isLocked && <div className="absolute inset-0 bg-black/40 backdrop-blur-xs rounded-md flex items-center justify-center"><LockIcon className="h-10 w-10 text-white/50"/></div>}
-      {/* Shimmer effect on hover for active/completed cards */}
       {!isLocked && <div className="absolute inset-0 overflow-hidden rounded-md"><div className="shimmer-effect"></div></div>}
     </div>
   );
@@ -146,6 +143,7 @@ export default function DashboardPage() {
   const [unlockedStageForAnimation, setUnlockedStageForAnimation] = useState<string | null>(null);
   const [currentUnlockedStageName, setCurrentUnlockedStageName] = useState<string>("New Stage");
   const [eveTooltipMessage, setEveTooltipMessage] = useState("EVE: Monitoring all simulation parameters.");
+  const [isSimulating, setIsSimulating] = useState(false);
 
   useEffect(() => {
     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
@@ -173,28 +171,35 @@ export default function DashboardPage() {
   }, [simulationMonth, isInitialized, prevSimulationMonth]);
 
   const handleAnimationComplete = () => setUnlockedStageForAnimation(null);
-  const handleAdvanceMonth = () => { if (isInitialized && financials.cashOnHand > 0) advanceMonth(); };
+  
+  const handleAdvanceMonth = async () => { 
+    if (isInitialized && financials.cashOnHand > 0 && !isSimulating) {
+      setIsSimulating(true);
+      await advanceMonth(); 
+      setIsSimulating(false);
+    }
+  };
   const handleReset = () => { resetSimulation(); router.push('/app/setup'); };
 
   useEffect(() => {
     const messages = [
-      "EVE: All systems nominal.",
-      `EVE: Current focus: Month ${simulationMonth}. Analysis ongoing.`,
-      "EVE: Strategic trajectory stable. Monitoring for deviations.",
-      "EVE: Resource allocation optimal for current objectives.",
-      "EVE: New data influx. Recalibrating predictive models..."
+      `EVE: Currently in month ${simulationMonth}. Financials: ${currencySymbol}${financials.cashOnHand.toLocaleString()} cash.`,
+      `EVE: User base at ${userMetrics.activeUsers.toLocaleString()}. Product '${product.name}' is at ${product.stage} stage.`,
+      "EVE: Strategic projections updated. Analyzing next optimal move.",
+      "EVE: All systems nominal. Ready for your command.",
+      `EVE: Monitoring market conditions for '${market.targetMarketDescription}'. Competition: ${market.competitionLevel}.`
     ];
     if (financials.cashOnHand < financials.burnRate * 2 && financials.cashOnHand > 0) {
-      messages.push("EVE: Warning: Cash reserves approaching critical threshold.");
+      messages.push("EVE: Warning: Cash reserves approaching critical threshold. Recommend strategic review.");
     }
-    if (product.developmentProgress > 75 && product.stage !== 'mature') {
-      messages.push(`EVE: Product '${product.name}' nearing next developmental stage.`);
+    if (product.developmentProgress > 85 && product.stage !== 'mature') {
+      messages.push(`EVE: Product '${product.name}' is ${product.developmentProgress}% complete. Next stage nearing.`);
     }
     const interval = setInterval(() => {
       setEveTooltipMessage(messages[Math.floor(Math.random() * messages.length)]);
-    }, 12000); // Update EVE's tooltip message periodically
+    }, 10000); 
     return () => clearInterval(interval);
-  }, [simulationMonth, financials.cashOnHand, financials.burnRate, product.name, product.developmentProgress, product.stage]);
+  }, [simulationMonth, financials, userMetrics, product, market, currencySymbol]);
 
 
   if (typeof simulationMonth === 'number' && simulationMonth === 0 && !isInitialized) {
@@ -223,7 +228,7 @@ export default function DashboardPage() {
         />
       )}
       <div className={cn("dashboard-hub-container relative container mx-auto py-8 px-4 md:px-0 space-y-6 overflow-hidden", unlockedStageForAnimation && "blur-md pointer-events-none")}>
-        {/* Enhanced Background elements specific to dashboard */}
+        
         <div className="absolute inset-0 z-[-1] opacity-30 overflow-hidden">
           <div className="neural-grid-bg"></div>
           {Array.from({length: 5}).map((_, i) => (
@@ -247,7 +252,7 @@ export default function DashboardPage() {
                     <Image
                       src="/new-assets/eve-avatar.png"
                       alt="EVE - AI Hive Mind Assistant"
-                      width={72} // Slightly larger
+                      width={72} 
                       height={72}
                       className="rounded-full border-2 border-accent/70 shadow-accent-glow-md filter drop-shadow-[0_0_15px_hsl(var(--accent)/0.6)]"
                       data-ai-hint="bee queen"
@@ -263,7 +268,7 @@ export default function DashboardPage() {
                 <h1 className="text-2xl sm:text-3xl font-headline text-foreground text-glow-primary">
                   {isInitialized ? companyName : "ForgeSim"} Hive Command
                 </h1>
-                 <p className="text-xs text-muted-foreground mt-1">Overall Progress: Month {isInitialized ? simulationMonth : "0"} / {MAX_SIMULATION_MONTHS}</p>
+                <p className="text-xs text-muted-foreground mt-1">Overall Progress: Month {isInitialized ? simulationMonth : "0"} / {MAX_SIMULATION_MONTHS}</p>
                 <Progress value={overallProgress} className="mt-1.5 h-2 rounded-sm glow-progress-bar" indicatorClassName="bg-gradient-to-r from-primary via-accent to-primary/70 shadow-sm shadow-primary/40"/>
               </div>
             </div>
@@ -271,17 +276,21 @@ export default function DashboardPage() {
                 <ScoreDisplay score={isInitialized ? startupScore : 0} />
                 <Button
                     onClick={handleAdvanceMonth}
-                    className="bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    className={cn(
+                        "bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200",
+                        "active:scale-95 active:shadow-inner-soft-gold", 
+                        isSimulating && "animate-subtle-button-pulse"
+                    )}
                     size="default"
-                    disabled={!isInitialized || isGameOver || (currentAiReasoning || "").includes("simulating month...") || !!unlockedStageForAnimation}
+                    disabled={!isInitialized || isGameOver || isSimulating || !!unlockedStageForAnimation}
                     title="Simulate Next Month"
                 >
-                    {(currentAiReasoning || "").includes("simulating month...") ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <ChevronsRight className="mr-1.5 h-4 w-4"/>}
+                    {isSimulating || (currentAiReasoning || "").includes("simulating month...") ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <ChevronsRight className="mr-1.5 h-4 w-4"/>}
                     Next Month
                 </Button>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button onClick={handleReset} variant="outline" size="icon" title="Reset Simulation" disabled={!!unlockedStageForAnimation} className="border-primary/50 text-primary/80 hover:bg-primary/10 hover:text-primary shadow-sm hover:shadow-md">
+                        <Button onClick={handleReset} variant="outline" size="icon" title="Reset Simulation" disabled={!!unlockedStageForAnimation} className="border-primary/50 text-primary/80 hover:bg-primary/10 hover:text-primary shadow-sm hover:shadow-md active:scale-95">
                             <RefreshCcw className="h-4 w-4"/>
                         </Button>
                     </TooltipTrigger>
@@ -302,7 +311,7 @@ export default function DashboardPage() {
 
         <section className="relative z-10">
           <h2 className="text-xl font-headline text-foreground mb-4 flex items-center gap-2"><Settings2 className="h-6 w-6 text-accent"/>Phase Matrix</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"> {/* Hex grid needs careful gap for visual */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"> 
             {simulationPhases.map(phase => (
               <PhaseCard key={phase.id} phase={phase} currentSimMonth={simulationMonth} />
             ))}
@@ -359,7 +368,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-1 space-y-6">
              <Card className="shadow-md bg-card/70 backdrop-blur-sm">
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2"><Brain className="h-4 w-4 text-primary"/> Hive Mind Comms</CardTitle>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2 glowing-title-underline"><Brain className="h-4 w-4 text-primary"/> Hive Mind Comms</CardTitle>
                 </CardHeader>
                 <CardContent className="min-h-[80px] bg-muted/40 p-3 rounded-b-md mx-1 mb-1">
                   {currentAiReasoning && currentAiReasoning.includes("simulating month...") ? (
@@ -373,7 +382,7 @@ export default function DashboardPage() {
               </Card>
               <Card className="shadow-md bg-card/70 backdrop-blur-sm">
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2"><BookOpen className="h-4 w-4 text-primary"/> Event Chronicle</CardTitle>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2 glowing-title-underline"><BookOpen className="h-4 w-4 text-primary"/> Event Chronicle</CardTitle>
                 </CardHeader>
                 <CardContent className="bg-muted/40 p-0 rounded-b-md mx-1 mb-1">
                   {isInitialized && keyEvents.length > 0 ? (
@@ -396,22 +405,86 @@ export default function DashboardPage() {
               </Card>
             </div>
             <div className="lg:col-span-2 space-y-6">
-                <PerformanceChart title={`Revenue (${currencySymbol})`} description="Monthly revenue trends." dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
-                <PerformanceChart title="User Growth" description="Active user base evolution." dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
+                <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
+                  <CardHeader>
+                    <CardTitle className="font-headline glowing-title-underline">Revenue ({currencySymbol})</CardTitle>
+                    <CardDescription>Monthly revenue trends.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PerformanceChart dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
+                  </CardContent>
+                </Card>
+                <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
+                  <CardHeader>
+                    <CardTitle className="font-headline glowing-title-underline">User Growth</CardTitle>
+                    <CardDescription>Active user base evolution.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PerformanceChart dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
+                  </CardContent>
+                </Card>
             </div>
         </div>
 
         <div className="relative z-10 grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-            <PerformanceChart title={`Burn Rate (${currencySymbol})`} description="Cash consumed monthly over revenue." dataKey="value" data={isInitialized ? historicalBurnRate : []} />
-            <PerformanceChart title={`Net Profit/Loss (${currencySymbol})`} description="Monthly financial result." dataKey="value" data={isInitialized ? historicalNetProfitLoss : []} />
+            <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
+                <CardHeader>
+                    <CardTitle className="font-headline glowing-title-underline">Burn Rate ({currencySymbol})</CardTitle>
+                    <CardDescription>Cash consumed monthly over revenue.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PerformanceChart dataKey="value" data={isInitialized ? historicalBurnRate : []} />
+                </CardContent>
+            </Card>
+             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
+                <CardHeader>
+                    <CardTitle className="font-headline glowing-title-underline">Net Profit/Loss ({currencySymbol})</CardTitle>
+                    <CardDescription>Monthly financial result.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PerformanceChart dataKey="value" data={isInitialized ? historicalNetProfitLoss : []} />
+                </CardContent>
+            </Card>
          </div>
          <div className="relative z-10 grid gap-6 md:grid-cols-1 lg:grid-cols-3">
-            <PerformanceChart title={`CAC (${currencySymbol})`} description="Avg. cost per new user." dataKey="value" data={isInitialized ? historicalCAC : []} />
-            <PerformanceChart title="Churn Rate (%)" description="Users lost per month." dataKey="value" data={isInitialized ? historicalChurnRate : []} />
-            <PerformanceChart title={`${product.name} Dev. Progress`} description="Progress towards next product stage (0-100%)." dataKey="value" data={isInitialized ? historicalProductProgress : []} />
+            <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
+                <CardHeader>
+                    <CardTitle className="font-headline glowing-title-underline">CAC ({currencySymbol})</CardTitle>
+                    <CardDescription>Avg. cost per new user.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PerformanceChart dataKey="value" data={isInitialized ? historicalCAC : []} />
+                </CardContent>
+            </Card>
+             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
+                <CardHeader>
+                    <CardTitle className="font-headline glowing-title-underline">Churn Rate (%)</CardTitle>
+                    <CardDescription>Users lost per month.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PerformanceChart dataKey="value" data={isInitialized ? historicalChurnRate : []} />
+                </CardContent>
+            </Card>
+             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
+                <CardHeader>
+                    <CardTitle className="font-headline glowing-title-underline">{product.name} Dev. Progress</CardTitle>
+                    <CardDescription>Progress towards next product stage (0-100%).</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PerformanceChart dataKey="value" data={isInitialized ? historicalProductProgress : []} />
+                </CardContent>
+            </Card>
           </div>
           <div className="relative z-10">
-            <ExpenseBreakdownChart data={isInitialized ? historicalExpenseBreakdown : []} currencySymbol={currencySymbol} />
+            <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
+                <CardHeader>
+                    <CardTitle className="font-headline glowing-title-underline">Monthly Expense Breakdown</CardTitle>
+                    <CardDescription>Visualizing how your cash is being spent each month in {currencySymbol}.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ExpenseBreakdownChart data={isInitialized ? historicalExpenseBreakdown : []} currencySymbol={currencySymbol} />
+                </CardContent>
+            </Card>
           </div>
 
       </div>
