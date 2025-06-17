@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent, useRef } from "react"; // Added useRef
 import { useRouter } from "next/navigation";
 import { promptStartup, type PromptStartupInput, type PromptStartupOutput } from "@/ai/flows/prompt-startup";
 import { suggestNames, type SuggestNamesInput, type SuggestNamesOutput } from "@/ai/flows/suggest-names-flow";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { CinematicSetupOverlay } from "@/components/setup/CinematicSetupOverlay"; 
+import { CinematicSetupOverlay } from "@/components/setup/CinematicSetupOverlay";
 import { FounderArchetype, FounderArchetypeEnum } from "@/types/simulation";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +53,7 @@ const eveFeedbacks: Record<string, Record<string, { message: string; threshold: 
 };
 
 export default function SetupSimulationPage() {
-  const [currentStep, setCurrentStep] = useState(1); // 1 for archetype, 2 for details
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedArchetype, setSelectedArchetype] = useState<FounderArchetype | undefined>(undefined);
 
   const [startupNameIdea, setStartupNameIdea] = useState("");
@@ -69,7 +69,7 @@ export default function SetupSimulationPage() {
   const [initialIP, setInitialIP] = useState("");
 
   const [simulationOutput, setSimulationOutput] = useState<PromptStartupOutput | null>(null);
-  const [isLoadingAiCall, setIsLoadingAiCall] = useState(false); 
+  const [isLoadingAiCall, setIsLoadingAiCall] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuggestingNames, setIsSuggestingNames] = useState(false);
 
@@ -85,6 +85,8 @@ export default function SetupSimulationPage() {
   const router = useRouter();
   const initializeSimulationInStore = useSimulationStore(state => state.initializeSimulation);
   const resetSimStore = useSimulationStore(state => state.resetSimulation);
+  const setSelectedArchetypeInStore = useSimulationStore(state => state.setSelectedArchetype);
+
 
   const displayEveFeedback = (feedbackKey: keyof typeof eveFeedbacks, value: string | number) => {
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
@@ -92,19 +94,22 @@ export default function SetupSimulationPage() {
     let messageToShow = null;
 
     if (typeof value === 'string') {
-        if (value.length > (fieldFeedbacks.developing?.threshold as number || 30)) messageToShow = fieldFeedbacks.developing?.message;
-        else if (value.length > (fieldFeedbacks.conceptual?.threshold as number || 10)) messageToShow = fieldFeedbacks.conceptual?.message;
+        const length = value.trim().length; // Use trimmed length
+        if (length >= (fieldFeedbacks.long?.threshold as number || 50)) messageToShow = fieldFeedbacks.long?.message;
+        else if (length >= (fieldFeedbacks.medium?.threshold as number || 20)) messageToShow = fieldFeedbacks.medium?.message;
+        else if (length >= (fieldFeedbacks.short?.threshold as number || 5)) messageToShow = fieldFeedbacks.short?.message;
+        else if (length > 0 && fieldFeedbacks.conceptual) messageToShow = fieldFeedbacks.conceptual?.message; // For very short initial input
     } else if (typeof value === 'number') {
         if (value >= (fieldFeedbacks.high?.threshold as number || 200000)) messageToShow = fieldFeedbacks.high?.message;
         else if (value >= (fieldFeedbacks.medium?.threshold as number || 50000)) messageToShow = fieldFeedbacks.medium?.message;
-        else if (value >= (fieldFeedbacks.low?.threshold as number || 0)) messageToShow = fieldFeedbacks.low?.message; // Check against 0 for budget
+        else if (value > 0 && value < (fieldFeedbacks.medium?.threshold as number || 50000)) messageToShow = fieldFeedbacks.low?.message; // Only show low if > 0
     }
-    
-    setEveSetupFeedback(messageToShow || "");
+
+    setEveSetupFeedback(messageToShow || ""); // Set to empty string if no message
 
     feedbackTimeoutRef.current = setTimeout(() => {
       setEveSetupFeedback(null);
-    }, 4000); // Feedback disappears after 4 seconds
+    }, 4000);
   };
 
   useEffect(() => {
@@ -126,11 +131,11 @@ export default function SetupSimulationPage() {
       setCinematicProgressText(initializationSteps[cinematicStepIndex]);
       timer = setTimeout(() => {
         setCinematicStepIndex(prev => prev + 1);
-      }, 2000); 
+      }, 2000);
     } else if (showCinematicOverlay && !showEveInOverlay && cinematicStepIndex >= initializationSteps.length) {
       timer = setTimeout(() => {
         setShowEveInOverlay(true);
-      }, 1000); 
+      }, 1000);
     }
     return () => clearTimeout(timer);
   }, [showCinematicOverlay, cinematicStepIndex, showEveInOverlay]);
@@ -156,10 +161,11 @@ export default function SetupSimulationPage() {
         return;
     }
 
+    setSelectedArchetypeInStore(selectedArchetype); // Store archetype
 
     setIsLoadingAiCall(true);
-    setShowCinematicOverlay(true); 
-    setCinematicStepIndex(0); 
+    setShowCinematicOverlay(true);
+    setCinematicStepIndex(0);
     setShowEveInOverlay(false);
     setError(null);
     setSimulationOutput(null);
@@ -182,7 +188,7 @@ export default function SetupSimulationPage() {
     try {
       const input: PromptStartupInput = {
         prompt: fullPromptForAI,
-        selectedArchetype: selectedArchetype, // Pass selected archetype
+        selectedArchetype: selectedArchetype,
         currencyCode: currencyCode.toUpperCase(),
         targetGrowthRate: targetGrowthRate || undefined,
         desiredProfitMargin: desiredProfitMargin || undefined,
@@ -191,7 +197,7 @@ export default function SetupSimulationPage() {
         initialProductFeatures: initialProductFeatures.split(',').map(f => f.trim()).filter(f => f) || undefined,
         initialIP: initialIP.trim() || undefined,
       };
-      
+
       const result = await promptStartup(input);
       setSimulationOutput(result);
       initializeSimulationInStore(result, startupNameIdea, targetMarket, budget, currencyCode.toUpperCase(), selectedArchetype);
@@ -199,18 +205,18 @@ export default function SetupSimulationPage() {
       setTimeout(() => {
         toast({ title: "Digital Twin Initialized!", description: "Your simulation is ready. Redirecting to dashboard...", });
         router.push("/app/dashboard");
-        setShowCinematicOverlay(false); 
-      }, 2500); 
+        setShowCinematicOverlay(false);
+      }, 2500);
 
     } catch (err) {
       console.error("Error initializing startup simulation:", err);
-      setShowCinematicOverlay(false); 
+      setShowCinematicOverlay(false);
       setIsLoadingAiCall(false);
       let userFriendlyMessage = "Failed to initialize simulation. The AI might be unavailable or returned an unexpected response. Please try again.";
       if (err instanceof Error) userFriendlyMessage = `Failed to initialize simulation. Details: ${err.message}`;
       setError(userFriendlyMessage);
       toast({ title: "Error Initializing Simulation", description: userFriendlyMessage, variant: "destructive" });
-    } 
+    }
   };
 
   const handleSuggestNames = async () => {
@@ -236,7 +242,7 @@ export default function SetupSimulationPage() {
   };
 
   const prettyPrintJson = (jsonString: string) => {
-    try { return JSON.stringify(JSON.parse(jsonString), null, 2); } 
+    try { return JSON.stringify(JSON.parse(jsonString), null, 2); }
     catch (e) { return jsonString; }
   };
 
@@ -385,7 +391,7 @@ export default function SetupSimulationPage() {
                     />
                   </div>
                 </div>
-                
+
                 {eveSetupFeedback && (
                   <Alert variant="default" className="bg-secondary/20 border-secondary/50 text-sm animate-fadeIn">
                     <MessageSquare className="h-4 w-4 text-secondary" />
@@ -496,7 +502,7 @@ export default function SetupSimulationPage() {
                         className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto"
                         size="lg"
                     >
-                        {isLoadingAiCall && !showCinematicOverlay ? ( 
+                        {isLoadingAiCall && !showCinematicOverlay ? (
                         <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             Generating Digital Twin...
@@ -511,7 +517,7 @@ export default function SetupSimulationPage() {
           </Card>
         )}
 
-        {error && !showCinematicOverlay && ( 
+        {error && !showCinematicOverlay && (
           <Alert variant="destructive" className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Error Generating Scenario</AlertTitle>
