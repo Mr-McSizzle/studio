@@ -16,21 +16,21 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const isAssistant = message.role === "assistant";
   const isSystem = message.role === "system"; // For error or system messages
 
-  let avatarSrc = "https://placehold.co/40x40.png"; // Default
+  let avatarSrc = "/new-assets/placeholder-avatar.png"; // Default user placeholder
   let avatarHint = "avatar";
   let AvatarIcon = AlertTriangle; // Default for system
   let avatarAlt = "System Message";
 
   if (isUser) {
-    avatarSrc = "https://placehold.co/40x40.png"; // Replace with actual user avatar logic if available
+    avatarSrc = "/new-assets/placeholder-avatar.png"; // Replace with actual user avatar logic if available
     avatarHint = "user avatar";
     AvatarIcon = User;
     avatarAlt = "User Avatar";
   } else if (isAssistant) {
-    avatarSrc = "https://placehold.co/40x40.png"; // Replace with actual assistant avatar
-    avatarHint = "robot brain"; // More specific for Hive Mind
-    AvatarIcon = Bot; // Or a custom Brain icon if you have one
-    avatarAlt = "AI Hive Mind Avatar";
+    avatarSrc = "/new-assets/eve-avatar.png"; // EVE's new avatar
+    avatarHint = "bee queen"; 
+    AvatarIcon = Bot; 
+    avatarAlt = "EVE AI Hive Mind Avatar";
   }
 
   if (isSystem) {

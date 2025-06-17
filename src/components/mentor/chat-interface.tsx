@@ -191,7 +191,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
   return (
     <div
       className="flex flex-col h-[calc(100vh-20rem)] max-h-[700px] bg-card shadow-lg rounded-lg"
-      data-guidance-target="chat-container" // Added data attribute
+      data-guidance-target="chat-container"
     >
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
         <div className="space-y-2">
@@ -201,7 +201,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
           {isLoading && (
              <div className="flex items-start gap-3 my-4 justify-start">
                 <Avatar className="h-8 w-8 border border-border">
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="EVE AI Avatar" data-ai-hint="robot brain" />
+                    <AvatarImage src="/new-assets/eve-avatar.png" alt="EVE AI Avatar" data-ai-hint="bee queen" />
                     <AvatarFallback>
                         <Brain className="h-5 w-5 text-muted-foreground" />
                     </AvatarFallback>
@@ -241,4 +241,3 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     </div>
   );
 }
-    

@@ -9,13 +9,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ListTodo, PlusCircle, Trash2, Star, ChevronsUpDown, Zap, ShieldAlert, Tag, GripVertical, MessageSquare } from "lucide-react"; // Added MessageSquare
+import { ListTodo, PlusCircle, Trash2, Star, ChevronsUpDown, Zap, ShieldAlert, Tag, GripVertical, MessageSquare, Bot } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import type { TodoItem, TaskDifficulty, TaskPriority } from "@/types/todo";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { ChatInterface } from "@/components/mentor/chat-interface"; // Import ChatInterface
+import { ChatInterface } from "@/components/mentor/chat-interface";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
 
 const POINTS_MAP: Record<TaskDifficulty, number> = {
   easy: 5,
@@ -43,6 +52,7 @@ export default function TodoPage() {
   const [newTodoPriority, setNewTodoPriority] = useState<TaskPriority>('medium');
   const [newTodoCategory, setNewTodoCategory] = useState("");
   const [totalXp, setTotalXp] = useState(0);
+  const [isEveSheetOpen, setIsEveSheetOpen] = useState(false);
 
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
@@ -52,8 +62,6 @@ export default function TodoPage() {
     if (!isAuthenticated) {
       router.replace('/login');
     }
-    // Load todos and XP from localStorage if needed
-    // For now, we'll keep it session-based for simplicity
   }, [isAuthenticated, router]);
 
   const handleAddTodo = (e: FormEvent) => {
@@ -131,7 +139,7 @@ export default function TodoPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
-      <header className="mb-10">
+      <header className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <ListTodo className="h-10 w-10 text-accent" />
           <div>
@@ -139,174 +147,182 @@ export default function TodoPage() {
               Founder's Quest Log
             </h1>
             <p className="text-muted-foreground">
-              Track strategic tasks, complete objectives, and gain XP. Consult EVE for guidance on your quests.
+              Track strategic tasks, complete objectives, and gain XP.
             </p>
           </div>
         </div>
-        <Card className="mt-6 shadow-md bg-card/70 border-primary/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="h-6 w-6 text-yellow-400" />
-                <span className="text-xl font-semibold text-foreground">Total XP Earned:</span>
-                <span className="text-2xl font-bold text-yellow-400 text-glow-accent">{totalXp}</span>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {pendingTasks > 0 ? `${pendingTasks} pending task(s)` : "All tasks cleared!"}
-              </div>
+        <Sheet open={isEveSheetOpen} onOpenChange={setIsEveSheetOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 hover:text-accent">
+              <Bot className="mr-2 h-5 w-5" /> Consult EVE on Tasks
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="p-0 w-full max-w-none sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl overflow-y-hidden flex flex-col">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle className="flex items-center gap-2"><MessageSquare className="h-6 w-6 text-accent"/>EVE's Task Guidance</SheetTitle>
+              <SheetDescription>
+                Chat with EVE for advice on prioritizing tasks, breaking them down, or generating new strategic objectives.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex-grow overflow-y-hidden">
+              <ChatInterface />
             </div>
-          </CardContent>
-        </Card>
+             <div className="p-4 border-t">
+                <SheetClose asChild>
+                    <Button variant="outline" className="w-full">Close Chat</Button>
+                </SheetClose>
+            </div>
+          </SheetContent>
+        </Sheet>
       </header>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="shadow-xl border-accent/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><PlusCircle className="text-accent h-6 w-6"/>Add New Strategic Task</CardTitle>
-              <CardDescription>Define your next objective. Assign difficulty and priority to plan effectively.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddTodo} className="space-y-4">
+      <Card className="mb-8 shadow-md bg-card/70 border-primary/30">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="h-6 w-6 text-yellow-400" />
+              <span className="text-xl font-semibold text-foreground">Total XP Earned:</span>
+              <span className="text-2xl font-bold text-yellow-400 text-glow-accent">{totalXp}</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {pendingTasks > 0 ? `${pendingTasks} pending task(s)` : "All tasks cleared!"}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-8">
+        <Card className="shadow-xl border-accent/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><PlusCircle className="text-accent h-6 w-6"/>Add New Strategic Task</CardTitle>
+            <CardDescription>Define your next objective. Assign difficulty and priority to plan effectively.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAddTodo} className="space-y-4">
+              <div>
+                <Label htmlFor="new-todo-text">Task Description</Label>
+                <Input
+                  id="new-todo-text"
+                  type="text"
+                  value={newTodoText}
+                  onChange={(e) => setNewTodoText(e.target.value)}
+                  placeholder="e.g., Research top 3 competitor marketing strategies"
+                  className="mt-1"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="new-todo-text">Task Description</Label>
+                  <Label htmlFor="new-todo-difficulty" className="flex items-center gap-1.5"><ShieldAlert className="h-4 w-4 text-muted-foreground"/>Difficulty</Label>
+                  <Select value={newTodoDifficulty} onValueChange={(value) => setNewTodoDifficulty(value as TaskDifficulty)}>
+                    <SelectTrigger id="new-todo-difficulty" className="w-full mt-1">
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy">Easy ({POINTS_MAP.easy} XP)</SelectItem>
+                      <SelectItem value="medium">Medium ({POINTS_MAP.medium} XP)</SelectItem>
+                      <SelectItem value="hard">Hard ({POINTS_MAP.hard} XP)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="new-todo-priority" className="flex items-center gap-1.5"><ChevronsUpDown className="h-4 w-4 text-muted-foreground"/>Priority</Label>
+                  <Select value={newTodoPriority} onValueChange={(value) => setNewTodoPriority(value as TaskPriority)}>
+                    <SelectTrigger id="new-todo-priority" className="w-full mt-1">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="new-todo-category" className="flex items-center gap-1.5"><Tag className="h-4 w-4 text-muted-foreground"/>Category (Optional)</Label>
                   <Input
-                    id="new-todo-text"
+                    id="new-todo-category"
                     type="text"
-                    value={newTodoText}
-                    onChange={(e) => setNewTodoText(e.target.value)}
-                    placeholder="e.g., Research top 3 competitor marketing strategies"
+                    value={newTodoCategory}
+                    onChange={(e) => setNewTodoCategory(e.target.value)}
+                    placeholder="e.g., Marketing, R&D"
                     className="mt-1"
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="new-todo-difficulty" className="flex items-center gap-1.5"><ShieldAlert className="h-4 w-4 text-muted-foreground"/>Difficulty</Label>
-                    <Select value={newTodoDifficulty} onValueChange={(value) => setNewTodoDifficulty(value as TaskDifficulty)}>
-                      <SelectTrigger id="new-todo-difficulty" className="w-full mt-1">
-                        <SelectValue placeholder="Select difficulty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="easy">Easy ({POINTS_MAP.easy} XP)</SelectItem>
-                        <SelectItem value="medium">Medium ({POINTS_MAP.medium} XP)</SelectItem>
-                        <SelectItem value="hard">Hard ({POINTS_MAP.hard} XP)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="new-todo-priority" className="flex items-center gap-1.5"><ChevronsUpDown className="h-4 w-4 text-muted-foreground"/>Priority</Label>
-                    <Select value={newTodoPriority} onValueChange={(value) => setNewTodoPriority(value as TaskPriority)}>
-                      <SelectTrigger id="new-todo-priority" className="w-full mt-1">
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="new-todo-category" className="flex items-center gap-1.5"><Tag className="h-4 w-4 text-muted-foreground"/>Category (Optional)</Label>
-                    <Input
-                      id="new-todo-category"
-                      type="text"
-                      value={newTodoCategory}
-                      onChange={(e) => setNewTodoCategory(e.target.value)}
-                      placeholder="e.g., Marketing, R&D"
-                      className="mt-1"
+              </div>
+              <Button type="submit" className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+                <PlusCircle className="mr-2 h-5 w-5" /> Add Task to Quest Log
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><GripVertical className="text-muted-foreground h-6 w-6"/>Your Active Tasks</CardTitle>
+            <CardDescription>
+              {todos.length > 0
+                ? `Focus on these objectives to advance your startup. (${pendingTasks} pending)`
+                : "Your quest log is empty. Add some tasks above!"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {todos.length > 0 ? (
+              <ul className="space-y-3">
+                {todos.map((todo) => (
+                  <li
+                    key={todo.id}
+                    className={cn(
+                      "flex items-start gap-3 p-4 border rounded-lg bg-card hover:border-primary/70 transition-all duration-200 ease-in-out",
+                      todo.completed && "bg-muted/50 opacity-70 hover:opacity-90"
+                    )}
+                  >
+                    <Checkbox
+                      id={`todo-${todo.id}`}
+                      checked={todo.completed}
+                      onCheckedChange={() => toggleTodo(todo.id)}
+                      aria-labelledby={`todo-label-${todo.id}`}
+                      className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent"
                     />
-                  </div>
-                </div>
-                <Button type="submit" className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
-                  <PlusCircle className="mr-2 h-5 w-5" /> Add Task to Quest Log
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><GripVertical className="text-muted-foreground h-6 w-6"/>Your Active Tasks</CardTitle>
-              <CardDescription>
-                {todos.length > 0
-                  ? `Focus on these objectives to advance your startup. (${pendingTasks} pending)`
-                  : "Your quest log is empty. Add some tasks above!"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {todos.length > 0 ? (
-                <ul className="space-y-3">
-                  {todos.map((todo) => (
-                    <li
-                      key={todo.id}
-                      className={cn(
-                        "flex items-start gap-3 p-4 border rounded-lg bg-card hover:border-primary/70 transition-all duration-200 ease-in-out",
-                        todo.completed && "bg-muted/50 opacity-70 hover:opacity-90"
-                      )}
-                    >
-                      <Checkbox
-                        id={`todo-${todo.id}`}
-                        checked={todo.completed}
-                        onCheckedChange={() => toggleTodo(todo.id)}
-                        aria-labelledby={`todo-label-${todo.id}`}
-                        className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent"
-                      />
-                      <div className="flex-grow">
-                        <label
-                          id={`todo-label-${todo.id}`}
-                          htmlFor={`todo-${todo.id}`}
-                          className={cn(
-                            "text-base font-medium cursor-pointer",
-                            todo.completed ? "line-through text-muted-foreground" : "text-foreground"
-                          )}
-                        >
-                          {todo.text}
-                        </label>
-                        <div className="flex items-center gap-2 mt-1.5 text-xs">
-                          <Badge variant="outline" className={cn("font-mono", priorityColorMap[todo.priority])}>P: {todo.priority}</Badge>
-                          <Badge variant="outline" className={cn("font-mono", difficultyColorMap[todo.difficulty])}>D: {todo.difficulty}</Badge>
-                          {todo.category && <Badge variant="secondary" className="font-mono bg-muted text-muted-foreground">{todo.category}</Badge>}
-                          <Badge variant="outline" className="font-mono border-yellow-500/50 text-yellow-600 bg-yellow-500/10">{todo.points} XP</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground/70 mt-1">Added: {new Date(todo.createdAt).toLocaleDateString()}</p>
-                         {todo.completed && todo.completedAt && <p className="text-xs text-green-600 mt-0.5">Completed: {new Date(todo.completedAt).toLocaleDateString()}</p>}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteTodo(todo.id)}
-                        className="text-destructive/70 hover:bg-destructive/10 hover:text-destructive shrink-0"
-                        aria-label={`Delete todo: ${todo.text}`}
+                    <div className="flex-grow">
+                      <label
+                        id={`todo-label-${todo.id}`}
+                        htmlFor={`todo-${todo.id}`}
+                        className={cn(
+                          "text-base font-medium cursor-pointer",
+                          todo.completed ? "line-through text-muted-foreground" : "text-foreground"
+                        )}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground text-center py-6">
-                  No tasks in your log. Time to strategize and add some!
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-1 space-y-4">
-            <header className="mb-2">
-                <h2 className="text-2xl font-headline text-foreground flex items-center gap-3">
-                    <MessageSquare className="h-7 w-7 text-accent" />
-                    EVE's Task Guidance
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                    Consult EVE for advice on prioritizing tasks, breaking them down, or generating new strategic objectives.
-                </p>
-            </header>
-            <ChatInterface />
-        </div>
+                        {todo.text}
+                      </label>
+                      <div className="flex items-center gap-2 mt-1.5 text-xs">
+                        <Badge variant="outline" className={cn("font-mono", priorityColorMap[todo.priority])}>P: {todo.priority}</Badge>
+                        <Badge variant="outline" className={cn("font-mono", difficultyColorMap[todo.difficulty])}>D: {todo.difficulty}</Badge>
+                        {todo.category && <Badge variant="secondary" className="font-mono bg-muted text-muted-foreground">{todo.category}</Badge>}
+                        <Badge variant="outline" className="font-mono border-yellow-500/50 text-yellow-600 bg-yellow-500/10">{todo.points} XP</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground/70 mt-1">Added: {new Date(todo.createdAt).toLocaleDateString()}</p>
+                       {todo.completed && todo.completedAt && <p className="text-xs text-green-600 mt-0.5">Completed: {new Date(todo.completedAt).toLocaleDateString()}</p>}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteTodo(todo.id)}
+                      className="text-destructive/70 hover:bg-destructive/10 hover:text-destructive shrink-0"
+                      aria-label={`Delete todo: ${todo.text}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground text-center py-6">
+                No tasks in your log. Time to strategize and add some!
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
-
