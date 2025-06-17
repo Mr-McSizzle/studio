@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
-  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, Zap, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Map, Target, Shield, BookOpen, Server, Rocket, Megaphone, PackageCheck, Flag, CheckCircle, LockIcon, Eye, Aperture, Layers, Network, Gamepad2, Star, Settings2, Info
+  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap
 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -35,13 +35,14 @@ interface SimulationPhase {
   shadowColor: string;
   bgColor: string;
   glowColorVar: string;
+  hexPath: string; // For clip-path
 }
 
 const simulationPhases: SimulationPhase[] = [
-  { id: "genesis", title: "Genesis Forge", icon: Rocket, description: "Foundation & Vision. Secure resources, define your core offering, and prepare for initial market entry.", unlockMonth: 0, totalMonthsInPhase: 3, milestones: ["Initial Setup Complete", "First User Acquired", "Prototype Ready"], themeColor: "text-sky-400", ringColor: "border-sky-500", shadowColor: "shadow-sky-500/60", bgColor: "bg-sky-900/30", glowColorVar: "--sky" },
-  { id: "aegis_protocol", title: "Aegis Protocol", icon: Shield, description: "Risk Navigation. Stabilize operations, refine your product-market fit, and build resilience.", unlockMonth: 3, totalMonthsInPhase: 4, milestones: ["Achieve MVP Status", "Secure Seed Funding", "Reach Positive Cash Flow"], themeColor: "text-amber-400", ringColor: "border-amber-500", shadowColor: "shadow-amber-500/60", bgColor: "bg-amber-900/30", glowColorVar: "--amber" },
-  { id: "vanguard_expansion", title: "Vanguard Expansion", icon: Megaphone, description: "Market Penetration. Scale user acquisition, optimize channels, and expand your team.", unlockMonth: 7, totalMonthsInPhase: 6, milestones: ["1,000 Active Users", "Key Strategic Partnership", "First International Sale"], themeColor: "text-emerald-400", ringColor: "border-emerald-500", shadowColor: "shadow-emerald-500/60", bgColor: "bg-emerald-900/30", glowColorVar: "--emerald" },
-  { id: "sovereign_dominion", title: "Sovereign Dominion", icon: Layers, description: "Market Leadership. Innovate new offerings, explore new ventures, and solidify your industry legacy.", unlockMonth: 13, totalMonthsInPhase: MAX_SIMULATION_MONTHS - 13, milestones: ["Become Market Leader", "Product Line Diversification", "Profitable Acquisition Target"], themeColor: "text-purple-400", ringColor: "border-purple-500", shadowColor: "shadow-purple-500/60", bgColor: "bg-purple-900/30", glowColorVar: "--purple" },
+  { id: "genesis", title: "Genesis Forge", icon: Rocket, description: "Foundation & Vision. Secure resources, define your core offering, and prepare for initial market entry.", unlockMonth: 0, totalMonthsInPhase: 3, milestones: ["Initial Setup", "First User", "Prototype Ready"], themeColor: "text-sky-400", ringColor: "border-sky-500", shadowColor: "shadow-sky-500/60", bgColor: "bg-sky-900/40", glowColorVar: "--sky", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
+  { id: "aegis_protocol", title: "Aegis Protocol", icon: Shield, description: "Risk Navigation. Stabilize operations, refine product-market fit, and build resilience.", unlockMonth: 3, totalMonthsInPhase: 4, milestones: ["MVP Status", "Seed Funding", "Positive Cash Flow"], themeColor: "text-amber-400", ringColor: "border-amber-500", shadowColor: "shadow-amber-500/60", bgColor: "bg-amber-900/40", glowColorVar: "--amber", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
+  { id: "vanguard_expansion", title: "Vanguard Expansion", icon: Megaphone, description: "Market Penetration. Scale user acquisition, optimize channels, and expand your team.", unlockMonth: 7, totalMonthsInPhase: 6, milestones: ["1k Users", "Key Partnership", "Int'l Sale"], themeColor: "text-emerald-400", ringColor: "border-emerald-500", shadowColor: "shadow-emerald-500/60", bgColor: "bg-emerald-900/40", glowColorVar: "--emerald", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
+  { id: "sovereign_dominion", title: "Sovereign Dominion", icon: Layers, description: "Market Leadership. Innovate new offerings, explore new ventures, and solidify your industry legacy.", unlockMonth: 13, totalMonthsInPhase: MAX_SIMULATION_MONTHS - 13, milestones: ["Market Leader", "Product Diversification", "Acquisition Target"], themeColor: "text-purple-400", ringColor: "border-purple-500", shadowColor: "shadow-purple-500/60", bgColor: "bg-purple-900/40", glowColorVar: "--purple", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
 ];
 
 const STAGE_UNLOCK_THRESHOLDS: Record<number, {id: string, name: string}> = {
@@ -58,7 +59,7 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
   const currentMonthInPhase = isLocked ? 0 : Math.min(phase.totalMonthsInPhase, Math.max(0, currentSimMonth - phase.unlockMonth));
   const progressPercentage = phase.totalMonthsInPhase > 0 ? (currentMonthInPhase / phase.totalMonthsInPhase) * 100 : (isCompleted ? 100 : 0);
 
-  let cardClasses = "hive-cell relative flex flex-col justify-between p-4 min-h-[280px] transition-all duration-300 ease-in-out transform group ";
+  let cardClasses = "hex-card relative flex flex-col justify-between p-4 md:p-5 min-h-[220px] sm:min-h-[250px] md:min-h-[280px] w-[200px] sm:w-[230px] md:w-[260px] aspect-[1/0.866] transition-all duration-300 ease-in-out transform group "; // Adjusted aspect ratio for hexagon
   let IconComponent = phase.icon;
 
   cardClasses += " hover:shadow-2xl hover:-translate-y-1 hover:rotate-y-2 hover:rotate-x-1";
@@ -68,8 +69,8 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
     IconComponent = LockIcon;
   } else if (isActive) {
     cardClasses += `${phase.bgColor} ${phase.ringColor} shadow-lg ${phase.shadowColor} animate-pulse-glow-border-alt`;
-  } else {
-    cardClasses += "bg-card/50 border-green-600/50 opacity-80 shadow-md";
+  } else { // Completed
+    cardClasses += `bg-card/50 border-green-600/50 opacity-80 shadow-md ${isCompleted ? 'animate-digital-nectar-fill' : ''}`;
     IconComponent = CheckCircle;
   }
 
@@ -77,31 +78,31 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
     <div
       className={cn(cardClasses, "perspective-1000")}
       style={{
+        clipPath: phase.hexPath,
         '--glow-color': `hsl(var(${phase.glowColorVar}))`,
         '--border-color': `hsl(var(${phase.glowColorVar}) / 0.7)`,
-        '--border-color-active': `hsl(var(${phase.glowColorVar}))`
+        '--border-color-active': `hsl(var(${phase.glowColorVar}))`,
+        '--nectar-color-from': `hsl(var(${phase.glowColorVar}) / 0.3)`,
+        '--nectar-color-to': `hsl(var(${phase.glowColorVar}) / 0.7)`,
       } as React.CSSProperties}
     >
-      <div className="transform-style-preserve-3d group-hover:rotate-y-2 group-hover:rotate-x-1 transition-transform duration-300">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className={cn("text-lg font-headline leading-tight tracking-tight", isLocked ? "text-muted-foreground/80" : phase.themeColor)}>{phase.title}</h3>
-          <IconComponent className={cn("h-7 w-7", isLocked ? "text-muted-foreground/60" : phase.themeColor)} />
+      <div className="transform-style-preserve-3d group-hover:rotate-y-2 group-hover:rotate-x-1 transition-transform duration-300 text-center px-2 pt-3 pb-1">
+        <div className="flex flex-col items-center justify-center mb-2">
+          <IconComponent className={cn("h-6 w-6 sm:h-7 sm:w-7", isLocked ? "text-muted-foreground/60" : phase.themeColor)} />
+          <h3 className={cn("text-base sm:text-lg font-headline leading-tight tracking-tight mt-1.5", isLocked ? "text-muted-foreground/80" : phase.themeColor)}>{phase.title}</h3>
         </div>
-        <p className={cn("text-xs mb-3 leading-snug min-h-[3em]", isLocked ? "text-muted-foreground/60" : "text-muted-foreground")}>
-          {isLocked ? `Unlocks at Month ${phase.unlockMonth}. Hints: ${phase.milestones[0]}, ${phase.milestones[1]}...` : phase.description}
+        <p className={cn("text-[10px] sm:text-xs mb-2 leading-snug min-h-[2.5em]", isLocked ? "text-muted-foreground/60" : "text-muted-foreground")}>
+          {isLocked ? `Unlocks at M${phase.unlockMonth}. Hints: ${phase.milestones[0]}, ...` : phase.description.substring(0, 50) + "..."}
         </p>
         {!isLocked && (
-          <div className="mt-auto space-y-2">
-            <div className="text-xs text-muted-foreground/80">Progress: {currentMonthInPhase} / {phase.totalMonthsInPhase} months</div>
-            <Progress value={progressPercentage} className="h-1.5" indicatorClassName={cn(isActive ? phase.themeColor.replace('text-', 'bg-') : 'bg-green-500', 'shadow-md')} />
-            <ul className="mt-2 space-y-1 text-[11px] text-muted-foreground/70 list-disc list-inside pl-1">
-              {phase.milestones.slice(0, 2).map(ms => <li key={ms} className="truncate">{ms}</li>)}
-            </ul>
+          <div className="mt-auto space-y-1.5">
+            <div className="text-[10px] sm:text-xs text-muted-foreground/80">Progress: {currentMonthInPhase} / {phase.totalMonthsInPhase}</div>
+            <Progress value={progressPercentage} className="h-1 sm:h-1.5" indicatorClassName={cn(isActive ? phase.themeColor.replace('text-', 'bg-') : 'bg-green-500', 'shadow-sm')} />
           </div>
         )}
       </div>
-      {isLocked && <div className="absolute inset-0 bg-black/40 backdrop-blur-xs rounded-md flex items-center justify-center"><LockIcon className="h-10 w-10 text-white/50"/></div>}
-      {!isLocked && <div className="absolute inset-0 overflow-hidden rounded-md"><div className="shimmer-effect"></div></div>}
+      {isLocked && <div className="absolute inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center" style={{clipPath: phase.hexPath}}><LockIcon className="h-8 w-8 sm:h-10 sm:h-10 text-white/50"/></div>}
+      {!isLocked && <div className="absolute inset-0 overflow-hidden"><div className="shimmer-effect"></div></div>}
     </div>
   );
 };
@@ -115,10 +116,10 @@ const ScoreDisplay = ({ score, maxScore = 100 }: { score: number, maxScore?: num
   else if (score > 0) progressIndicatorClass = "bg-red-500";
 
   return (
-    <Card className="shadow-md bg-card/70 backdrop-blur-sm border-transparent">
+    <Card className="shadow-md bg-card/70 backdrop-blur-sm border-transparent min-w-[180px]">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
         <CardTitle className="text-sm font-medium text-muted-foreground">Founder Acumen</CardTitle>
-        <Star className="h-4 w-4 text-accent animate-subtle-pulse" />
+        <BarChartBig className="h-4 w-4 text-accent animate-subtle-pulse" />
       </CardHeader>
       <CardContent className="pb-3 px-4">
         <div className="text-2xl font-bold text-foreground">{score} <span className="text-sm text-muted-foreground">/ {maxScore}</span></div>
@@ -133,7 +134,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const {
     companyName, simulationMonth, financials, userMetrics, product,
-    market: storeMarket, // Renamed to avoid potential conflicts
+    market: storeMarket,
     startupScore,
     keyEvents, isInitialized, currentAiReasoning, historicalRevenue, historicalUserGrowth,
     historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
@@ -239,12 +240,28 @@ export default function DashboardPage() {
       )}
       <div className={cn("dashboard-hub-container relative container mx-auto py-8 px-4 md:px-0 space-y-6 overflow-hidden", unlockedStageForAnimation && "blur-md pointer-events-none")}>
 
-        <div className="absolute inset-0 z-[-1] opacity-30 overflow-hidden">
-          <div className="neural-grid-bg"></div>
-          {Array.from({length: 5}).map((_, i) => (
-             <div key={`orbit-line-${i}`} className="orbit-line" style={{ '--orbit-delay': `${i*2}s`, '--orbit-duration': `${10+i*3}s`, '--orbit-size': `${200+i*100}px` } as React.CSSProperties}></div>
+        {/* Enhanced Background Layers */}
+        <div className="absolute inset-0 z-[-1] opacity-100 overflow-hidden">
+          <div className="neural-grid-bg enhanced-hive-grid"></div> {/* Enhanced grid */}
+          {Array.from({length: 7}).map((_, i) => ( // More orbit lines, adjusted speeds/sizes
+             <div key={`orbit-line-${i}`} className="orbit-line enhanced-orbit" style={{ '--orbit-delay': `${i*1.5}s`, '--orbit-duration': `${12+i*4}s`, '--orbit-size': `${150+i*80}px`, '--orbit-opacity': `${0.05 + i*0.01}` } as React.CSSProperties}></div>
           ))}
+           {/* Particle Field for Hive Dust */}
+          <div className="particle-field">
+            {Array.from({ length: 30 }).map((_, i) => (
+              <div key={`particle-${i}`} className="particle" style={{
+                '--x-start': `${Math.random() * 100}%`,
+                '--y-start': `${Math.random() * 100}%`,
+                '--x-end': `${Math.random() * 100}%`,
+                '--y-end': `${Math.random() * 100}%`,
+                '--duration': `${Math.random() * 10 + 10}s`, // 10-20s duration
+                '--delay': `${Math.random() * 5}s`,
+                '--size': `${Math.random() * 1.5 + 0.5}px`, // 0.5px to 2px
+              } as React.CSSProperties}/>
+            ))}
+          </div>
         </div>
+
 
         {!isInitialized && (
           <Alert variant="destructive" className="mb-6">
@@ -289,7 +306,7 @@ export default function DashboardPage() {
                     className={cn(
                         "bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200",
                         "active:scale-95 active:shadow-inner-soft-gold",
-                        "animate-subtle-button-pulse", // Added for continuous pulse
+                        "animate-subtle-button-pulse",
                         isSimulating && "opacity-70 cursor-not-allowed"
                     )}
                     size="default"
@@ -321,8 +338,8 @@ export default function DashboardPage() {
         )}
 
         <section className="relative z-10">
-          <h2 className="text-xl font-headline text-foreground mb-4 flex items-center gap-2"><Settings2 className="h-6 w-6 text-accent"/>Phase Matrix</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <h2 className="text-xl font-headline text-foreground mb-6 flex items-center gap-2"><Settings2 className="h-6 w-6 text-accent"/>Phase Matrix</h2>
+          <div className="flex flex-wrap justify-center gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:gap-x-5 md:gap-y-12 lg:gap-x-6 lg:gap-y-14 px-2"> {/* Honeycomb grid layout */}
             {simulationPhases.map(phase => (
               <PhaseCard key={phase.id} phase={phase} currentSimMonth={simulationMonth} />
             ))}
@@ -330,7 +347,7 @@ export default function DashboardPage() {
         </section>
 
         <section className="relative z-10">
-          <h2 className="text-xl font-headline text-foreground mb-3 mt-6 flex items-center gap-2"><Network className="h-6 w-6 text-accent"/>Vital Systems Readout</h2>
+          <h2 className="text-xl font-headline text-foreground mb-3 mt-8 flex items-center gap-2"><Zap className="h-6 w-6 text-accent"/>Vital Systems Readout</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card className="shadow-md card-glow-hover-accent border-transparent hover:border-accent/60 bg-card/70 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
@@ -365,7 +382,7 @@ export default function DashboardPage() {
               <Card className="shadow-md card-glow-hover-accent border-transparent hover:border-accent/60 bg-card/70 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Project: {product.name}</CardTitle>
-                  <Aperture className="h-4 w-4 text-purple-500" />
+                  <Activity className="h-4 w-4 text-purple-500" />
                 </CardHeader>
                 <CardContent className="pb-3 px-4">
                   <div className="text-xl font-bold text-foreground">{product.stage}</div>
@@ -375,7 +392,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mt-6">
           <div className="lg:col-span-1 space-y-6">
              <Card className="shadow-md bg-card/70 backdrop-blur-sm">
                 <CardHeader className="pb-2 pt-4 px-4">
@@ -393,7 +410,7 @@ export default function DashboardPage() {
               </Card>
               <Card className="shadow-md bg-card/70 backdrop-blur-sm">
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2 glowing-title-underline"><BookOpen className="h-4 w-4 text-primary"/> Event Chronicle</CardTitle>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2 glowing-title-underline"><Info className="h-4 w-4 text-primary"/> Event Chronicle</CardTitle>
                 </CardHeader>
                 <CardContent className="bg-muted/40 p-0 rounded-b-md mx-1 mb-1">
                   {isInitialized && keyEvents.length > 0 ? (
@@ -437,7 +454,7 @@ export default function DashboardPage() {
             </div>
         </div>
 
-        <div className="relative z-10 grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+        <div className="relative z-10 grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-6">
             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
                 <CardHeader>
                     <CardTitle className="font-headline glowing-title-underline">Burn Rate ({currencySymbol})</CardTitle>
@@ -457,7 +474,7 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
          </div>
-         <div className="relative z-10 grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+         <div className="relative z-10 grid gap-6 md:grid-cols-1 lg:grid-cols-3 mt-6">
             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
                 <CardHeader>
                     <CardTitle className="font-headline glowing-title-underline">CAC ({currencySymbol})</CardTitle>
@@ -486,7 +503,7 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
           </div>
-          <div className="relative z-10">
+          <div className="relative z-10 mt-6">
             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
                 <CardHeader>
                     <CardTitle className="font-headline glowing-title-underline">Monthly Expense Breakdown</CardTitle>
@@ -502,5 +519,3 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
-
-    

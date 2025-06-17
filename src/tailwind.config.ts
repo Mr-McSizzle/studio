@@ -173,46 +173,33 @@ export default {
           '0%': { 'background-position': '0 0' },
           '100%': { 'background-position': '80px 80px' }, 
         },
+         'subtle-grid-pan-faster': { /* For enhanced hive grid */
+          '0%': { 'background-position': '0 0' },
+          '100%': { 'background-position': '60px 60px' },
+        },
          'shimmer': { 
           '0%': { transform: 'translateX(-100%) skewX(-20deg)' },
           '100%': { transform: 'translateX(200%) skewX(-20deg)' },
         },
-        'title-underline-glow': { /* New keyframe for title underline */
+        'title-underline-glow': { 
           '0%, 100%': { width: '40%', filter: 'blur(0.5px) brightness(0.9)', opacity: '0.8', backgroundColor: 'hsl(var(--accent) / 0.7)' },
           '50%': { width: '66.66%', filter: 'blur(1px) brightness(1.2)', opacity: '1', backgroundColor: 'hsl(var(--accent))' },
         },
-        'subtle-button-pulse': { /* New keyframe for button pulse */
+        'subtle-button-pulse': { 
           '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 5px hsl(var(--accent)/0.3)' },
           '50%': { transform: 'scale(1.02)', boxShadow: '0 0 10px hsl(var(--accent)/0.45)' },
         },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-        'subtle-pulse': 'subtle-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
-        'orbit': 'orbit var(--orbit-duration, 20s) linear infinite', 
-        'fadeIn': 'fadeIn 1s ease-out forwards',
-        'fadeInUp': 'fadeInUp 0.8s ease-out forwards',
-        'background-pan': 'background-pan 15s ease infinite',
-        'float-rotate-3d': 'float-rotate-3d ease-in-out infinite',
-        'sparkle': 'sparkle ease-in-out infinite',
-        'spin-slow': 'spin-slow 20s linear infinite', 
-        'spin-slowest': 'spin-slowest 120s linear infinite',
-        'honeycomb-ripple': 'honeycomb-ripple-scale-fade var(--ripple-duration, 1.2s) ease-out var(--ripple-delay, 0s) forwards',
-        'particle-burst': 'particle-burst-rise-fade var(--particle-duration, 1.5s) ease-out var(--particle-delay, 0s) forwards',
-        'avatar-glide': 'avatar-glide-in 0.7s ease-out forwards',
-        'text-fade-in': 'text-fade-in-scale-up 0.6s ease-out forwards',
-        'orb-pulse': 'orb-pulse 3s ease-in-out infinite',
-        'ring-rotate-scale': 'ring-rotate-scale 5s linear infinite',
-        'data-stream': 'data-stream 3s linear infinite',
-        'subtle-pulse-orb': 'subtle-pulse-orb 3s infinite ease-in-out', 
-        'pulse-glow-border': 'pulse-glow-border 2s infinite ease-in-out', 
-        'float-pulse': 'float-pulse 4s infinite ease-in-out', 
-        'subtle-grid-pan': 'subtle-grid-pan 60s linear infinite', 
-        'shimmer': 'shimmer 1s ease-in-out', 
-        'title-underline-glow': 'title-underline-glow 2.5s ease-in-out infinite alternate', /* New animation */
-        'subtle-button-pulse': 'subtle-button-pulse 2s infinite ease-in-out', /* New animation */
+         'drift': { /* For particle field */
+          '0%': { transform: 'translate(var(--x-start), var(--y-start))', opacity: '0' },
+          '25%': { opacity: '0.7' },
+          '75%': { opacity: '0.7' },
+          '100%': { transform: 'translate(var(--x-end), var(--y-end))', opacity: '0'},
+        },
+        'digital-nectar-sweep': { /* For completed hex modules */
+          '0%': { opacity: '0', transform: 'scaleY(0)', 'transform-origin': 'bottom' },
+          '50%': { opacity: '0.7', transform: 'scaleY(1)', 'transform-origin': 'bottom' },
+          '100%': { opacity: '0.5', transform: 'scaleY(1)', 'transform-origin': 'bottom' },
+        }
       },
       boxShadow: { 
         'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',

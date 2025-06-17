@@ -59,6 +59,10 @@
     --emerald: 150 70% 40%; 
     --purple: 270 70% 55%; 
 
+    /* Nectar fill colors (example, can be tied to phase theme) */
+    --nectar-from: hsl(var(--accent) / 0.2);
+    --nectar-to: hsl(var(--accent) / 0.6);
+
   }
 
   .dark {
@@ -100,6 +104,8 @@
     --amber: 40 90% 50%;
     --emerald: 150 70% 40%;
     --purple: 270 70% 55%;
+    --nectar-from: hsl(var(--accent) / 0.2);
+    --nectar-to: hsl(var(--accent) / 0.6);
   }
 }
 
@@ -177,7 +183,7 @@
     box-shadow: inset 0 1px 3px 0 hsl(var(--background) / 0.5), inset 0 -1px 2px 0 hsl(var(--foreground) / 0.05);
   }
 
-  .hive-cell {
+  .hive-cell { /* Deprecated, merged into hex-card */
     @apply bg-card border border-border rounded-xl shadow-lg; 
   }
   .shimmer-effect {
@@ -191,7 +197,7 @@
     opacity: 0;
     pointer-events: none; 
   }
-  .hive-cell:hover .shimmer-effect {
+  .hex-card:hover .shimmer-effect { /* Target .hex-card */
     left: 100%;
     opacity: 1;
   }
@@ -206,6 +212,7 @@
     animation: float-pulse 4s infinite ease-in-out;
   }
 
+  /* Original neural-grid-bg */
   .neural-grid-bg {
     position: absolute;
     inset: 0;
@@ -217,6 +224,16 @@
     background-size: 40px 40px; 
     animation: subtle-grid-pan 60s linear infinite;
   }
+  /* Enhanced hive grid for dashboard */
+  .enhanced-hive-grid {
+    background-image:
+      radial-gradient(hsl(var(--accent)/0.03) 1px, transparent 1.2px), /* Softer, smaller dots */
+      radial-gradient(hsl(var(--accent)/0.03) 1px, transparent 1.2px);
+    background-size: 30px 30px; /* Smaller grid */
+    background-position: 0 0, 15px 15px; /* Offset for honeycomb feel */
+    animation: subtle-grid-pan-faster 40s linear infinite; /* Slightly faster pan */
+  }
+
   .orbit-line {
     position: absolute;
     border: 1px dashed hsl(var(--accent)/0.1);
@@ -228,8 +245,14 @@
     transform-origin: center center;
     animation: orbit var(--orbit-duration) linear infinite;
     animation-delay: var(--orbit-delay);
-    opacity: 0.5;
+    opacity: var(--orbit-opacity, 0.5); /* Use variable opacity */
   }
+  /* Enhanced orbit lines for dashboard */
+  .enhanced-orbit {
+     border-style: solid;
+     border-color: hsl(var(--primary)/0.07); /* More theme aligned, subtler */
+  }
+
   .glow-progress-bar .progress-indicator { 
      box-shadow: 0 0 8px hsl(var(--accent)/0.5);
   }
@@ -244,6 +267,38 @@
   }
    .animate-subtle-button-pulse {
     animation: subtle-button-pulse 2s infinite ease-in-out;
+  }
+
+  /* Particle field for dashboard */
+  .particle-field {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .particle {
+    position: absolute;
+    background-color: hsl(var(--accent) / 0.3); /* Soft gold particles */
+    border-radius: 50%;
+    width: var(--size);
+    height: var(--size);
+    animation: drift var(--duration) var(--delay) linear infinite alternate;
+    opacity: 0; /* Start invisible, fade in with animation */
+    filter: blur(0.5px);
+  }
+   .animate-digital-nectar-fill::before {
+    content: "";
+    position: absolute;
+    inset: 0; /* Cover the entire hexagon */
+    background: linear-gradient(135deg, var(--nectar-color-from, hsl(var(--accent)/0.1)), var(--nectar-color-to, hsl(var(--accent)/0.5)));
+    animation: digital-nectar-sweep 2s ease-in-out forwards;
+    opacity: 0;
+    z-index: 0; /* Behind content */
+    clip-path: inherit; /* Inherit hexagon clip-path */
+  }
+  .hex-card > div { /* Ensure content stays above nectar fill */
+    position: relative;
+    z-index: 1;
   }
 
 }
@@ -266,6 +321,10 @@
   @keyframes subtle-grid-pan {
     0% { background-position: 0 0; }
     100% { background-position: 80px 80px; } 
+  }
+  @keyframes subtle-grid-pan-faster { /* For enhanced hive grid */
+    0% { background-position: 0 0; }
+    100% { background-position: 60px 60px; } /* Matches smaller grid size */
   }
    @keyframes orbit {
     from { transform: translate(-50%, -50%) rotate(0deg); }
@@ -352,6 +411,34 @@
   }
   @keyframes subtle-button-pulse {
     0%, 100% { transform: scale(1); box-shadow: 0 0 5px hsl(var(--accent)/0.3); }
-    50% { transform: scale(1.03); box-shadow: 0 0 12px hsl(var(--accent)/0.5); }
+    50% { transform: scale(1.02); box-shadow: 0 0 10px hsl(var(--accent)/0.45); }
   }
+  
+  @keyframes drift { /* For particle field */
+    0% { transform: translate(var(--x-start), var(--y-start)); opacity: 0; }
+    25% { opacity: 0.7; }
+    75% { opacity: 0.7; }
+    100% { transform: translate(var(--x-end), var(--y-end)); opacity: 0; }
+  }
+
+  @keyframes digital-nectar-sweep { /* For completed hex modules */
+    0% {
+      opacity: 0;
+      transform: scaleY(0);
+      transform-origin: bottom;
+    }
+    50% {
+      opacity: 0.7;
+      transform: scaleY(1);
+      transform-origin: bottom;
+    }
+    100% {
+      opacity: 0.5;
+      transform: scaleY(1);
+      transform-origin: bottom;
+    }
+  }
+
 }
+
+    
