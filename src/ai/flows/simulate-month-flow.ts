@@ -94,21 +94,23 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Stage Advancement: If Total Progress >= 100 and current stage is not 'mature': advance to next stage ('idea' -> 'prototype' -> 'mvp' -> 'growth' -> 'mature'). Reset progress to 0. Set 'newProductStage'.
 
 4.  **Key Events Generated (Exactly 2, structured objects):**
-    *   Generate two distinct, context-aware events. Each event must be an object with 'description', 'category', and 'impact'.
+    *   Generate **TWO distinct, context-aware, and impactful events**. Each event must be an object with 'description', 'category', and 'impact'.
     *   Valid categories: ${KeyEventCategoryEnum.options.join(', ')}.
     *   Valid impacts: ${KeyEventImpactEnum.options.join(', ')}.
-    *   **Event Types for Variety & Unpredictability:**
-        *   **Market Shift:** (e.g., "New technology X emerges, potentially disrupting your market.", "Consumer sentiment shifts towards Y, impacting demand for features like Z.")
-        *   **Competitor Action:** (e.g., "Competitor Gamma secures major funding.", "A key competitor unexpectedly shutters operations.")
-        *   **Operational:** (e.g., "Minor server outage caused brief service disruption.", "Team morale noticeably high after successful feature launch.")
-        *   **"Eureka!" Moment (Rare Positive):** (e.g., "R&D team has a breakthrough, significantly speeding up development of upcoming Feature Alpha.", "Unexpected viral mention leads to a temporary surge in signups.")
-        *   **"Setback" (Minor Negative):** (e.g., "A critical software subscription increased its price by 15%.", "Recruiting for senior engineer proving more difficult than anticipated.")
-    *   Event 1: Should be more impactful or directly tied to player decisions or major simulation outcomes.
-    *   Event 2: Can be more general, related to market, a minor operational event, or one of the new Eureka/Setback types.
+    *   **Event Diversity and Narrative:**
+        *   **Competitor Actions (Frequent):** Regularly include events like "Competitor Alpha launches a surprise new feature, directly challenging ours," "A new well-funded startup, Gamma Innovations, enters your primary market segment," or "Key competitor Beta reduces prices by 15%."
+        *   **Market Shifts:** (e.g., "New technology X emerges, potentially disrupting your market.", "Consumer sentiment shifts towards Y, impacting demand for features like Z.")
+        *   **Operational Issues:** (e.g., "Minor server outage caused brief service disruption.", "Team morale noticeably high after successful feature launch.")
+        *   **"Eureka!" Moment (Rare, Positive):** Trigger these occasionally, especially if R&D spend has been consistently high or the team composition is strong in relevant areas. Examples: "R&D team has a breakthrough, significantly speeding up development of upcoming Feature Alpha by 20% for 2 months!" (Describe the benefit clearly; if it's a % boost, the productDevelopmentDelta should reflect this, or it can be a 'rewardGranted'), "Unexpected viral mention on a major tech blog leads to a temporary surge in signups and reduces CAC by 30% this month."
+        *   **"Setbacks" (Minor Negative, Unexpected):** These are challenges not directly tied to player error. Examples: "A critical software subscription used by your team increased its price by 20%, impacting operational costs.", "Recruiting for a senior engineer is proving more difficult than anticipated, delaying potential hires by a month.", "A minor data privacy regulation update requires 5 hours of unplanned compliance work by the tech team."
+        *   **Consequential Feel:** While not explicitly remembering past events, generate events that *feel* like they could be consequences of earlier situations or market trends. For example, if competition was 'high' and marketing spend was low, a market share loss event is plausible. If R&D was high, a "Eureka!" moment is more plausible.
+    *   Event 1: Should generally be more impactful or directly tied to player decisions or major simulation outcomes.
+    *   Event 2: Can be more general, related to market, a minor operational event, or one of the Eureka/Setback types, adding flavor and unpredictability.
     *   Do NOT include the impact text like '(Positive)' within the event 'description' field.
 
 5.  **Rewards Granted (Optional):**
-    *   If a major milestone was achieved (significant user growth, product stage advancement, first profitability, successful navigation of a crisis revealed in events), grant 1-2 thematic rewards.
+    *   If a major milestone was achieved (significant user growth, product stage advancement, first profitability, successful navigation of a crisis revealed in events, OR if a "Eureka!" moment grants a specific boon), grant 1-2 thematic rewards.
+    *   Example for a Eureka: { name: "R&D Breakthrough", description: "Development speed increased by 20% for the next 2 months due to an innovative discovery." } (The actual application of this buff would be handled by the simulation store based on this description).
 
 6.  **Startup Score Adjustment:**
     *   Integer adjustment based on overall performance (profitability, cash flow, user growth, product milestones, event impacts).
@@ -120,7 +122,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Max score 100, min 0.
 
 7.  **AI Reasoning (Optional):**
-    *   Provide a brief, 1-2 sentence explanation summarizing your key considerations for *user acquisition rates*, *product development speed*, or *financial calculations* this month, especially if they were significantly influenced by the new nuanced logic or random factors. Example: "User growth was modest despite marketing spend due to high competition and early product stage. R&D progress was solid thanks to focused engineering effort and a small efficiency boost this month."
+    *   Provide a brief, 1-2 sentence explanation summarizing your key considerations for *user acquisition rates*, *product development speed*, *financial calculations*, or *event generation* this month, especially if they were significantly influenced by the new nuanced logic, random factors, or the current simulation context. Example: "User growth was modest despite marketing spend due to high competition and early product stage. R&D progress was solid thanks to focused engineering effort. Generated a competitor action event due to high market competition and a minor operational setback for balance."
 
 Output MUST be a single, valid JSON object matching the SimulateMonthOutputSchema.
 The 'simulatedMonthNumber' in your output should be {{{currentSimulationMonth}}} + 1.
@@ -231,3 +233,5 @@ const simulateMonthGenkitFlow = ai.defineFlow(
   }
 );
 
+
+    
