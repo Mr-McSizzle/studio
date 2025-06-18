@@ -122,7 +122,9 @@ export default function SignUpPage() {
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-accent to-sky-500 hover:from-accent/90 hover:to-sky-400 text-accent-foreground text-lg py-6 shadow-md hover:shadow-primary-glow-sm transition-all duration-300 transform hover:scale-105" /* Silver to Sky Blue gradient */
               >
-                 {isLoading ? "Creating Account..." : <><Sparkles className="mr-2 h-5 w-5" />Create Account & Begin</>}
+                <span className="inline-flex items-center">
+                  {isLoading ? "Creating Account..." : <><Sparkles className="mr-2 h-5 w-5" />Create Account & Begin</>}
+                </span>
               </Button>
             </form>
           </CardContent>
@@ -134,7 +136,12 @@ export default function SignUpPage() {
               </Button>
             </p>
              <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">
-              <Link href="/"><Home className="mr-1 h-3 w-3"/>Back to ForgeSim Home</Link>
+              <Link href="/">
+                <span className="inline-flex items-center">
+                    <Home className="mr-1 h-3 w-3 inline-block align-middle"/>
+                    Back to ForgeSim Home
+                </span>
+              </Link>
             </Button>
           </CardFooter>
         </Card>

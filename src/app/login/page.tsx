@@ -111,7 +111,9 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105" /* Primary is deep blue, accent for glow is silver */
               >
-                {isLoading ? "Authenticating..." : <><LogInIcon className="mr-2 h-5 w-5"/>Secure Login</>}
+                <span className="inline-flex items-center">
+                  {isLoading ? "Authenticating..." : <><LogInIcon className="mr-2 h-5 w-5"/>Secure Login</>}
+                </span>
               </Button>
             </form>
           </CardContent>
@@ -123,7 +125,12 @@ export default function LoginPage() {
               </Button>
             </p>
             <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">
-                <Link href="/"><span><Home className="mr-1 h-3 w-3 inline-block align-middle"/>Back to ForgeSim Home</span></Link>
+                <Link href="/">
+                    <span className="inline-flex items-center">
+                        <Home className="mr-1 h-3 w-3 inline-block align-middle"/>
+                        Back to ForgeSim Home
+                    </span>
+                </Link>
             </Button>
           </CardFooter>
         </Card>
