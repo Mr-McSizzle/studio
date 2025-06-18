@@ -44,13 +44,13 @@ export function AgentCard({ agent }: AgentCardProps) {
               <div className="text-center mb-auto">
                  {/* Description can be moved to tooltip to save space if cards are too tall */}
               </div>
-              <Button 
-                  asChild 
+              <Button
+                  asChild
                   className={cn(
-                      "w-full mt-auto bg-gradient-to-r text-sm py-3 text-white transition-all duration-300 ease-in-out hover:shadow-lg hover:brightness-110 transform hover:scale-[1.02]",
+                      "w-full mt-auto bg-gradient-to-r text-sm py-3 text-primary-foreground transition-all duration-300 ease-in-out hover:shadow-lg hover:brightness-110 transform hover:scale-[1.02]", // text-white changed to text-primary-foreground
                       agent.gradientFromClass,
                       agent.gradientToClass,
-                      "group-hover:opacity-100 opacity-90" 
+                      "group-hover:opacity-100 opacity-90"
                   )}
               >
                 <Link href={agent.actionLink || '/app/mentor'}>
@@ -61,10 +61,10 @@ export function AgentCard({ agent }: AgentCardProps) {
             </CardContent>
           </Card>
         </TooltipTrigger>
-        <TooltipContent 
-          side="right" 
-          align="start" 
-          className="bg-card/50 backdrop-blur-lg border-accent/50 shadow-xl p-4 max-w-xs space-y-2 animate-tooltip-slide-in"
+        <TooltipContent
+          side="right"
+          align="start"
+          className="bg-popover/75 backdrop-blur-lg border-accent/50 shadow-xl p-4 max-w-xs space-y-2 animate-tooltip-slide-in" // bg-card/50 changed to bg-popover/75
         >
           <div className="flex items-center gap-3 mb-2">
             <div className={cn("p-2 rounded-md bg-gradient-to-br", agent.gradientFromClass, agent.gradientToClass)}>
@@ -80,7 +80,11 @@ export function AgentCard({ agent }: AgentCardProps) {
             <h4 className="font-semibold text-sm text-foreground mb-1.5 flex items-center gap-1.5"><Briefcase className="h-4 w-4 text-accent"/>Specialties:</h4>
             <div className="flex flex-wrap gap-1.5">
               {agent.specialties.map((specialty, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-accent/10 border-accent/30 text-accent-foreground/80 hover:bg-accent/20">
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="text-xs border-accent/60 bg-accent/10 text-accent-foreground hover:bg-accent/20" // Adjusted badge styling
+                >
                   {specialty}
                 </Badge>
               ))}
