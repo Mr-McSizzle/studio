@@ -47,9 +47,7 @@ export function AgentCard({ agent }: AgentCardProps) {
               <Button
                   asChild
                   className={cn(
-                      "w-full mt-auto bg-gradient-to-r text-sm py-3 text-primary-foreground transition-all duration-300 ease-in-out hover:shadow-lg hover:brightness-110 transform hover:scale-[1.02]", // text-white changed to text-primary-foreground
-                      agent.gradientFromClass,
-                      agent.gradientToClass,
+                      "w-full mt-auto bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-3 transition-all duration-300 ease-in-out hover:shadow-lg hover:brightness-110 transform hover:scale-[1.02]", // Standardized button color
                       "group-hover:opacity-100 opacity-90"
                   )}
               >
@@ -64,26 +62,26 @@ export function AgentCard({ agent }: AgentCardProps) {
         <TooltipContent
           side="right"
           align="start"
-          className="bg-popover/75 backdrop-blur-lg border-accent/50 shadow-xl p-4 max-w-xs space-y-2 animate-tooltip-slide-in" // bg-card/50 changed to bg-popover/75
+          className="bg-popover/75 backdrop-blur-lg border-accent/50 shadow-xl p-4 max-w-xs space-y-2 animate-tooltip-slide-in"
         >
           <div className="flex items-center gap-3 mb-2">
             <div className={cn("p-2 rounded-md bg-gradient-to-br", agent.gradientFromClass, agent.gradientToClass)}>
                 <IconComponent className={cn("h-6 w-6", agent.iconColorClass === 'text-primary-foreground' || agent.iconColorClass === 'text-accent-foreground' ? agent.iconColorClass : 'text-card-foreground opacity-90')} />
             </div>
             <div>
-                <p className="font-bold text-lg text-foreground">{agent.name}</p>
+                <p className="font-bold text-lg text-popover-foreground">{agent.name}</p>
                 <p className="text-xs text-muted-foreground">{agent.title}</p>
             </div>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">{agent.description}</p>
           <div>
-            <h4 className="font-semibold text-sm text-foreground mb-1.5 flex items-center gap-1.5"><Briefcase className="h-4 w-4 text-accent"/>Specialties:</h4>
+            <h4 className="font-semibold text-sm text-popover-foreground mb-1.5 flex items-center gap-1.5"><Briefcase className="h-4 w-4 text-accent"/>Specialties:</h4>
             <div className="flex flex-wrap gap-1.5">
               {agent.specialties.map((specialty, index) => (
                 <Badge
                   key={index}
                   variant="outline"
-                  className="text-xs border-accent/60 bg-accent/10 text-accent-foreground hover:bg-accent/20" // Adjusted badge styling
+                  className="text-xs text-accent border-accent/30 bg-transparent hover:bg-accent/10" // Ensured light text (accent is silver)
                 >
                   {specialty}
                 </Badge>
