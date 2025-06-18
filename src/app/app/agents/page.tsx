@@ -2,12 +2,13 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { AgentCard } from "@/components/agents/agent-card";
 import { agentsList } from "@/lib/agentsData"; // Import from shared location
-import { Users, Lightbulb } from "lucide-react";
+import { Lightbulb } from "lucide-react"; // Users icon removed
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
@@ -33,13 +34,20 @@ export default function AIAgentsPage() {
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
       <header className="mb-10">
-        <div className="flex items-center gap-4">
-            <Users className="h-10 w-10 text-accent"/>
-            <div>
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <Image
+              src="/new-assets/team-overview.png" // Assuming this is the path to your uploaded image
+              alt="AI Agent Team Overview"
+              width={100} // You can adjust this
+              height={100} // You can adjust this
+              className="rounded-lg shadow-lg object-cover"
+              data-ai-hint="teamwork collaboration" // Add a relevant hint
+            />
+            <div className="text-center sm:text-left">
                 <h1 className="text-3xl font-headline text-foreground">
                 Meet Your AI Agent Team
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground mt-1">
                 Leverage specialized AI expertise to guide your startup's journey in ForgeSim. Click on an agent to start a focused conversation.
                 </p>
             </div>
