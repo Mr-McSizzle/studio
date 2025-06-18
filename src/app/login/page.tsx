@@ -121,7 +121,7 @@ export default function LoginPage() {
             <p className="text-sm text-muted-foreground">
               New to ForgeSim?{' '}
               <Button variant="link" asChild className="text-accent hover:text-accent/80 p-0 h-auto font-semibold text-glow-accent"> {/* Accent is silver */}
-                <Link href="/signup">Create Your Account</Link>
+                <Link href="/signup"><span>Create Your Account</span></Link>
               </Button>
             </p>
             <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">
