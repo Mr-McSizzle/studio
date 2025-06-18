@@ -1,7 +1,8 @@
+
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import Link from 'next/link'; // Import Link
+import Link from 'next/link'; 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -28,6 +29,8 @@ import {
   Atom,
   Command,
 } from "lucide-react"
+import { FloatingParticles } from "@/components/landing/FloatingParticles"; // Added import
+import { MiniChartBars } from "@/components/landing/MiniChartBars"; // Added import
 
 export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -199,36 +202,7 @@ export default function HomePage() {
         />
       </div>
 
-      {/* Enhanced Floating Particles with Gold */}
-      <div className="fixed inset-0 pointer-events-none">
-        {[...Array(40)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute animate-pulse"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
-            }}
-          >
-            <div
-              className={`w-1 h-1 rounded-full ${
-                i % 4 === 0
-                  ? "bg-yellow-400"
-                  : i % 4 === 1
-                    ? "bg-amber-500"
-                    : i % 4 === 2
-                      ? "bg-red-400"
-                      : "bg-yellow-600"
-              }`}
-              style={{
-                boxShadow: `0 0 ${4 + Math.random() * 8}px currentColor`,
-              }}
-            />
-          </div>
-        ))}
-      </div>
+      <FloatingParticles /> {/* Replaced direct map with component */}
 
       {/* Floating Geometric Shapes with Maroon/Gold */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -259,7 +233,6 @@ export default function HomePage() {
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative">
               <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg shadow-amber-500/25 group-hover:shadow-amber-400/40 transition-shadow">
-                {/* Replace with ForgeSimLogo if available, otherwise use Cpu or similar */}
                 <Cpu className="w-5 h-5 text-black" /> 
               </div>
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -296,11 +269,10 @@ export default function HomePage() {
       <section ref={heroRef} className="relative z-10 pt-8 pb-16">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <div
-            className={`transition-all duration-1000 ${ /* Adjusted duration */
+            className={`transition-all duration-1000 ${ 
               isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
             }`}
           >
-            {/* Status Badge */}
             <div className="mb-6 flex justify-center">
               <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/30 transition-all duration-300 px-4 py-1 text-xs backdrop-blur-sm">
                 <Sparkles className="w-3 h-3 mr-2 animate-pulse" />
@@ -309,7 +281,6 @@ export default function HomePage() {
               </Badge>
             </div>
 
-            {/* Main Title with 3D Effect - Smaller */}
             <div className="relative mb-6">
               <h1 className="text-6xl md:text-8xl font-black leading-none tracking-tight">
                 <div
@@ -330,18 +301,15 @@ export default function HomePage() {
                 </div>
               </h1>
 
-              {/* Glowing underline */}
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-48 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-60 animate-pulse" />
             </div>
 
-            {/* Enhanced Subtitle - Smaller */}
             <div className="mb-8 space-y-3">
               <p className="text-lg md:text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed font-light">
                 The crucible of strategy awaits. Architect your digital twin, command AI agents, and master the art of
                 business in a dynamic simulation.
               </p>
 
-              {/* Stats Row - Smaller */}
               <div className="flex justify-center space-x-6 text-xs text-gray-400 mt-6">
                 <div className="flex items-center space-x-1.5">
                   <Globe className="w-3 h-3 text-amber-400" />
@@ -358,7 +326,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Enhanced CTA Button - Smaller */}
             <div className="relative inline-block">
               <Button
                 size="lg"
@@ -376,14 +343,12 @@ export default function HomePage() {
                   </div>
                 </Link>
               </Button>
-                {/* Button glow effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-amber-600/20 via-yellow-600/20 to-amber-600/20 rounded-xl blur-xl -z-10 animate-pulse" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3D Dynamic Simulation Core */}
       <section className="relative z-10 py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -428,7 +393,6 @@ export default function HomePage() {
               </Button>
             </div>
 
-            {/* 3D Simulation Display */}
             <div className="relative">
               <div
                 className="transform-gpu transition-transform duration-300"
@@ -466,20 +430,8 @@ export default function HomePage() {
                         ))}
                       </div>
 
-                      {/* Mini Chart */}
                       <div className="mt-6 p-3 bg-black/20 rounded-lg border border-amber-500/10">
-                        <div className="flex items-end space-x-1 h-12">
-                          {[...Array(12)].map((_, i) => (
-                            <div
-                              key={i}
-                              className="flex-1 bg-gradient-to-t from-amber-600 to-yellow-500 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
-                              style={{
-                                height: `${15 + Math.random() * 30}px`,
-                                animationDelay: `${i * 0.1}s`,
-                              }}
-                            />
-                          ))}
-                        </div>
+                        <MiniChartBars /> {/* Replaced direct map with component */}
                       </div>
                     </div>
                   </CardContent>
@@ -490,11 +442,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Enhanced AI Hive Mind Section */}
       <section className="relative z-10 py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* 3D Agent Display */}
             <div className="relative order-2 lg:order-1">
               <div
                 className="transform-gpu transition-transform duration-300"
@@ -505,7 +455,6 @@ export default function HomePage() {
                 <Card className="bg-gradient-to-br from-red-950/30 to-amber-950/30 border-yellow-600/30 backdrop-blur-lg shadow-2xl shadow-yellow-500/20">
                   <CardContent className="p-8">
                     <div className="space-y-6">
-                      {/* Main Agent Display */}
                       <div className="text-center">
                         <div className="relative inline-block mb-4">
                           <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-full flex items-center justify-center shadow-2xl shadow-amber-500/25">
@@ -524,7 +473,6 @@ export default function HomePage() {
                         </Badge>
                       </div>
 
-                      {/* Agent Grid */}
                       <div className="grid grid-cols-3 gap-3">
                         {agents.map((agent, index) => (
                           <div
@@ -546,7 +494,6 @@ export default function HomePage() {
                         ))}
                       </div>
 
-                      {/* Neural Network Visualization */}
                       <div className="relative h-16 bg-black/20 rounded-lg border border-amber-500/10 overflow-hidden">
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="flex space-x-3">
@@ -616,7 +563,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Enhanced Strategic Mastery Features */}
       <section className="relative z-10 py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -661,7 +607,6 @@ export default function HomePage() {
                         <p className="text-gray-400 leading-relaxed text-sm">{feature.description}</p>
                       </div>
 
-                      {/* Progress indicator */}
                       <div className="space-y-1.5">
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-500">Optimization Level</span>
@@ -678,14 +623,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Enhanced Footer */}
       <footer className="relative z-10 py-16 border-t border-gray-800/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center space-x-3">
               <div className="relative">
                 <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-2xl shadow-amber-500/25">
-                   {/* Replace with ForgeSimLogo if available, otherwise use Cpu or similar */}
                   <Cpu className="w-5 h-5 text-black" />
                 </div>
                 <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
@@ -736,5 +679,3 @@ export default function HomePage() {
     </div>
   )
 }
-
-    
