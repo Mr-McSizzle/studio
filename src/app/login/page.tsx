@@ -112,7 +112,13 @@ export default function LoginPage() {
                 className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105" /* Primary is deep blue, accent for glow is silver */
               >
                 <span className="inline-flex items-center">
-                  {isLoading ? "Authenticating..." : <><LogInIcon className="mr-2 h-5 w-5"/>Secure Login</>}
+                  {isLoading ? (
+                    "Authenticating..."
+                  ) : (
+                    <span>
+                      <LogInIcon className="mr-2 h-5 w-5 inline-block align-middle"/>Secure Login
+                    </span>
+                  )}
                 </span>
               </Button>
             </form>
