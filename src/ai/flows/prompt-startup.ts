@@ -97,9 +97,12 @@ Based on ALL available information, generate:
 
 2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges. These should be specific and actionable. If the user set ambitious goals, challenges should reflect the difficulty of achieving these. Consider the chosen {{{selectedArchetype}}} for thematic challenges (e.g., an 'innovator' might face challenges in market adoption, a 'scaler' in maintaining quality).
 
-CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
+ABSOLUTELY CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
+- YOUR ENTIRE RESPONSE MUST BE A SINGLE JSON OBJECT.
+- THIS JSON OBJECT MUST START WITH '{' AND END WITH '}'.
+- THERE MUST BE NO TEXT, EXPLANATIONS, OR ANY OTHER CHARACTERS BEFORE THE OPENING '{' OR AFTER THE CLOSING '}'.
 - The 'initialConditions' field MUST be a single, valid, strictly parsable JSON string. NO EXCEPTIONS.
-- Ensure NO trailing commas in JSON objects or arrays.
+- Ensure NO trailing commas in JSON objects or arrays within the 'initialConditions' string or the main JSON.
 - Ensure all strings within the JSON are properly quoted and special characters escaped.
 - All monetary values MUST be plain numbers in the specified {{{currencyCode}}}.
 - You MUST adjust the *scale* of numbers to be realistic for that currency and budget.
@@ -107,7 +110,6 @@ CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
 - The 'productService.features' field within 'initialConditions' MUST be a JSON array of strings.
 - The 'resources.coreTeam' field MUST be a JSON array of objects, each with 'role' (string), 'count' (number), and 'salary' (number).
 - The 'suggestedChallenges' field MUST be a valid JSON array of strings.
-- Do not include any prose outside the structured JSON output. The entire response MUST BE ONLY the JSON object defined by the output schema.
 
 {{output}}
 `,
@@ -122,7 +124,7 @@ const promptStartupFlow = ai.defineFlow(
   async input => {
     const {output} = await prompt(input);
     if (!output || !output.initialConditions || !output.suggestedChallenges) {
-      console.error("AI promptStartup did not return the expected structure.", output);
+      console.error("AI promptStartup did not return the expected structure (missing initialConditions or suggestedChallenges). Output was:", output);
       throw new Error("AI failed to provide complete initial data. Missing initialConditions or suggestedChallenges.");
     }
 
@@ -130,10 +132,8 @@ const promptStartupFlow = ai.defineFlow(
     try {
         parsedConditions = JSON.parse(output.initialConditions);
         // Further validation of the parsedConditions structure can be done here if needed.
-        // For example, checking critical numeric fields:
         if (parsedConditions.financials && typeof parsedConditions.financials.startingCash !== 'number') {
             console.warn(`AI returned financials.startingCash that is not a number: `, parsedConditions.financials.startingCash);
-            // Potentially throw or attempt to fix, but for now, primary concern is JSON validity.
         }
          if (parsedConditions.resources && typeof parsedConditions.resources.initialFunding !== 'number') {
             console.warn(`AI returned resources.initialFunding that is not a number: `, parsedConditions.resources.initialFunding);
@@ -148,22 +148,23 @@ const promptStartupFlow = ai.defineFlow(
             console.warn(`AI returned resources.coreTeam that is not an array: `, parsedConditions.resources.coreTeam);
         }
     } catch (e) {
+        const errorDetails = e instanceof Error ? e.message : String(e);
         console.error("CRITICAL: AI-generated 'initialConditions' string is NOT valid JSON.", e);
         console.error("Problematic 'initialConditions' string from AI:", output.initialConditions);
         // Re-throw a specific error to be caught by the client.
         throw new Error(
-            "The AI failed to generate valid startup parameters (initialConditions was not valid JSON). Please try initializing again. If the problem persists, the AI might be under heavy load or the prompt needs adjustment."
+            `The AI failed to generate valid startup parameters (initialConditions was not valid JSON: ${errorDetails}). Please try initializing again.`
         );
     }
 
     try {
         JSON.parse(output.suggestedChallenges);
-        // Could add further validation for the structure of suggestedChallenges if needed
     } catch (e) {
+        const errorDetails = e instanceof Error ? e.message : String(e);
         console.error("CRITICAL: AI-generated 'suggestedChallenges' string is NOT valid JSON.", e);
         console.error("Problematic 'suggestedChallenges' string from AI:", output.suggestedChallenges);
         throw new Error(
-            "The AI failed to generate valid startup parameters (suggestedChallenges was not a valid JSON array string). Please try initializing again."
+            `The AI failed to generate valid startup parameters (suggestedChallenges was not a valid JSON array string: ${errorDetails}). Please try initializing again.`
         );
     }
     
