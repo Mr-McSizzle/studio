@@ -15,6 +15,7 @@ import {
   Beaker, 
   Users, 
   ListTodo, 
+  Home, // Added Home icon
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ import { Button } from "@/components/ui/button";
 
 
 const navItems = [
+  { href: "/app/launchpad", label: "Launchpad", icon: Home }, // Added Launchpad
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/setup", label: "Setup Simulation", icon: Rocket },
   { href: "/app/agents", label: "AI Agent Team", icon: Users }, 
@@ -49,7 +51,7 @@ export function SidebarNav() {
     <SidebarMenu>
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app" && item.href.length > "/app".length);
+        const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app" && item.href !== "/app/launchpad" && item.href.length > "/app/launchpad".length || (item.href === "/app/launchpad" && pathname === "/app/launchpad"));
         
         return (
           <SidebarMenuItem key={item.label}>
@@ -60,9 +62,9 @@ export function SidebarNav() {
                   variant="default"
                   size="default"
                   className={cn(
-                    "w-full justify-start group/menu-button", // Added group/menu-button
+                    "w-full justify-start group/menu-button", 
                       isActive && "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90 shadow-accent-glow-sm",
-                      !isActive && "hover:shadow-accent-glow-sm" // Glow on hover for non-active items
+                      !isActive && "hover:shadow-accent-glow-sm" 
                   )}
                   isActive={isActive}
                 >
@@ -91,14 +93,14 @@ export function MobileSidebarNav({ onLinkClick }: { onLinkClick?: () => void }) 
      <nav className="grid gap-2 text-lg font-medium">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app" && item.href.length > "/app".length);
+          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app" && item.href !== "/app/launchpad" && item.href.length > "/app/launchpad".length || (item.href === "/app/launchpad" && pathname === "/app/launchpad"));
           return (
             <Link
               key={item.href}
               href={item.href}
               onClick={onLinkClick} 
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary hover:bg-muted", // Added hover:bg-muted
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary hover:bg-muted", 
                 isActive ? "bg-muted text-primary" : "text-muted-foreground"
               )}
             >
