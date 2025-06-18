@@ -56,7 +56,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           "max-w-[70%] rounded-lg p-3 shadow-md",
           isUser
             ? "bg-primary text-primary-foreground"
-            : "bg-card text-card-foreground" 
+            : "bg-secondary text-secondary-foreground" // Changed from bg-card to bg-secondary
         )}
       >
         <p className="text-sm whitespace-pre-wrap">{message.content}</p>

@@ -186,7 +186,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
 
   return (
     <div
-      className="flex flex-col h-[calc(100vh-20rem)] max-h-[700px] bg-card shadow-lg rounded-lg"
+      className="flex flex-col h-[calc(100vh-15rem)] max-h-[800px] bg-card shadow-lg rounded-lg"
       data-guidance-target="chat-container"
     >
       <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
@@ -237,5 +237,3 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     </div>
   );
 }
-
-    
