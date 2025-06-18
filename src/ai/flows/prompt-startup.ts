@@ -115,6 +115,18 @@ ABSOLUTELY CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
 `,
 });
 
+function sanitizeJsonString(jsonString: string): string {
+  if (!jsonString || typeof jsonString !== 'string') {
+    return jsonString;
+  }
+  // Remove trailing commas from objects and arrays
+  // This regex looks for a comma (,) followed by zero or more whitespace characters (\s*)
+  // that is immediately followed by a closing brace (}) or closing bracket (])
+  // The (?=[}\]]) is a positive lookahead, ensuring the brace/bracket is there but not consumed by the replace.
+  let sanitized = jsonString.replace(/,\s*(?=[}\]])/g, '');
+  return sanitized;
+}
+
 const promptStartupFlow = ai.defineFlow(
   {
     name: 'promptStartupFlow',
@@ -129,8 +141,13 @@ const promptStartupFlow = ai.defineFlow(
     }
 
     let parsedConditions;
+    let sanitizedInitialConditionsStr = output.initialConditions;
     try {
-        parsedConditions = JSON.parse(output.initialConditions);
+        sanitizedInitialConditionsStr = sanitizeJsonString(output.initialConditions);
+        parsedConditions = JSON.parse(sanitizedInitialConditionsStr);
+        // Update the output object so the client receives the sanitized (and hopefully valid) string
+        output.initialConditions = sanitizedInitialConditionsStr;
+
         // Further validation of the parsedConditions structure can be done here if needed.
         if (parsedConditions.financials && typeof parsedConditions.financials.startingCash !== 'number') {
             console.warn(`AI returned financials.startingCash that is not a number: `, parsedConditions.financials.startingCash);
@@ -149,22 +166,27 @@ const promptStartupFlow = ai.defineFlow(
         }
     } catch (e) {
         const errorDetails = e instanceof Error ? e.message : String(e);
-        console.error("CRITICAL: AI-generated 'initialConditions' string is NOT valid JSON.", e);
-        console.error("Problematic 'initialConditions' string from AI:", output.initialConditions);
-        // Re-throw a specific error to be caught by the client.
+        console.error("CRITICAL: AI-generated 'initialConditions' string is NOT valid JSON even after sanitization.", e);
+        console.error("Original 'initialConditions' string from AI:", output.initialConditions);
+        console.error("Sanitized 'initialConditions' string attempted:", sanitizedInitialConditionsStr);
         throw new Error(
-            `The AI failed to generate valid startup parameters (initialConditions was not valid JSON: ${errorDetails}). Please try initializing again.`
+            `The AI failed to generate valid startup parameters (initialConditions was not valid JSON: ${errorDetails}). Original: ${output.initialConditions.substring(0, 200)}...`
         );
     }
 
+    let sanitizedSuggestedChallengesStr = output.suggestedChallenges;
     try {
-        JSON.parse(output.suggestedChallenges);
+        sanitizedSuggestedChallengesStr = sanitizeJsonString(output.suggestedChallenges);
+        JSON.parse(sanitizedSuggestedChallengesStr); // Validate parsing
+        // Update the output object
+        output.suggestedChallenges = sanitizedSuggestedChallengesStr;
     } catch (e) {
         const errorDetails = e instanceof Error ? e.message : String(e);
-        console.error("CRITICAL: AI-generated 'suggestedChallenges' string is NOT valid JSON.", e);
-        console.error("Problematic 'suggestedChallenges' string from AI:", output.suggestedChallenges);
+        console.error("CRITICAL: AI-generated 'suggestedChallenges' string is NOT valid JSON even after sanitization.", e);
+        console.error("Original 'suggestedChallenges' string from AI:", output.suggestedChallenges);
+        console.error("Sanitized 'suggestedChallenges' string attempted:", sanitizedSuggestedChallengesStr);
         throw new Error(
-            `The AI failed to generate valid startup parameters (suggestedChallenges was not a valid JSON array string: ${errorDetails}). Please try initializing again.`
+            `The AI failed to generate valid startup parameters (suggestedChallenges was not a valid JSON array string: ${errorDetails}). Original: ${output.suggestedChallenges.substring(0,100)}...`
         );
     }
     
