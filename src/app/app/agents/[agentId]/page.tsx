@@ -4,9 +4,11 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChatInterface } from "@/components/mentor/chat-interface";
-import { getAgentProfileById, agentsList } from "@/lib/agentsData"; // Assuming agentsList is also exported for fallback
+import { getAgentProfileById, agentsList } from "@/lib/agentsData"; 
 import type { AIAgentProfile } from "@/types/simulation";
 import { Loader2, AlertTriangle } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 export default function AgentChatPage() {
   const params = useParams();
@@ -20,7 +22,6 @@ export default function AgentChatPage() {
   
   useEffect(() => {
     if (agentId && !agentProfile) {
-      // Agent ID provided but not found, redirect to main agents page or show error
       console.warn(`Agent profile for ID "${agentId}" not found. Redirecting.`);
       router.replace('/app/agents');
     }
@@ -36,7 +37,6 @@ export default function AgentChatPage() {
   }
 
   if (!agentProfile) {
-    // This should ideally be caught by useEffect, but as a fallback
     return (
       <div className="container mx-auto py-8 px-4 md:px-0 text-center">
         <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-4" />
@@ -50,9 +50,12 @@ export default function AgentChatPage() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <header className="mb-8 flex items-start gap-4">
-        <div className={`p-3 rounded-lg bg-gradient-to-br ${agentProfile.gradientFromClass} ${agentProfile.gradientToClass} shadow-lg`}>
-          <IconComponent className={`h-10 w-10 ${agentProfile.iconColorClass}`} />
-        </div>
+        <Avatar className="h-16 w-16 rounded-full border-2 border-accent/60 shadow-lg">
+          <AvatarImage src={agentProfile.avatarUrl} alt={agentProfile.name} className="rounded-full" />
+          <AvatarFallback className={cn("rounded-full flex items-center justify-center bg-gradient-to-br", agentProfile.gradientFromClass, agentProfile.gradientToClass)}>
+            <IconComponent className={cn("h-8 w-8", agentProfile.iconColorClass === 'text-primary-foreground' || agent.iconColorClass === 'text-accent-foreground' ? agentProfile.iconColorClass : 'text-card-foreground opacity-80')} />
+          </AvatarFallback>
+        </Avatar>
         <div>
           <h1 className="text-3xl font-headline text-foreground">
             Chat with {agentProfile.name}
@@ -66,6 +69,3 @@ export default function AgentChatPage() {
     </div>
   );
 }
-
-    
-    
