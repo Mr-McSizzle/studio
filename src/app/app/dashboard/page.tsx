@@ -62,7 +62,8 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
   let cardClasses = "hex-card relative flex flex-col justify-between p-4 md:p-5 min-h-[220px] sm:min-h-[250px] md:min-h-[280px] w-[200px] sm:w-[230px] md:w-[260px] aspect-[1/0.866] transition-all duration-300 ease-in-out transform group "; // Adjusted aspect ratio for hexagon
   let IconComponent = phase.icon;
 
-  cardClasses += " hover:shadow-2xl hover:-translate-y-1 hover:rotate-y-2 hover:rotate-x-1";
+  cardClasses += " hover:shadow-2xl hover:-translate-y-1 group-hover:rotate-y-2 group-hover:rotate-x-1";
+
 
   if (isLocked) {
     cardClasses += "bg-card/20 backdrop-blur-xs opacity-60 cursor-not-allowed shadow-inner-soft-dim border-border/30";
@@ -73,6 +74,7 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
     cardClasses += `bg-card/50 border-green-600/50 opacity-80 shadow-md ${isCompleted ? 'animate-digital-nectar-fill' : ''}`;
     IconComponent = CheckCircle;
   }
+
 
   return (
     <div
@@ -91,7 +93,7 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
           <IconComponent className={cn("h-6 w-6 sm:h-7 sm:w-7", isLocked ? "text-muted-foreground/60" : phase.themeColor)} />
           <h3 className={cn("text-base sm:text-lg font-headline leading-tight tracking-tight mt-1.5", isLocked ? "text-muted-foreground/80" : phase.themeColor)}>{phase.title}</h3>
         </div>
-        <p className={cn("text-[10px] sm:text-xs mb-2 leading-snug min-h-[2.5em]", isLocked ? "text-muted-foreground/60" : "text-muted-foreground")}>
+        <p className={cn("text-[10px] sm:text-xs mb-2 leading-snug min-h-[3em] sm:min-h-[2.5em]", isLocked ? "text-muted-foreground/60" : "text-muted-foreground")}>
           {isLocked ? `Unlocks at M${phase.unlockMonth}. Hints: ${phase.milestones[0]}, ...` : phase.description.substring(0, 50) + "..."}
         </p>
         {!isLocked && (
@@ -196,8 +198,10 @@ export default function DashboardPage() {
             `EVE: User base at ${userMetrics.activeUsers.toLocaleString()}. Product '${product.name}' is at ${product.stage} stage.`,
             "EVE: Strategic projections updated. Analyzing next optimal move.",
             "EVE: All systems nominal. Ready for your command.",
-            `EVE: Monitoring market conditions for '${storeMarket.targetMarketDescription}'. Competition: ${storeMarket.competitionLevel}.`
         ];
+        if (storeMarket?.targetMarketDescription && storeMarket?.competitionLevel) {
+          baseMessages.push(`EVE: Monitoring market conditions for '${storeMarket.targetMarketDescription}'. Competition: ${storeMarket.competitionLevel}.`);
+        }
         if (financials.cashOnHand < financials.burnRate * 2 && financials.cashOnHand > 0) {
             baseMessages.push("EVE: Warning: Cash reserves approaching critical threshold. Recommend strategic review.");
         }
@@ -240,13 +244,11 @@ export default function DashboardPage() {
       )}
       <div className={cn("dashboard-hub-container relative container mx-auto py-8 px-4 md:px-0 space-y-6 overflow-hidden", unlockedStageForAnimation && "blur-md pointer-events-none")}>
 
-        {/* Enhanced Background Layers */}
         <div className="absolute inset-0 z-[-1] opacity-100 overflow-hidden">
-          <div className="neural-grid-bg enhanced-hive-grid"></div> {/* Enhanced grid */}
-          {Array.from({length: 7}).map((_, i) => ( // More orbit lines, adjusted speeds/sizes
-             <div key={`orbit-line-${i}`} className="orbit-line enhanced-orbit" style={{ '--orbit-delay': `${i*1.5}s`, '--orbit-duration': `${12+i*4}s`, '--orbit-size': `${150+i*80}px`, '--orbit-opacity': `${0.05 + i*0.01}` } as React.CSSProperties}></div>
+          <div className="enhanced-hive-grid"></div>
+          {Array.from({length: 7}).map((_, i) => (
+             <div key={`orbit-line-${i}`} className="enhanced-orbit" style={{ '--orbit-delay': `${i*1.5}s`, '--orbit-duration': `${12+i*4}s`, '--orbit-size': `${150+i*80}px`, '--orbit-opacity': `${0.05 + i*0.01}` } as React.CSSProperties}></div>
           ))}
-           {/* Particle Field for Hive Dust */}
           <div className="particle-field">
             {Array.from({ length: 30 }).map((_, i) => (
               <div key={`particle-${i}`} className="particle" style={{
@@ -254,9 +256,9 @@ export default function DashboardPage() {
                 '--y-start': `${Math.random() * 100}%`,
                 '--x-end': `${Math.random() * 100}%`,
                 '--y-end': `${Math.random() * 100}%`,
-                '--duration': `${Math.random() * 10 + 10}s`, // 10-20s duration
+                '--duration': `${Math.random() * 10 + 10}s`,
                 '--delay': `${Math.random() * 5}s`,
-                '--size': `${Math.random() * 1.5 + 0.5}px`, // 0.5px to 2px
+                '--size': `${Math.random() * 1.5 + 0.5}px`,
               } as React.CSSProperties}/>
             ))}
           </div>
@@ -277,7 +279,7 @@ export default function DashboardPage() {
                 <TooltipTrigger asChild>
                   <div className="relative animate-float-pulse cursor-default">
                     <Image
-                      src="/new-assets/eve-avatar.png"
+                      src="/new-assets/custom_eve_avatar.png"
                       alt="EVE - AI Hive Mind Assistant"
                       width={72}
                       height={72}
@@ -339,7 +341,7 @@ export default function DashboardPage() {
 
         <section className="relative z-10">
           <h2 className="text-xl font-headline text-foreground mb-6 flex items-center gap-2"><Settings2 className="h-6 w-6 text-accent"/>Phase Matrix</h2>
-          <div className="flex flex-wrap justify-center gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:gap-x-5 md:gap-y-12 lg:gap-x-6 lg:gap-y-14 px-2"> {/* Honeycomb grid layout */}
+          <div className="flex flex-wrap justify-center gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:gap-x-5 md:gap-y-12 lg:gap-x-6 lg:gap-y-14 px-2">
             {simulationPhases.map(phase => (
               <PhaseCard key={phase.id} phase={phase} currentSimMonth={simulationMonth} />
             ))}
@@ -519,3 +521,5 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
+
+    

@@ -27,7 +27,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
     AvatarIcon = User;
     avatarAlt = "User Avatar";
   } else if (isAssistant) {
-    avatarSrc = "/new-assets/eve-avatar.png"; // EVE's new avatar
+    avatarSrc = "/new-assets/custom_eve_avatar.png"; // EVE's new avatar
     avatarHint = "bee queen"; 
     AvatarIcon = Bot; 
     avatarAlt = "EVE AI Hive Mind Avatar";
@@ -81,3 +81,5 @@ export function ChatMessage({ message }: ChatMessageProps) {
     </div>
   );
 }
+
+    

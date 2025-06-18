@@ -122,12 +122,10 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
 
       setGuidance(result.response, currentChatContext, result.suggestedNextAction);
 
-      // Client-side parsing of EVE's response for confirmed actions
       if (isInitialized && result.response) {
         const responseLower = result.response.toLowerCase();
-        const currencySymbolRegex = `(?:${financials.currencySymbol.replace('$', '\\$')}|\\$|€|£|¥)`; // Be flexible with symbol
+        const currencySymbolRegex = `(?:${financials.currencySymbol.replace('$', '\\$')}|\\$|€|£|¥)`;
 
-        // Marketing Budget
         const marketingRegex = new RegExp(`marketing budget.*? to ${currencySymbolRegex}?\\s*([\\d,]+(?:\\.\\d{2})?)`, "i");
         const marketingMatch = result.response.match(marketingRegex);
         if (marketingMatch && marketingMatch[1]) {
@@ -139,7 +137,6 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
           }
         }
 
-        // R&D Budget
         const rndRegex = new RegExp(`r&d budget.*? to ${currencySymbolRegex}?\\s*([\\d,]+(?:\\.\\d{2})?)`, "i");
         const rndMatch = result.response.match(rndRegex);
         if (rndMatch && rndMatch[1]) {
@@ -151,7 +148,6 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
           }
         }
 
-        // Product Price
         const priceRegex = new RegExp(`product price.*? to ${currencySymbolRegex}?\\s*([\\d,]+(?:\\.\\d{2})?)`, "i");
         const priceMatch = result.response.match(priceRegex);
         if (priceMatch && priceMatch[1]) {
@@ -201,7 +197,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
           {isLoading && (
              <div className="flex items-start gap-3 my-4 justify-start">
                 <Avatar className="h-8 w-8 border border-border">
-                    <AvatarImage src="/new-assets/eve-avatar.png" alt="EVE AI Avatar" data-ai-hint="bee queen" />
+                    <AvatarImage src="/new-assets/custom_eve_avatar.png" alt="EVE AI Avatar" data-ai-hint="bee queen" />
                     <AvatarFallback>
                         <Brain className="h-5 w-5 text-muted-foreground" />
                     </AvatarFallback>
@@ -241,3 +237,5 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     </div>
   );
 }
+
+    

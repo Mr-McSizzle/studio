@@ -150,7 +150,7 @@ export const StageUnlockAnimationOverlay: React.FC<StageUnlockAnimationOverlayPr
           transition={{ duration: animationConfig.avatarDuration, ease: "backOut" }}
         >
           <Image
-            src="/new-assets/eve-avatar.png"
+            src="/new-assets/custom_eve_avatar.png"
             alt="Hive Mind Avatar"
             width={120}
             height={120}
@@ -197,3 +197,5 @@ export const StageUnlockAnimationOverlay: React.FC<StageUnlockAnimationOverlayPr
     </motion.div>
   );
 };
+
+    

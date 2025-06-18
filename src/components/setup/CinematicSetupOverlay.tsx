@@ -172,7 +172,7 @@ export const CinematicSetupOverlay: React.FC<CinematicSetupOverlayProps> = ({
               className="flex flex-col items-center"
             >
               <Image
-                src="/new-assets/eve-avatar.png"
+                src="/new-assets/custom_eve_avatar.png"
                 alt="EVE AI Hive Mind"
                 width={100}
                 height={100}
@@ -201,8 +201,6 @@ export const CinematicSetupOverlay: React.FC<CinematicSetupOverlayProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* Sound cue placeholder: <audio src="/sounds/initialization_pulse.mp3" autoPlay /> */}
-      {/* Sound cue placeholder for EVE's voice (harder to implement without TTS or pre-recorded files) */}
     </motion.div>
   );
 };
