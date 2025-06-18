@@ -136,7 +136,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const {
     companyName, simulationMonth, financials, userMetrics, product,
-    market: storeMarket,
+    market: storeMarket, // Renamed to avoid conflict
     startupScore,
     keyEvents, isInitialized, currentAiReasoning, historicalRevenue, historicalUserGrowth,
     historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
@@ -194,19 +194,28 @@ export default function DashboardPage() {
 
     if (isInitialized && financials && userMetrics && product && storeMarket && currencySymbol) {
         baseMessages = [
-            `EVE: Currently in month ${simulationMonth}. Financials: ${currencySymbol}${financials.cashOnHand.toLocaleString()} cash.`,
-            `EVE: User base at ${userMetrics.activeUsers.toLocaleString()}. Product '${product.name}' is at ${product.stage} stage.`,
-            "EVE: Strategic projections updated. Analyzing next optimal move.",
-            "EVE: All systems nominal. Ready for your command.",
+            `EVE: Current Sim Month: ${simulationMonth}. Financials stable at ${currencySymbol}${financials.cashOnHand.toLocaleString()} cash.`,
+            `EVE: User base: ${userMetrics.activeUsers.toLocaleString()}. Product '${product.name}' (${product.stage}) is ${product.developmentProgress}% towards next milestone.`,
+            "EVE: Strategic projections updated. Optimizing for founder's chosen archetype.",
+            "EVE: All hive agents are online and reporting. Awaiting your directives.",
+            `EVE: Monitoring target market: '${storeMarket.targetMarketDescription}'. Competition level: ${storeMarket.competitionLevel}.`,
         ];
-        if (storeMarket?.targetMarketDescription && storeMarket?.competitionLevel) {
-          baseMessages.push(`EVE: Monitoring market conditions for '${storeMarket.targetMarketDescription}'. Competition: ${storeMarket.competitionLevel}.`);
-        }
         if (financials.cashOnHand < financials.burnRate * 2 && financials.cashOnHand > 0) {
-            baseMessages.push("EVE: Warning: Cash reserves approaching critical threshold. Recommend strategic review.");
+            baseMessages.push("EVE: Tactical Alert: Cash reserves are approaching critical threshold (<2 months runway). Recommend immediate strategic review of expenditures.");
         }
         if (product.developmentProgress > 85 && product.stage !== 'mature') {
-            baseMessages.push(`EVE: Product '${product.name}' is ${product.developmentProgress}% complete. Next stage nearing.`);
+            baseMessages.push(`EVE: Opportunity Alert: Product '${product.name}' development at ${product.developmentProgress}%. Next stage breakthrough is imminent. Consider resource allocation.`);
+        }
+        if (userMetrics.churnRate > 0.15) { // Example: Churn > 15%
+            baseMessages.push(`EVE: User Retention Alert: Churn rate at ${(userMetrics.churnRate * 100).toFixed(1)}%. Zara, our Focus Group Lead, suggests investigating user feedback.`);
+        }
+        if (keyEvents.length > 0) {
+            const lastEvent = keyEvents[keyEvents.length - 1];
+            if (lastEvent.impact === "Negative" && (lastEvent.category === "Market" || lastEvent.category === "Competitor")) {
+                 baseMessages.push(`EVE: Threat Analysis: Recent event "${lastEvent.description.substring(0,30)}..." requires attention. Consider consulting The Advisor.`);
+            } else if (lastEvent.impact === "Positive" && lastEvent.category === "Product") {
+                 baseMessages.push(`EVE: Momentum Detected: Positive product event "${lastEvent.description.substring(0,30)}...". Leverage this with Maya, our Marketing Guru.`);
+            }
         }
     }
 
@@ -214,7 +223,7 @@ export default function DashboardPage() {
       setEveTooltipMessage(baseMessages[Math.floor(Math.random() * baseMessages.length)]);
     }, 10000);
     return () => clearInterval(interval);
-  }, [isInitialized, simulationMonth, financials, userMetrics, product, storeMarket, currencySymbol]);
+  }, [isInitialized, simulationMonth, financials, userMetrics, product, storeMarket, currencySymbol, keyEvents]); // Added keyEvents
 
 
   if (typeof simulationMonth === 'number' && simulationMonth === 0 && !isInitialized) {
@@ -247,7 +256,7 @@ export default function DashboardPage() {
         <div className="absolute inset-0 z-[-1] opacity-100 overflow-hidden">
           <div className="enhanced-hive-grid"></div>
           {Array.from({length: 7}).map((_, i) => (
-             <div key={`orbit-line-${i}`} className="enhanced-orbit" style={{ '--orbit-delay': `${i*1.5}s`, '--orbit-duration': `${12+i*4}s`, '--orbit-size': `${150+i*80}px`, '--orbit-opacity': `${0.05 + i*0.01}` } as React.CSSProperties}></div>
+             <div key={`orbit-line-${i}`} className="enhanced-orbit orbit-line" style={{ '--orbit-delay': `${i*1.5}s`, '--orbit-duration': `${12+i*4}s`, '--orbit-size': `${150+i*80}px`, '--orbit-opacity': `${0.05 + i*0.01}` } as React.CSSProperties}></div>
           ))}
           <div className="particle-field">
             {Array.from({ length: 30 }).map((_, i) => (
@@ -306,9 +315,8 @@ export default function DashboardPage() {
                 <Button
                     onClick={handleAdvanceMonth}
                     className={cn(
-                        "bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200",
+                        "bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-subtle-button-pulse",
                         "active:scale-95 active:shadow-inner-soft-gold",
-                        "animate-subtle-button-pulse",
                         isSimulating && "opacity-70 cursor-not-allowed"
                     )}
                     size="default"

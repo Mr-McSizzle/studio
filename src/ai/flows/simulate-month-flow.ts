@@ -22,7 +22,7 @@ const prompt = ai.definePrompt({
   input: { schema: SimulateMonthInputSchema },
   output: { schema: SimulateMonthOutputSchema },
   config: {
-    temperature: 0.75, 
+    temperature: 0.75, // Slightly increased temperature for more nuanced/varied outcomes
      safetySettings: [ 
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
       { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
@@ -64,13 +64,13 @@ Current State (Month {{{currentSimulationMonth}}}):
 Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}}} + 1):
 
 1.  **User Base Calculation:**
-    *   Users Lost to Churn: Round (Current Active Users * Churn Rate) to the nearest whole number. Churn can slightly increase if the product stage is very early (idea/prototype) or if sustained financial distress is apparent (low cash for multiple months).
+    *   Users Lost to Churn: Round (Current Active Users * Churn Rate) to the nearest whole number. Churn can slightly increase if the product stage is very early (idea/prototype) or if sustained financial distress is apparent (low cash for multiple months). High competition can also subtly increase churn.
     *   New User Acquisition: This is nuanced.
-        *   Base Acquisition: Factor in marketing spend. Higher spend generally means more reach, but effectiveness (Cost Per Acquisition) can decrease if the product is not mature (idea/prototype) or if competition ({{{market.competitionLevel}}}) is high. A very high spend on an 'idea' stage product might yield poor ROI.
-        *   Product Appeal: A more mature product (mvp, growth) with good development progress ({{{product.developmentProgress}}}%) should have better appeal than an 'idea' or 'prototype' stage product. Word-of-mouth (e.g., Current Active Users / 1000 * product appeal factor) should also reflect this.
-        *   Price Impact: Higher price ({{{financials.currencySymbol}}}{{{product.pricePerUser}}}) might reduce acquisition if perceived value is low or competition offers similar value for less. Lower price might boost it.
-        *   Market Conditions: If '{{{market.targetMarketDescription}}}' suggests a rapidly growing market, slightly boost acquisition. High '{{{market.competitionLevel}}}' should slightly dampen it.
-        *   Ensure 'newUserAcquisition' is a whole number. Minimal acquisition if marketing spend is zero.
+        *   Base Acquisition: Factor in marketing spend. Higher spend generally means more reach, but effectiveness (Cost Per Acquisition - CAC) can decrease if the product is not mature (idea/prototype) or if competition ({{{market.competitionLevel}}}) is high. A very high spend on an 'idea' stage product might yield poor ROI. CAC tends to increase as marketing spend saturates channels or competition intensifies.
+        *   Product Appeal: A more mature product (mvp, growth) with good development progress ({{{product.developmentProgress}}}%) should have better appeal and lower base CAC than an 'idea' or 'prototype' stage product. Word-of-mouth (e.g., (Current Active Users / 1000) * product appeal factor * (1 - churnRate)) should also reflect this. Product appeal factor increases with stage and positive sentiment.
+        *   Price Impact: Higher price ({{{financials.currencySymbol}}}{{{product.pricePerUser}}}) might reduce acquisition if perceived value is low or competition offers similar value for less. Lower price might boost it, but too low can signal low quality.
+        *   Market Conditions: If '{{{market.targetMarketDescription}}}' suggests a rapidly growing market, slightly boost acquisition. High '{{{market.competitionLevel}}}' should slightly dampen it and may increase CAC.
+        *   Ensure 'newUserAcquisition' is a whole number. Minimal acquisition (organic/word-of-mouth only) if marketing spend is zero.
 
 2.  **Financial Calculations:**
     *   Calculated Revenue = Updated Active Users * Price Per User.
@@ -79,14 +79,14 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
         *   'salaries': Sum of (count * salary) for all team members.
         *   'marketing': Current {{{resources.marketingSpend}}}.
         *   'rnd': Current {{{resources.rndSpend}}}.
-        *   'operational': Estimate realistic costs for a startup of this nature. Consider team size.
-        *   **Cash Flow Management:** If 'cashOnHand' is very low (e.g., < 2 months of typical burn rate), the startup MUST implement emergency cost-cutting. Reflect this by significantly reducing 'expenseBreakdown.operational'. If cash is extremely low (< 1 month burn), consider if marketing or R&D spend should be realistically frozen or drastically reduced in 'expenseBreakdown.marketing'/'expenseBreakdown.rnd' for this month, and reflect this in a key event if it occurs (e.g., event description: "Emergency cost-cutting: Marketing budget frozen due to low cash reserves.", category: 'Financial', impact: 'Negative').
+        *   'operational': Estimate realistic costs for a startup of this nature (e.g., software, office if applicable, utilities). Consider team size (more team members might mean slightly higher operational costs). These costs can fluctuate slightly (e.g., +/- 5-10% monthly based on minor unforeseen circumstances or efficiencies).
+        *   **Cash Flow Management:** If 'cashOnHand' is very low (e.g., < 2 months of typical burn rate), the startup MUST implement emergency cost-cutting. Reflect this by significantly reducing 'expenseBreakdown.operational' and potentially marketing/R&D. If cash is extremely low (< 1 month burn), R&D and marketing spend might be automatically HALVED for the month, and reflect this in a key event (e.g., event description: "Emergency cost-cutting: Marketing and R&D budgets halved due to critical cash reserves.", category: 'Financial', impact: 'Negative').
         *   'calculatedExpenses': MUST be sum of 'expenseBreakdown' components.
     *   Profit Or Loss = Calculated Revenue - CalculatedExpenses.
     *   Updated Cash On Hand = Current Cash On Hand + Profit OrLoss.
 
 3.  **Product Development:**
-    *   Progress Delta: (R&D Spend / (200 + ({{{product.stage}}} === 'idea' || {{{product.stage}}} === 'prototype' ? 100 : 0) ) ) + (Number of 'Engineer' roles * (2 + ({{{product.stage}}} === 'mvp' || {{{product.stage}}} === 'growth' ? 1 : 0) ) ).
+    *   Progress Delta: (R&D Spend / (200 + ({{{product.stage}}} === 'idea' || {{{product.stage}}} === 'prototype' ? 100 : 0) ) ) + (Number of 'Engineer' roles * (2 + ({{{product.stage}}} === 'mvp' || {{{product.stage}}} === 'growth' ? 1 : 0) ) ). Consider a small random factor (+/- 0.5-1%) to R&D spend effectiveness to simulate research unpredictability.
         *   R&D on early-stage products ('idea', 'prototype') is less efficient. Engineer effectiveness increases slightly for 'mvp' and 'growth' stages.
         *   High R&D spend with few engineers might be inefficient. Low R&D spend might still see progress if many engineers are present.
         *   Cap monthly delta at 20-25% to prevent unrealistic jumps. If R&D spend is zero, progress is mainly from engineers but slower.
@@ -97,10 +97,14 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Generate two distinct, context-aware events. Each event must be an object with 'description', 'category', and 'impact'.
     *   Valid categories: ${KeyEventCategoryEnum.options.join(', ')}.
     *   Valid impacts: ${KeyEventImpactEnum.options.join(', ')}.
-    *   **Event 1 (Internal/Decision-Related):** Tied to the company's current situation, recent decisions, or significant outcomes this month.
-        Example: { description: "Feature X development completed ahead of schedule.", category: "Product", impact: "Positive" }
-    *   **Event 2 (External/Market-Related):** Can be a general market, operational, or competitor event.
-        Example: { description: "Key competitor Y launched a new product.", category: "Market", impact: "Negative" }
+    *   **Event Types for Variety & Unpredictability:**
+        *   **Market Shift:** (e.g., "New technology X emerges, potentially disrupting your market.", "Consumer sentiment shifts towards Y, impacting demand for features like Z.")
+        *   **Competitor Action:** (e.g., "Competitor Gamma secures major funding.", "A key competitor unexpectedly shutters operations.")
+        *   **Operational:** (e.g., "Minor server outage caused brief service disruption.", "Team morale noticeably high after successful feature launch.")
+        *   **"Eureka!" Moment (Rare Positive):** (e.g., "R&D team has a breakthrough, significantly speeding up development of upcoming Feature Alpha.", "Unexpected viral mention leads to a temporary surge in signups.")
+        *   **"Setback" (Minor Negative):** (e.g., "A critical software subscription increased its price by 15%.", "Recruiting for senior engineer proving more difficult than anticipated.")
+    *   Event 1: Should be more impactful or directly tied to player decisions or major simulation outcomes.
+    *   Event 2: Can be more general, related to market, a minor operational event, or one of the new Eureka/Setback types.
     *   Do NOT include the impact text like '(Positive)' within the event 'description' field.
 
 5.  **Rewards Granted (Optional):**
@@ -116,7 +120,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Max score 100, min 0.
 
 7.  **AI Reasoning (Optional):**
-    *   Provide a brief, 1-2 sentence explanation summarizing your key considerations for *user acquisition rates*, *product development speed*, or *financial calculations* this month, especially if they were significantly influenced by the new nuanced logic. Example: "User growth was modest despite marketing spend due to high competition and early product stage. R&D progress was solid thanks to focused engineering effort."
+    *   Provide a brief, 1-2 sentence explanation summarizing your key considerations for *user acquisition rates*, *product development speed*, or *financial calculations* this month, especially if they were significantly influenced by the new nuanced logic or random factors. Example: "User growth was modest despite marketing spend due to high competition and early product stage. R&D progress was solid thanks to focused engineering effort and a small efficiency boost this month."
 
 Output MUST be a single, valid JSON object matching the SimulateMonthOutputSchema.
 The 'simulatedMonthNumber' in your output should be {{{currentSimulationMonth}}} + 1.
