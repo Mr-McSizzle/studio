@@ -53,7 +53,7 @@ export default function AgentChatPage() {
         <Avatar className="h-16 w-16 rounded-full border-2 border-accent/60 shadow-lg">
           <AvatarImage src={agentProfile.avatarUrl} alt={agentProfile.name} className="rounded-full" />
           <AvatarFallback className={cn("rounded-full flex items-center justify-center bg-gradient-to-br", agentProfile.gradientFromClass, agentProfile.gradientToClass)}>
-            <IconComponent className={cn("h-8 w-8", agentProfile.iconColorClass === 'text-primary-foreground' || agent.iconColorClass === 'text-accent-foreground' ? agentProfile.iconColorClass : 'text-card-foreground opacity-80')} />
+            <IconComponent className={cn("h-8 w-8", agentProfile.iconColorClass === 'text-primary-foreground' || agentProfile.iconColorClass === 'text-accent-foreground' ? agentProfile.iconColorClass : 'text-card-foreground opacity-80')} />
           </AvatarFallback>
         </Avatar>
         <div>
