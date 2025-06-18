@@ -6,16 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Info } from "lucide-react";
 
-const baseChartConfig = {
-  desktop: {
-    label: "Desktop", // This can be a generic fallback or removed if not needed
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: { // This can be a generic fallback or removed if not needed
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig;
+// baseChartConfig is not effectively used for color if dataKey isn't 'desktop' or 'mobile'.
+// const baseChartConfig = {
+//   desktop: {
+//     label: "Desktop", 
+//     color: "hsl(var(--chart-1))",
+//   },
+//   mobile: { 
+//     label: "Mobile",
+//     color: "hsl(var(--chart-2))",
+//   },
+// } satisfies ChartConfig;
 
 interface ChartDataItem {
   month: string;
@@ -25,15 +26,17 @@ interface ChartDataItem {
 interface PerformanceChartProps {
   title: string;
   description: string;
-  dataKey: string; // Keep as string, as it's used as an index
+  dataKey: string; 
   data: ChartDataItem[];
 }
 
 export function PerformanceChart({ title, description, dataKey, data }: PerformanceChartProps) {
+  // Ensure dataKey is always part of the config for the label,
+  // and explicitly set the color to silver (chart-3)
   const dynamicChartConfig = {
     [dataKey]: {
       label: title, // Use the chart title as the label for the data key
-      color: `hsl(var(--chart-${(Object.keys(baseChartConfig).indexOf(dataKey) % 2) + 1}))`, // Cycle through chart-1, chart-2 for colors
+      color: `hsl(var(--chart-3))`, // Use chart-3 for silver
     }
   } as ChartConfig;
 
@@ -77,3 +80,4 @@ export function PerformanceChart({ title, description, dataKey, data }: Performa
     </Card>
   )
 }
+
