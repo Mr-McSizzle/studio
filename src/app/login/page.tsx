@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const NexusBackground = () => (
   <div className="fixed inset-0 z-0 pointer-events-none">
+    {/* Using theme variables for primary and accent which are now blue and silver */}
     <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/10 to-background opacity-90" />
     <div className="absolute top-1/4 left-1/4 w-[30rem] h-[30rem] bg-primary/5 rounded-full blur-3xl animate-pulse animation-delay-none" />
     <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-accent/5 rounded-full blur-3xl animate-pulse animation-delay-[1s]" />
@@ -30,7 +31,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    ensureDefaultUser(); // Ensure the default mock user exists for easier testing
+    ensureDefaultUser(); 
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -61,6 +62,7 @@ export default function LoginPage() {
         <Card className="bg-card/80 backdrop-blur-lg border border-primary/30 shadow-primary-glow-md animate-fadeInUp">
           <CardHeader className="text-center pt-8 pb-6">
             <Link href="/" className="flex justify-center mb-6 group">
+              {/* Logo uses theme colors, so it will adapt */}
               <ForgeSimLogo className="h-20 w-20 text-primary group-hover:text-accent transition-colors duration-300 animate-subtle-pulse" />
             </Link>
             <CardTitle className="text-3xl font-headline text-glow-primary">
@@ -76,7 +78,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center text-muted-foreground font-semibold">
-                  <Mail className="h-5 w-5 mr-2 text-accent" /> Email Address
+                  <Mail className="h-5 w-5 mr-2 text-accent" /> {/* Accent is now silver */} Email Address
                 </Label>
                 <Input
                   id="email"
@@ -91,7 +93,7 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="flex items-center text-muted-foreground font-semibold">
-                  <Lock className="h-5 w-5 mr-2 text-accent" /> Password
+                  <Lock className="h-5 w-5 mr-2 text-accent" /> {/* Accent is now silver */} Password
                 </Label>
                 <Input
                   id="password"
@@ -107,7 +109,7 @@ export default function LoginPage() {
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105" /* Primary is deep blue, accent for glow is silver */
               >
                 {isLoading ? "Authenticating..." : <><LogInIcon className="mr-2 h-5 w-5"/>Secure Login</>}
               </Button>
@@ -116,7 +118,7 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col items-center text-center pb-8 pt-4">
             <p className="text-sm text-muted-foreground">
               New to ForgeSim?{' '}
-              <Button variant="link" asChild className="text-accent hover:text-accent/80 p-0 h-auto font-semibold text-glow-accent">
+              <Button variant="link" asChild className="text-accent hover:text-accent/80 p-0 h-auto font-semibold text-glow-accent"> {/* Accent is silver */}
                 <Link href="/signup">Create Your Account</Link>
               </Button>
             </p>

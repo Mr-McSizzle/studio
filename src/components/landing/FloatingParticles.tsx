@@ -12,22 +12,22 @@ interface ParticleStyle {
   colorClass: string;
 }
 
-export function FloatingParticles() {
+interface FloatingParticlesProps {
+  particleColors?: string[]; // e.g., ["bg-sky-400", "bg-blue-500", "bg-slate-400"]
+}
+
+export function FloatingParticles({ particleColors }: FloatingParticlesProps) {
   const [particles, setParticles] = useState<ParticleStyle[]>([]);
+  
+  const defaultColors = ["bg-sky-400", "bg-blue-500", "bg-slate-300", "bg-sky-600", "bg-blue-400"];
+  const currentColors = particleColors && particleColors.length > 0 ? particleColors : defaultColors;
+
 
   useEffect(() => {
-    // This effect runs only on the client, after hydration
     const generateParticleStyles = () => {
       const newParticles: ParticleStyle[] = [];
       for (let i = 0; i < 40; i++) {
-        const colorClass =
-          i % 4 === 0
-            ? "bg-yellow-400"
-            : i % 4 === 1
-            ? "bg-amber-500"
-            : i % 4 === 2
-            ? "bg-red-400"
-            : "bg-yellow-600";
+        const colorClass = currentColors[i % currentColors.length];
         newParticles.push({
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
@@ -41,10 +41,10 @@ export function FloatingParticles() {
     };
 
     generateParticleStyles();
-  }, []); // Empty dependency array ensures this runs once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   if (particles.length === 0) {
-    // Render nothing on the server and on initial client render before useEffect runs
     return null; 
   }
 
@@ -53,7 +53,7 @@ export function FloatingParticles() {
       {particles.map((style, i) => (
         <div
           key={i}
-          className="absolute animate-pulse"
+          className="absolute animate-pulse" // Using Tailwind 'animate-pulse' which uses opacity
           style={{
             left: style.left,
             top: style.top,

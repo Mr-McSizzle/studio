@@ -5,80 +5,86 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 225 30% 15%; /* Dark Blue-Gray Text */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 225 30% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --popover-foreground: 225 30% 15%;
+    
+    --primary: 225 60% 35%; /* Rich Deep Blue */
+    --primary-foreground: 210 30% 98%; /* Light Silver/White */
+    
+    --secondary: 220 50% 90%; /* Light Bluish Gray */
+    --secondary-foreground: 225 50% 30%; /* Darker Blue */
+    
+    --muted: 220 50% 95%; /* Very Light Bluish Gray */
+    --muted-foreground: 220 30% 45%; /* Medium Blue-Gray */
+    
+    --accent: 210 15% 70%; /* Silver */
+    --accent-foreground: 225 50% 20%; /* Dark Blue */
+    
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    
+    --border: 220 40% 80%; /* Light Blue-Gray Border */
+    --input: 220 40% 90%; /* Light Blue-Gray Input BG */
+    --ring: 225 60% 55%; /* Brighter Blue Ring */
+
+    --chart-1: 220 70% 50%; /* Blue */
+    --chart-2: 200 60% 45%; /* Teal-Blue */
+    --chart-3: 240 50% 60%; /* Indigo */
+    --chart-4: 210 15% 55%; /* Medium Silver/Gray */
+    --chart-5: 225 80% 70%; /* Brighter Blue */
     --radius: 0.5rem;
   }
 
   .dark {
-    /* ForgeSim PRD Inspired Dark Theme */
-    --background: 0 0% 0%; /* Black background */
-    --foreground: 0 0% 95%; /* Light foreground */
+    --background: 225 30% 5%; /* Very Dark Blue, almost Black */
+    --foreground: 210 30% 95%; /* Light Silver/Off-White */
 
-    --card: 240 8% 6%; /* Consistent with original dark */
-    --card-foreground: 0 0% 90%; /* Consistent */
+    --card: 225 30% 8%; /* Dark Blue-Gray Card BG */
+    --card-foreground: 210 30% 90%; /* Lighter Silver Text */
 
-    --popover: 240 10% 5%; /* Consistent */
-    --popover-foreground: 0 0% 95%; /* Consistent */
+    --popover: 225 30% 7%; /* Darker Popover BG */
+    --popover-foreground: 210 30% 95%;
 
-    /* PRD Colors */
-    --primary: 348 100% 25%; /* Dark Maroon Wine (#800020) - Adjusted HSL */
-    --primary-foreground: 0 0% 98%; 
+    /* Deep Blue & Silver Theme */
+    --primary: 220 70% 55%; /* Vibrant Deep Blue */
+    --primary-foreground: 210 40% 98%; /* Bright Silver/White */
 
-    --secondary: 0 0% 13%; /* Dark Gray (#212121) - Slightly darker than #333 for more depth */
-    --secondary-foreground: 0 0% 85%;
+    --secondary: 225 30% 12%; /* Darker Shade of Blue-Gray */
+    --secondary-foreground: 210 25% 85%; /* Medium Silver */
 
-    --muted: 0 0% 10%; 
-    --muted-foreground: 0 0% 55%; 
+    --muted: 225 20% 20%; /* Muted Dark Blue */
+    --muted-foreground: 210 20% 55%; /* Muted Silver/Gray */
 
-    --accent: 50 60% 50%; /* Metal Gold (#CFB53B) */
-    --accent-foreground: 0 0% 10%; 
+    --accent: 210 30% 75%; /* Bright Silver */
+    --accent-foreground: 225 50% 15%; /* Very Dark Blue for contrast on Silver */
 
-    --destructive: 0 70% 45%; 
+    --destructive: 0 60% 45%; /* Muted Red for destructive actions */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 15%; 
-    --input: 240 10% 8%; 
-    --ring: 50 60% 55%; /* Gold for ring */
+    --border: 225 20% 15%; /* Dark Blue-Gray Border */
+    --input: 225 25% 10%; /* Slightly Lighter Dark Blue for Input BG */
+    --ring: 210 40% 70%; /* Silver for focus rings */
 
-    --chart-1: 50 60% 55%;  /* Gold */
-    --chart-2: 348 80% 35%; /* Maroon variant */
-    --chart-3: 30 50% 55%;  /* Bronze/Copper */
-    --chart-4: 0 0% 75%;    /* Light Gray */
-    --chart-5: 0 100% 30%; /* Deeper Maroon */
+    --chart-1: 220 70% 60%;  /* Bright Blue */
+    --chart-2: 200 80% 50%; /* Cyan-Blue */
+    --chart-3: 210 20% 60%;  /* Light Silver/Gray */
+    --chart-4: 240 60% 70%;    /* Indigo/Purple-Blue */
+    --chart-5: 225 50% 45%; /* Deeper Blue */
 
     --radius: 0.5rem;
 
-    /* Sidebar Theme - Aligning with new dark theme */
-    --sidebar-background: 0 0% 2.5%; /* Very dark, almost black */
-    --sidebar-foreground: 0 0% 80%; 
-    --sidebar-primary: 348 100% 25%; /* Maroon */
-    --sidebar-primary-foreground: 0 0% 98%; 
-    --sidebar-accent: 50 60% 50%; /* Gold */
-    --sidebar-accent-foreground: 0 0% 10%; 
-    --sidebar-border: 0 0% 12%; 
-    --sidebar-ring: 50 60% 55%;
+    /* Sidebar Theme */
+    --sidebar-background: 225 35% 7%; /* Very Dark Blue for Sidebar */
+    --sidebar-foreground: 210 25% 80%; /* Medium Silver for Sidebar Text */
+    --sidebar-primary: 220 70% 55%; /* Vibrant Deep Blue for Sidebar Primary */
+    --sidebar-primary-foreground: 210 40% 98%; /* Bright Silver for Sidebar Primary Text */
+    --sidebar-accent: 210 30% 75%; /* Bright Silver for Sidebar Accent */
+    --sidebar-accent-foreground: 225 50% 15%; /* Very Dark Blue for Sidebar Accent Text */
+    --sidebar-border: 225 25% 12%; /* Darker Blue-Gray for Sidebar Border */
+    --sidebar-ring: 210 40% 70%; /* Silver for Sidebar Ring */
 
     --sky: 200 80% 50%; 
     --amber: 40 90% 50%; 
@@ -109,7 +115,7 @@
   }
 }
 
-/* Enhanced Custom Animations with Maroon/Gold Theme */
+/* Custom Animations with Blue/Silver Theme */
 @keyframes float {
   0%,
   100% {
@@ -123,13 +129,13 @@
   }
 }
 
-@keyframes glow {
+@keyframes glow { /* More subtle silver glow */
   0%,
   100% {
-    box-shadow: 0 0 15px hsl(var(--accent) / 0.3), 0 0 30px hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 15px hsl(var(--accent) / 0.2), 0 0 30px hsl(var(--primary) / 0.15);
   }
   50% {
-    box-shadow: 0 0 25px hsl(var(--accent) / 0.6), 0 0 50px hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 25px hsl(var(--accent) / 0.4), 0 0 50px hsl(var(--primary) / 0.3);
   }
 }
 
@@ -145,7 +151,7 @@
   }
 }
 
-@keyframes metallic-shimmer {
+@keyframes metallic-shimmer { /* Adjusted for silver */
   0% {
     background-position: 200% 0;
   }
@@ -155,7 +161,7 @@
 }
 
 
-@keyframes maroon-pulse {
+@keyframes deep-blue-pulse { /* Changed from maroon-pulse */
   0%,
   100% {
     background-color: hsla(var(--primary), 0.1);
@@ -165,7 +171,7 @@
   }
 }
 
-@keyframes gold-sparkle {
+@keyframes silver-sparkle { /* Changed from gold-sparkle */
   0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
   50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
 }
@@ -187,16 +193,16 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.animate-metallic-shimmer {
+.animate-metallic-shimmer { /* For general shimmer */
   animation: metallic-shimmer 5s linear infinite;
 }
 
-.animate-maroon-pulse {
-  animation: maroon-pulse 3s ease-in-out infinite;
+.animate-deep-blue-pulse { /* New name for clarity */
+  animation: deep-blue-pulse 3s ease-in-out infinite;
 }
 
-.animate-gold-sparkle {
-  animation: gold-sparkle 4s ease-in-out infinite;
+.animate-silver-sparkle { /* New name for clarity */
+  animation: silver-sparkle 4s ease-in-out infinite;
 }
 
 .animate-neural-pulse {
@@ -216,13 +222,13 @@
   backface-visibility: hidden;
 }
 
-/* Enhanced Scrollbar with Maroon/Gold Theme */
+/* Enhanced Scrollbar with Blue/Silver Theme */
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--secondary) / 0.3);
+  background: hsl(var(--secondary) / 0.3); 
   border-radius: 5px;
 }
 
@@ -236,44 +242,45 @@
   background: linear-gradient(to bottom, hsl(var(--accent) / 0.9), hsl(var(--accent) / 0.6), hsl(var(--primary) / 0.9));
 }
 
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Selection styling with gold */
+/* Selection styling with silver */
 ::selection {
   background: hsl(var(--accent) / 0.3);
   color: hsl(var(--foreground));
 }
 
-/* Focus styles with gold */
+/* Focus styles with silver */
 button:focus,
 a:focus {
   outline: 2px solid hsl(var(--accent) / 0.5);
   outline-offset: 2px;
 }
 
-/* Glass morphism effect with maroon tint */
+/* Glass morphism effect with blue tint */
 .glass {
-  background: hsl(var(--primary) / 0.05);
+  background: hsl(var(--primary) / 0.05); /* Blue tint */
   backdrop-filter: blur(10px);
-  border: 1px solid hsl(var(--accent) / 0.1);
+  border: 1px solid hsl(var(--accent) / 0.1); /* Silver border */
 }
 
-/* Neon text effect with gold */
+/* Neon text effect with silver */
 .neon-text {
   text-shadow: 0 0 5px hsl(var(--accent)), 0 0 10px hsl(var(--accent)), 0 0 15px hsl(var(--accent)), 0 0 20px hsl(var(--accent));
 }
 
-/* Holographic effect with maroon/gold */
+/* Holographic effect with blue/silver */
 .holographic {
   background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--accent) / 0.7), hsl(var(--primary)));
   background-size: 400% 400%;
-  animation: holographic-bg 4s ease-in-out infinite;
+  animation: holographic-bg 4s ease-in-out infinite; /* Renamed to avoid conflict */
 }
 
-@keyframes holographic-bg { /* Renamed from holographic to avoid conflict if holographic class is used for text */
+@keyframes holographic-bg {
   0%,
   100% {
     background-position: 0% 50%;
@@ -283,19 +290,19 @@ a:focus {
   }
 }
 
-/* Metallic gold gradient */
-.metallic-gold {
+/* Metallic silver gradient */
+.metallic-silver { /* Changed from gold */
   background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent) / 0.8) 25%, hsl(var(--accent)) 50%, hsl(var(--accent) / 0.6) 75%, hsl(var(--accent)) 100%);
   background-size: 200% 200%;
   animation: metallic-shimmer 3s ease-in-out infinite;
 }
 
-/* Dark maroon gradient */
-.dark-maroon {
+/* Deep blue gradient */
+.deep-blue { /* Changed from dark-maroon */
   background: linear-gradient(135deg, hsl(var(--primary) / 0.8) 0%, hsl(var(--primary) / 0.6) 25%, hsl(var(--primary)) 50%, hsl(var(--primary) / 0.6) 75%, hsl(var(--primary) / 0.8) 100%);
 }
 
-/* Additional utility from original globals.css that might be useful */
+
 .text-glow-accent { 
   text-shadow: 0 0 8px hsl(var(--accent) / 0.6), 0 0 12px hsl(var(--accent) / 0.4), 0 0 18px hsl(var(--accent) / 0.2);
 }
@@ -309,7 +316,7 @@ a:focus {
   box-shadow: 0 0 10px 1px hsl(var(--primary) / 0.6);
 }
 
-/* Dashboard specific animations from old globals, may or may not be used by new page */
+
 .animate-subtle-pulse-orb {
   animation: subtle-pulse-orb 3s infinite ease-in-out;
 }
@@ -412,7 +419,7 @@ a:focus {
   opacity: 0; 
   filter: blur(0.5px);
 }
-/* Ensure guidance highlight is still available if needed */
+
 .guidance-highlight-active {
   @apply ring-2 ring-accent ring-offset-2 ring-offset-background shadow-accent-glow-sm;
   outline: 2px solid hsl(var(--accent) / 0.8);
@@ -433,7 +440,7 @@ a:focus {
   @apply text-primary;
 }
 
-/* Animations from original globals.css that may be needed by components */
+
 .animate-fadeInUp {
   animation-name: fadeInUp;
 }
@@ -448,7 +455,7 @@ a:focus {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-/* Ensure other required keyframes from original globals are here if used by components */
+
 @keyframes ping-slow {
   0%, 100% { transform: scale(1); opacity: 0.7; }
   50% { transform: scale(1.1); opacity: 1; }
@@ -467,14 +474,14 @@ a:focus {
    0% { opacity: 0; transform: scale(0.9); }
    100% { opacity: 1; transform: scale(1); }
 }
-/* Ensure other effects like .shadow-inner-soft-gold are available if needed */
-.shadow-inner-soft-gold {
+
+.shadow-inner-soft-gold { /* Will now be silver */
   box-shadow: inset 0 2px 4px 0 hsl(var(--accent) / 0.1), inset 0 -1px 2px 0 hsl(var(--background) / 0.3);
 }
 .shadow-inner-soft-dim { 
   box-shadow: inset 0 1px 3px 0 hsl(var(--background) / 0.5), inset 0 -1px 2px 0 hsl(var(--foreground) / 0.05);
 }
-/* Ensure card-glow-hover effects are available if used by components */
+
 .card-glow-hover-accent {
   @apply transition-all duration-300 ease-in-out;
 }
@@ -491,7 +498,7 @@ a:focus {
   transform: translateY(-2px) scale(1.01);
   border-color: hsl(var(--primary) / 0.6);
 }
-/* Ensure Nexus BG animations are available if used by app layout */
+
 .nexus-bg-animations { 
   @apply fixed inset-0 z-0 pointer-events-none;
 }
@@ -499,4 +506,25 @@ a:focus {
   @apply absolute;
 }
 
+/* Ensure the new `--sky`, `--amber`, `--emerald`, `--purple` are available for dashboard cards if they were not updated.
+   The theme variables in .dark should primarily drive colors, but these are fallback. */
+:root {
+    --sky: 200 80% 50%; 
+    --amber: 40 90% 50%; 
+    --emerald: 150 70% 40%; 
+    --purple: 270 70% 55%; 
+    --glow-color: hsl(var(--accent)); /* Default glow color */
+    --border-color: hsl(var(--border));
+    --border-color-active: hsl(var(--accent));
+    --nectar-from: hsl(var(--accent) / 0.2);
+    --nectar-to: hsl(var(--accent) / 0.6);
+}
+
+.dark {
+    --glow-color: hsl(var(--accent));
+    --border-color: hsl(var(--border));
+    --border-color-active: hsl(var(--accent));
+     --nectar-from: hsl(var(--accent) / 0.2);
+    --nectar-to: hsl(var(--accent) / 0.6);
+}
     

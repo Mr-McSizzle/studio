@@ -60,12 +60,12 @@ export default function SignUpPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6">
       <NexusBackground />
       <div className="relative z-10 w-full max-w-md">
-        <Card className="bg-card/80 backdrop-blur-lg border border-accent/30 shadow-accent-glow-md animate-fadeInUp">
+        <Card className="bg-card/80 backdrop-blur-lg border border-accent/30 shadow-accent-glow-md animate-fadeInUp"> {/* Accent is silver */}
           <CardHeader className="text-center pt-8 pb-6">
             <Link href="/" className="flex justify-center mb-6 group">
-              <ForgeSimLogo className="h-20 w-20 text-accent group-hover:text-primary transition-colors duration-300 animate-subtle-pulse" />
+              <ForgeSimLogo className="h-20 w-20 text-accent group-hover:text-primary transition-colors duration-300 animate-subtle-pulse" /> {/* Accent logo */}
             </Link>
-            <CardTitle className="text-3xl font-headline text-glow-accent">Join the Forge</CardTitle>
+            <CardTitle className="text-3xl font-headline text-glow-accent">Join the Forge</CardTitle> {/* Accent glow */}
             <CardDescription className="text-muted-foreground mt-2">
               Begin your journey. Create your ForgeSim Founder account.
             </CardDescription>
@@ -74,7 +74,7 @@ export default function SignUpPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name" className="flex items-center text-muted-foreground font-semibold">
-                  <User className="h-5 w-5 mr-2 text-primary" /> Founder Name
+                  <User className="h-5 w-5 mr-2 text-primary" /> Founder Name {/* Primary is blue */}
                 </Label>
                 <Input
                   id="name"
@@ -89,7 +89,7 @@ export default function SignUpPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center text-muted-foreground font-semibold">
-                  <Mail className="h-5 w-5 mr-2 text-primary" /> Email Address
+                  <Mail className="h-5 w-5 mr-2 text-primary" /> Email Address {/* Primary is blue */}
                 </Label>
                 <Input
                   id="email"
@@ -104,7 +104,7 @@ export default function SignUpPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="flex items-center text-muted-foreground font-semibold">
-                  <Lock className="h-5 w-5 mr-2 text-primary" /> Secure Password (min. 8 characters)
+                  <Lock className="h-5 w-5 mr-2 text-primary" /> Secure Password (min. 8 characters) {/* Primary is blue */}
                 </Label>
                 <Input
                   id="password"
@@ -120,7 +120,7 @@ export default function SignUpPage() {
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-accent-foreground text-lg py-6 shadow-md hover:shadow-primary-glow-sm transition-all duration-300 transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-accent to-sky-500 hover:from-accent/90 hover:to-sky-400 text-accent-foreground text-lg py-6 shadow-md hover:shadow-primary-glow-sm transition-all duration-300 transform hover:scale-105" /* Silver to Sky Blue gradient */
               >
                  {isLoading ? "Creating Account..." : <><Sparkles className="mr-2 h-5 w-5" />Create Account & Begin</>}
               </Button>
@@ -129,7 +129,7 @@ export default function SignUpPage() {
           <CardFooter className="flex flex-col items-center text-center pb-8 pt-4">
             <p className="text-sm text-muted-foreground">
               Already a Founder?{' '}
-              <Button variant="link" asChild className="text-primary hover:text-primary/80 p-0 h-auto font-semibold text-glow-primary">
+              <Button variant="link" asChild className="text-primary hover:text-primary/80 p-0 h-auto font-semibold text-glow-primary"> {/* Primary is blue */}
                 <Link href="/login">Log In to Your Simulation</Link>
               </Button>
             </p>

@@ -8,11 +8,18 @@ interface MiniChartBarStyles {
   animationDelay: string;
 }
 
-export function MiniChartBars() {
+interface MiniChartBarsProps {
+  barColors?: string[]; // e.g., ["from-sky-600 to-blue-500", "from-blue-700 to-sky-600"]
+}
+
+export function MiniChartBars({ barColors }: MiniChartBarsProps) {
   const [barStyles, setBarStyles] = useState<MiniChartBarStyles[]>([]);
 
+  const defaultBarColors = ["from-sky-600 to-blue-500", "from-blue-500 to-sky-400", "from-sky-500 to-blue-400"];
+  const currentBarColors = barColors && barColors.length > 0 ? barColors : defaultBarColors;
+
+
   useEffect(() => {
-    // This effect runs only on the client, after hydration
     const generateStyles = () => {
       const newStyles: MiniChartBarStyles[] = [];
       for (let i = 0; i < 12; i++) {
@@ -24,17 +31,16 @@ export function MiniChartBars() {
       setBarStyles(newStyles);
     };
     generateStyles();
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []); 
 
   if (barStyles.length === 0) {
-    // Render a consistent placeholder on the server and initial client render
     return (
       <div className="flex items-end space-x-1 h-12">
         {[...Array(12)].map((_, i) => (
           <div
             key={`placeholder-bar-${i}`}
-            className="flex-1 bg-gradient-to-t from-amber-600/30 to-yellow-500/30 rounded-sm opacity-40"
-            style={{ height: '25px' }} // Default, consistent height
+            className={`flex-1 bg-gradient-to-t ${currentBarColors[i % currentBarColors.length]}/30 rounded-sm opacity-40`}
+            style={{ height: '25px' }} 
           />
         ))}
       </div>
@@ -46,7 +52,7 @@ export function MiniChartBars() {
       {barStyles.map((style, i) => (
         <div
           key={`bar-${i}`}
-          className="flex-1 bg-gradient-to-t from-amber-600 to-yellow-500 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+          className={`flex-1 bg-gradient-to-t ${currentBarColors[i % currentBarColors.length]} rounded-sm opacity-70 hover:opacity-100 transition-opacity`}
           style={{
             height: style.height,
             animationDelay: style.animationDelay,
