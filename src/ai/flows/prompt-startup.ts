@@ -123,38 +123,51 @@ const promptStartupFlow = ai.defineFlow(
     const {output} = await prompt(input);
     if (!output || !output.initialConditions || !output.suggestedChallenges) {
       console.error("AI promptStartup did not return the expected structure.", output);
-      throw new Error("Failed to get complete initial conditions from AI. The response was malformed.");
+      throw new Error("AI failed to provide complete initial data. Missing initialConditions or suggestedChallenges.");
     }
-    // Basic validation of critical numeric fields can be helpful for debugging AI consistency
+
+    let parsedConditions;
     try {
-        const conditions = JSON.parse(output.initialConditions);
-        if (!conditions.financials || !conditions.financials.currencyCode) {
-            console.warn("AI did not explicitly include financials.currencyCode in initialConditions.");
-        } else if (input.currencyCode && conditions.financials.currencyCode.toUpperCase() !== input.currencyCode.toUpperCase()) {
-            console.warn(`AI returned currencyCode ${conditions.financials.currencyCode} which differs from input ${input.currencyCode}.`);
+        parsedConditions = JSON.parse(output.initialConditions);
+        // Further validation of the parsedConditions structure can be done here if needed.
+        // For example, checking critical numeric fields:
+        if (parsedConditions.financials && typeof parsedConditions.financials.startingCash !== 'number') {
+            console.warn(`AI returned financials.startingCash that is not a number: `, parsedConditions.financials.startingCash);
+            // Potentially throw or attempt to fix, but for now, primary concern is JSON validity.
         }
-        if (conditions.financials && typeof conditions.financials.startingCash !== 'number') {
-            console.warn(`AI returned financials.startingCash that is not a number: `, conditions.financials.startingCash);
+         if (parsedConditions.resources && typeof parsedConditions.resources.initialFunding !== 'number') {
+            console.warn(`AI returned resources.initialFunding that is not a number: `, parsedConditions.resources.initialFunding);
         }
-         if (conditions.resources && typeof conditions.resources.initialFunding !== 'number') {
-            console.warn(`AI returned resources.initialFunding that is not a number: `, conditions.resources.initialFunding);
+        if (parsedConditions.financials && typeof parsedConditions.financials.estimatedInitialMonthlyBurnRate !== 'number') {
+            console.warn(`AI returned financials.estimatedInitialMonthlyBurnRate that is not a number: `, parsedConditions.financials.estimatedInitialMonthlyBurnRate);
         }
-        if (conditions.financials && typeof conditions.financials.estimatedInitialMonthlyBurnRate !== 'number') {
-            console.warn(`AI returned financials.estimatedInitialMonthlyBurnRate that is not a number: `, conditions.financials.estimatedInitialMonthlyBurnRate);
+        if (parsedConditions.productService && !Array.isArray(parsedConditions.productService.features)) {
+            console.warn(`AI returned productService.features that is not an array: `, parsedConditions.productService.features);
         }
-        if (conditions.productService && !Array.isArray(conditions.productService.features)) {
-            console.warn(`AI returned productService.features that is not an array: `, conditions.productService.features);
+        if (parsedConditions.resources && !Array.isArray(parsedConditions.resources.coreTeam)) {
+            console.warn(`AI returned resources.coreTeam that is not an array: `, parsedConditions.resources.coreTeam);
         }
-        if (conditions.resources && !Array.isArray(conditions.resources.coreTeam)) {
-            console.warn(`AI returned resources.coreTeam that is not an array: `, conditions.resources.coreTeam);
-        }
-
-
     } catch (e) {
-        // This catch is for the debugging validation above, not the main parse in the store.
-        // The main parse error is handled in simulationStore.ts.
-        console.error("Could not parse initialConditions during AI flow for validation. This is not the main parsing error but indicates a problem with AI's JSON output.", e);
+        console.error("CRITICAL: AI-generated 'initialConditions' string is NOT valid JSON.", e);
+        console.error("Problematic 'initialConditions' string from AI:", output.initialConditions);
+        // Re-throw a specific error to be caught by the client.
+        throw new Error(
+            "The AI failed to generate valid startup parameters (initialConditions was not valid JSON). Please try initializing again. If the problem persists, the AI might be under heavy load or the prompt needs adjustment."
+        );
     }
+
+    try {
+        JSON.parse(output.suggestedChallenges);
+        // Could add further validation for the structure of suggestedChallenges if needed
+    } catch (e) {
+        console.error("CRITICAL: AI-generated 'suggestedChallenges' string is NOT valid JSON.", e);
+        console.error("Problematic 'suggestedChallenges' string from AI:", output.suggestedChallenges);
+        throw new Error(
+            "The AI failed to generate valid startup parameters (suggestedChallenges was not a valid JSON array string). Please try initializing again."
+        );
+    }
+    
     return output;
   }
 );
+
