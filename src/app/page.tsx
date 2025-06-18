@@ -1,175 +1,740 @@
+"use client"
 
-// src/app/page.tsx
-"use client";
+import { useState, useEffect, useRef } from "react"
+import Link from 'next/link'; // Import Link
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import {
+  Zap,
+  Brain,
+  Target,
+  Shield,
+  TrendingUp,
+  Users,
+  Cpu,
+  Network,
+  ChevronRight,
+  Play,
+  Sparkles,
+  Bot,
+  BarChart3,
+  Layers,
+  Rocket,
+  Eye,
+  Activity,
+  Globe,
+  Atom,
+  Command,
+} from "lucide-react"
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { ForgeSimLogo } from '@/components/icons/logo';
-import { ArrowRight, PlayCircle, Zap, Brain, TrendingUp, Lightbulb, ShieldCheck, Target as TargetIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+export default function HomePage() {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
+  const [activeAgent, setActiveAgent] = useState(0)
+  const heroRef = useRef<HTMLDivElement>(null)
 
-// Helper component for animated text lines (optional, for more dynamic entrances)
-const AnimatedTextLine = ({ text, delay, className }: { text: string, delay: string, className?: string }) => (
-  <div className="overflow-hidden">
-    <p className={cn("animate-fadeInUp", `animation-delay-[${delay}]`, className)} style={{ animationFillMode: 'forwards', animationDuration: '0.7s' }}>{text}</p>
-  </div>
-);
+  const agents = [
+    {
+      name: "EVE",
+      role: "Central AI Strategist",
+      icon: Brain,
+      color: "from-amber-500 to-yellow-600",
+      status: "Online",
+    },
+    {
+      name: "ALEX",
+      role: "Financial Forecaster",
+      icon: BarChart3,
+      color: "from-yellow-600 to-amber-700",
+      status: "Analyzing",
+    },
+    {
+      name: "MAYA",
+      role: "Marketing Mastermind",
+      icon: Rocket,
+      color: "from-amber-600 to-yellow-500",
+      status: "Optimizing",
+    },
+  ]
 
-export default function EditorialHomePage() {
+  useEffect(() => {
+    setIsLoaded(true)
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY })
+    }
+
+    const handleScroll = () => {
+      setScrollY(window.scrollY)
+    }
+
+    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("scroll", handleScroll)
+
+    // Auto-rotate agents
+    const agentInterval = setInterval(() => {
+      setActiveAgent((prev) => (prev + 1) % 3)
+    }, 3000)
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("scroll", handleScroll)
+      clearInterval(agentInterval)
+    }
+  }, [])
+
+  const features = [
+    {
+      icon: Target,
+      title: "Risk-Free Experimentation",
+      description: "Test bold ideas without real-world consequences. Iterate on strategies in a safe, dynamic sandbox.",
+      progress: 95,
+      color: "from-red-900 to-red-800",
+    },
+    {
+      icon: TrendingUp,
+      title: "Accelerated Learning Cycles",
+      description: "Rapidly understand market dynamics and the cause-and-effect of your strategic choices.",
+      progress: 88,
+      color: "from-amber-600 to-yellow-600",
+    },
+    {
+      icon: Brain,
+      title: "AI-Powered Foresight",
+      description:
+        "Leverage predictive analytics and expert AI agent insights to anticipate challenges and seize opportunities.",
+      progress: 92,
+      color: "from-yellow-600 to-amber-500",
+    },
+    {
+      icon: Layers,
+      title: "Digital Twin Precision",
+      description: "Create a comprehensive virtual replica of your business for iterative testing and refinement.",
+      progress: 97,
+      color: "from-amber-700 to-yellow-700",
+    },
+    {
+      icon: Users,
+      title: "Expert Agent Team",
+      description: "Collaborate with specialized AI agents for domain-specific insights and simulated actions.",
+      progress: 90,
+      color: "from-red-800 to-amber-800",
+    },
+    {
+      icon: BarChart3,
+      title: "Dynamic Scenario Simulation",
+      description: "Explore 'what-if' scenarios, predict outcomes, and identify emerging risks and opportunities.",
+      progress: 94,
+      color: "from-yellow-700 to-amber-600",
+    },
+  ]
+
+  const AgentIcon = agents[activeAgent].icon
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-body overflow-x-hidden">
-      <main className="flex-grow">
-        {/* --- Hero Section --- */}
-        <section className="relative min-h-screen flex flex-col justify-center items-center text-center p-4 md:p-8 overflow-hidden">
-          {/* Background Image Container */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/new-assets/homepage-hero.png"
-              alt="ForgeSim Hero - Abstract representation of strategic creation, perhaps a dragon's eye or powerful hands forging."
-              layout="fill"
-              objectFit="cover"
-              quality={90}
-              className="opacity-40 md:opacity-50" // Increased opacity
-              data-ai-hint="symbolic art dragon hands"
-              priority
-            />
-            {/* Gradient Overlay for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent z-10"></div>
-          </div>
+    <div className="min-h-screen bg-black text-white overflow-hidden relative font-body">
+      {/* Enhanced Dark Maroon Background */}
+      <div className="fixed inset-0">
+        {/* Base gradient with dark maroon */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-red-950/40 to-black" />
 
-          <div className="relative z-20 flex flex-col items-center">
-            <div className="animate-fadeInUp animation-delay-[0.2s]" style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-              <ForgeSimLogo className="h-20 w-20 md:h-24 md:w-24 text-primary mb-4 filter drop-shadow-[0_3px_15px_hsl(var(--primary)/0.4)]" />
+        {/* Secondary maroon layer */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-red-900/20 via-transparent to-red-900/10" />
+
+        {/* Radial maroon gradient */}
+        <div className="absolute inset-0 bg-gradient-radial from-red-900/10 via-transparent to-black" />
+
+        {/* Dynamic mouse gradient with gold */}
+        <div
+          className="absolute inset-0 opacity-30 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255, 215, 0, 0.08), rgba(139, 69, 19, 0.05) 40%, transparent 70%)`,
+          }}
+        />
+
+        {/* Animated mesh gradient */}
+        <div className="absolute inset-0 opacity-20">
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-red-900/10 via-amber-900/10 to-red-900/10"
+            style={{
+              transform: `translateY(${scrollY * 0.5}px) rotate(${scrollY * 0.1}deg)`,
+            }}
+          />
+        </div>
+
+        {/* Metallic texture overlay */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 25% 25%, #FFD700 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, #B8860B 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, #DAA520 0%, transparent 50%)
+              `,
+              backgroundSize: "200px 200px, 150px 150px, 100px 100px",
+              animation: "metallic-shimmer 20s ease-in-out infinite",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Enhanced Grid Pattern with Gold Accents */}
+      <div className="fixed inset-0 opacity-15">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255, 215, 0, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 215, 0, 0.1) 1px, transparent 1px),
+              linear-gradient(rgba(139, 69, 19, 0.05) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(139, 69, 19, 0.05) 1px, transparent 1px)
+            `,
+            backgroundSize: "100px 100px, 100px 100px, 20px 20px, 20px 20px",
+            transform: `translate(${mousePosition.x * 0.01}px, ${mousePosition.y * 0.01}px)`,
+          }}
+        />
+      </div>
+
+      {/* Enhanced Floating Particles with Gold */}
+      <div className="fixed inset-0 pointer-events-none">
+        {[...Array(40)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+            }}
+          >
+            <div
+              className={`w-1 h-1 rounded-full ${
+                i % 4 === 0
+                  ? "bg-yellow-400"
+                  : i % 4 === 1
+                    ? "bg-amber-500"
+                    : i % 4 === 2
+                      ? "bg-red-400"
+                      : "bg-yellow-600"
+              }`}
+              style={{
+                boxShadow: `0 0 ${4 + Math.random() * 8}px currentColor`,
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Floating Geometric Shapes with Maroon/Gold */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute opacity-8"
+            style={{
+              left: `${10 + i * 15}%`,
+              top: `${20 + i * 10}%`,
+              animation: `float ${8 + i}s ease-in-out infinite`,
+              animationDelay: `${i * 0.5}s`,
+            }}
+          >
+            <div
+              className={`w-12 h-12 border border-amber-500/20 ${i % 2 === 0 ? "rotate-45" : "rounded-full"}`}
+              style={{
+                transform: `rotate(${scrollY * 0.1 + i * 45}deg)`,
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Enhanced Navigation */}
+      <nav className="relative z-50 p-4 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="relative">
+              <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg shadow-amber-500/25 group-hover:shadow-amber-400/40 transition-shadow">
+                {/* Replace with ForgeSimLogo if available, otherwise use Cpu or similar */}
+                <Cpu className="w-5 h-5 text-black" /> 
+              </div>
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </div>
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight leading-tight">
-              <AnimatedTextLine text="FORGE" delay="0.4s" className="text-foreground filter drop-shadow-[0_2px_8px_hsl(var(--background)/0.5)]" />
-              <AnimatedTextLine text="YOUR" delay="0.6s" className="text-primary text-glow-primary filter drop-shadow-[0_2px_8px_hsl(var(--background)/0.5)]" />
-              <AnimatedTextLine text="LEGACY" delay="0.8s" className="text-foreground filter drop-shadow-[0_2px_8px_hsl(var(--background)/0.5)]" />
-            </h1>
-            <p className="mt-4 md:mt-6 max-w-xl text-lg md:text-xl text-muted-foreground font-medium animate-fadeInUp animation-delay-[1s]" style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-              The crucible of strategy awaits. Architect your digital twin, command AI agents, and master the art of business in a dynamic simulation.
-            </p>
-            <div className="animate-fadeInUp animation-delay-[1.2s]" style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
+            <div>
+              <span className="text-lg font-black bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent group-hover:text-yellow-300 transition-colors">
+                ForgeSim
+              </span>
+              <div className="text-xs text-gray-500 font-mono">vXI.2.7</div>
+            </div>
+          </Link>
+
+          <div className="flex items-center space-x-3">
+            <div className="hidden md:flex items-center space-x-2 text-xs text-gray-400">
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              <span>System Online</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-amber-500/50 text-amber-400 hover:bg-amber-500/20 hover:border-amber-400 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/25 backdrop-blur-sm text-sm"
+              asChild
+            >
+              <Link href="/login">
+                <Shield className="w-3 h-3 mr-2" />
+                Access Terminal
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Epic Hero Section */}
+      <section ref={heroRef} className="relative z-10 pt-8 pb-16">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div
+            className={`transition-all duration-1000 ${ /* Adjusted duration */
+              isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
+            }`}
+          >
+            {/* Status Badge */}
+            <div className="mb-6 flex justify-center">
+              <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/30 transition-all duration-300 px-4 py-1 text-xs backdrop-blur-sm">
+                <Sparkles className="w-3 h-3 mr-2 animate-pulse" />
+                Simulation Protocol vXI • Neural Network Active
+                <Activity className="w-3 h-3 ml-2" />
+              </Badge>
+            </div>
+
+            {/* Main Title with 3D Effect - Smaller */}
+            <div className="relative mb-6">
+              <h1 className="text-6xl md:text-8xl font-black leading-none tracking-tight">
+                <div
+                  className="block transform-gpu"
+                  style={{
+                    transform: `perspective(1000px) rotateX(${scrollY * 0.02}deg) rotateY(${mousePosition.x * 0.01 - 5}deg)`,
+                  }}
+                >
+                  <span className="block bg-gradient-to-r from-white via-amber-200 to-yellow-300 bg-clip-text text-transparent drop-shadow-2xl">
+                    FORGE
+                  </span>
+                  <span className="block bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl">
+                    YOUR
+                  </span>
+                  <span className="block bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 bg-clip-text text-transparent drop-shadow-2xl">
+                    LEGACY
+                  </span>
+                </div>
+              </h1>
+
+              {/* Glowing underline */}
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-48 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-60 animate-pulse" />
+            </div>
+
+            {/* Enhanced Subtitle - Smaller */}
+            <div className="mb-8 space-y-3">
+              <p className="text-lg md:text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed font-light">
+                The crucible of strategy awaits. Architect your digital twin, command AI agents, and master the art of
+                business in a dynamic simulation.
+              </p>
+
+              {/* Stats Row - Smaller */}
+              <div className="flex justify-center space-x-6 text-xs text-gray-400 mt-6">
+                <div className="flex items-center space-x-1.5">
+                  <Globe className="w-3 h-3 text-amber-400" />
+                  <span>10,000+ Simulations</span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <Users className="w-3 h-3 text-yellow-400" />
+                  <span>500+ Startups</span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <Zap className="w-3 h-3 text-amber-500" />
+                  <span>99.9% Uptime</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced CTA Button - Smaller */}
+            <div className="relative inline-block">
               <Button
-                asChild
                 size="lg"
-                className="mt-8 md:mt-10 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground text-lg py-3.5 px-10 rounded-md shadow-xl hover:shadow-accent-glow-md transition-all duration-300 transform hover:scale-105 group"
+                className="relative bg-gradient-to-r from-red-900 via-amber-700 to-yellow-600 hover:from-red-800 hover:via-amber-600 hover:to-yellow-500 text-white px-10 py-5 text-lg font-bold rounded-xl shadow-2xl hover:shadow-amber-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-amber-500/20"
+                style={{
+                  boxShadow: `0 0 30px rgba(255, 215, 0, 0.2), 0 0 60px rgba(139, 69, 19, 0.1)`,
+                }}
+                asChild
               >
                 <Link href="/app">
-                  <PlayCircle className="mr-2.5 h-6 w-6" /> Enter the Forge
+                  <div className="flex items-center space-x-3">
+                    <Play className="w-5 h-5" />
+                    <span>Enter the Forge</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
+                </Link>
+              </Button>
+                {/* Button glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-600/20 via-yellow-600/20 to-amber-600/20 rounded-xl blur-xl -z-10 animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3D Dynamic Simulation Core */}
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-2xl shadow-amber-500/25">
+                    <Network className="w-6 h-6 text-black" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full flex items-center justify-center">
+                    <Eye className="w-2 h-2 text-black" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
+                    Dynamic Simulation Core
+                  </h2>
+                  <p className="text-gray-400 text-sm">Real-time business modeling engine</p>
+                </div>
+              </div>
+
+              <p className="text-lg text-gray-300 leading-relaxed font-light">
+                Witness your strategies unfold in a living digital replica of your business. Test theories, navigate
+                market shifts, and understand the true impact of every decision.
+              </p>
+
+              <p className="text-base text-gray-400 leading-relaxed">
+                ForgeSim&apos;s advanced algorithms model complex interactions, offering a risk-free environment to
+                experiment and iterate towards perfection.
+              </p>
+
+              <Button
+                variant="outline"
+                className="border-amber-500/50 text-amber-400 hover:bg-amber-500/20 hover:border-amber-400 transition-all duration-300 px-6 py-3 text-sm backdrop-blur-sm hover:shadow-lg hover:shadow-amber-500/25"
+                asChild
+              >
+                <Link href="/app/simulation">
+                  <Command className="w-4 h-4 mr-2" />
+                  Explore Decision Levers
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
+            </div>
+
+            {/* 3D Simulation Display */}
+            <div className="relative">
+              <div
+                className="transform-gpu transition-transform duration-300"
+                style={{
+                  transform: `perspective(1000px) rotateY(${mousePosition.x * 0.02 - 10}deg) rotateX(${mousePosition.y * 0.01 - 5}deg)`,
+                }}
+              >
+                <Card className="bg-gradient-to-br from-red-950/30 to-amber-950/30 border-amber-500/30 backdrop-blur-lg shadow-2xl shadow-amber-500/20">
+                  <CardContent className="p-8">
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <span className="text-base text-gray-300 font-semibold">Simulation Status</span>
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-3 py-1 text-xs">
+                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5 animate-pulse" />
+                          Active
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-4">
+                        {[
+                          { name: "Market Analysis", progress: 87, color: "amber" },
+                          { name: "Risk Assessment", progress: 92, color: "yellow" },
+                          { name: "Growth Projection", progress: 78, color: "red" },
+                        ].map((item, i) => (
+                          <div key={item.name} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 bg-${item.color}-400 rounded-full animate-pulse`} />
+                                <span className="text-gray-300 font-medium text-sm">{item.name}</span>
+                              </div>
+                              <span className="text-xs text-gray-400 font-mono">{item.progress}%</span>
+                            </div>
+                            <Progress value={item.progress} className="h-1.5 bg-gray-800" indicatorClassName={`bg-${item.color}-500`} />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Mini Chart */}
+                      <div className="mt-6 p-3 bg-black/20 rounded-lg border border-amber-500/10">
+                        <div className="flex items-end space-x-1 h-12">
+                          {[...Array(12)].map((_, i) => (
+                            <div
+                              key={i}
+                              className="flex-1 bg-gradient-to-t from-amber-600 to-yellow-500 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+                              style={{
+                                height: `${15 + Math.random() * 30}px`,
+                                animationDelay: `${i * 0.1}s`,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced AI Hive Mind Section */}
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* 3D Agent Display */}
+            <div className="relative order-2 lg:order-1">
+              <div
+                className="transform-gpu transition-transform duration-300"
+                style={{
+                  transform: `perspective(1000px) rotateY(${-mousePosition.x * 0.02 + 10}deg) rotateX(${mousePosition.y * 0.01 - 5}deg)`,
+                }}
+              >
+                <Card className="bg-gradient-to-br from-red-950/30 to-amber-950/30 border-yellow-600/30 backdrop-blur-lg shadow-2xl shadow-yellow-500/20">
+                  <CardContent className="p-8">
+                    <div className="space-y-6">
+                      {/* Main Agent Display */}
+                      <div className="text-center">
+                        <div className="relative inline-block mb-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-full flex items-center justify-center shadow-2xl shadow-amber-500/25">
+                            <AgentIcon className="w-8 h-8 text-black" />
+                          </div>
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full flex items-center justify-center animate-pulse">
+                            <Atom className="w-2.5 h-2.5 text-black" />
+                          </div>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-1">{agents[activeAgent].name}</h3>
+                        <p className="text-sm text-gray-400 mb-3">{agents[activeAgent].role}</p>
+                        <Badge
+                          className={`bg-gradient-to-r ${agents[activeAgent].color}/20 text-white border-0 px-3 py-1 text-xs`}
+                        >
+                          {agents[activeAgent].status}
+                        </Badge>
+                      </div>
+
+                      {/* Agent Grid */}
+                      <div className="grid grid-cols-3 gap-3">
+                        {agents.map((agent, index) => (
+                          <div
+                            key={agent.name}
+                            className={`p-3 rounded-lg border transition-all duration-300 cursor-pointer ${
+                              index === activeAgent
+                                ? "bg-white/10 border-amber-500/30 shadow-lg"
+                                : "bg-white/5 border-white/10 hover:bg-white/10"
+                            }`}
+                            onClick={() => setActiveAgent(index)}
+                          >
+                            <div
+                              className={`w-6 h-6 bg-gradient-to-br ${agent.color} rounded-lg flex items-center justify-center mb-1.5 mx-auto`}
+                            >
+                              <agent.icon className="w-3 h-3 text-black" />
+                            </div>
+                            <p className="text-xs text-center text-gray-300 font-medium">{agent.name}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Neural Network Visualization */}
+                      <div className="relative h-16 bg-black/20 rounded-lg border border-amber-500/10 overflow-hidden">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="flex space-x-3">
+                            {[...Array(5)].map((_, i) => (
+                              <div key={i} className="flex flex-col space-y-1.5">
+                                {[...Array(3)].map((_, j) => (
+                                  <div
+                                    key={j}
+                                    className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"
+                                    style={{
+                                      animationDelay: `${(i + j) * 0.2}s`,
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            <div className="space-y-6 order-1 lg:order-2">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-amber-600 rounded-xl flex items-center justify-center shadow-2xl shadow-yellow-500/25">
+                    <Brain className="w-6 h-6 text-black" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
+                    <Zap className="w-2 h-2 text-black" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent">
+                    AI Hive Mind Guidance
+                  </h2>
+                  <p className="text-gray-400 text-sm">Neural network intelligence</p>
+                </div>
+              </div>
+
+              <p className="text-lg text-gray-300 leading-relaxed font-light">
+                Command EVE, your central AI strategist, and her cohort of specialized agents. Receive personalized
+                advice, predictive analytics, and actionable insights tailored to your simulation.
+              </p>
+
+              <p className="text-base text-gray-400 leading-relaxed">
+                From financial forecasting with Alex to marketing mastery with Maya, your AI team is ready to amplify
+                your strategic capabilities.
+              </p>
+
+              <Button
+                variant="outline"
+                className="border-yellow-600/50 text-yellow-400 hover:bg-yellow-600/20 hover:border-yellow-400 transition-all duration-300 px-6 py-3 text-sm backdrop-blur-sm hover:shadow-lg hover:shadow-yellow-500/25"
+                asChild
+              >
+                <Link href="/app/mentor">
+                  <Bot className="w-4 h-4 mr-2" />
+                  Consult EVE Now
+                  <ChevronRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* --- Feature Section 1: Dynamic Simulation Core --- */}
-        <section className="py-16 md:py-24 bg-card/30 backdrop-blur-sm">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-              <div className={cn("relative aspect-[4/3] md:aspect-video rounded-lg overflow-hidden shadow-2xl animate-fadeInUp animation-delay-[0.2s]")} style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-                <Image
-                  src="/new-assets/homepage-feature1.png"
-                  alt="AI Hive Mind guiding strategic decisions depicted with abstract network and glowing nodes."
-                  layout="fill"
-                  objectFit="cover"
-                  quality={85}
-                  className="opacity-100 z-0" // Ensure full opacity, z-index if needed
-                  data-ai-hint="symbolic detail dragon"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent opacity-75 z-10"></div>
-              </div>
-              <div className={cn("animate-fadeInUp animation-delay-[0.4s] md:order-first text-left")} style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-                <Zap className="h-12 w-12 text-accent mb-4" />
-                <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-5 text-glow-primary leading-tight">Dynamic Simulation Core</h2>
-                <p className="text-lg text-muted-foreground mb-4 leading-relaxed">
-                  Witness your strategies unfold in a living digital replica of your business. Test theories, navigate market shifts, and understand the true impact of every decision.
-                </p>
-                <p className="text-muted-foreground leading-relaxed">
-                  ForgeSim’s advanced algorithms model complex interactions, offering a risk-free environment to experiment and iterate towards perfection.
-                </p>
-                <Button variant="link" asChild className="mt-6 text-accent hover:text-accent/80 px-0 group text-md font-semibold">
-                  <Link href="/app/simulation">Explore Decision Levers <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"/> </Link>
-                </Button>
-              </div>
-            </div>
+      {/* Enhanced Strategic Mastery Features */}
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+              Unlock Strategic Mastery
+            </h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed font-light">
+              Where Visionaries Become Victors through advanced simulation and AI-powered insights.
+            </p>
           </div>
-        </section>
 
-        {/* --- Feature Section 2: AI Hive Mind Guidance --- */}
-        <section className="py-16 md:py-24 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-              <div className={cn("animate-fadeInUp animation-delay-[0.2s] text-left")} style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-                <Brain className="h-12 w-12 text-accent mb-4" />
-                <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-5 text-glow-primary leading-tight">AI Hive Mind Guidance</h2>
-                <p className="text-lg text-muted-foreground mb-4 leading-relaxed">
-                  Command EVE, your central AI strategist, and her cohort of specialized agents. Receive personalized advice, predictive analytics, and actionable insights tailored to your simulation.
-                </p>
-                <p className="text-muted-foreground leading-relaxed">
-                  From financial forecasting with Alex to marketing mastery with Maya, your AI team is ready to amplify your strategic capabilities.
-                </p>
-                <Button variant="link" asChild className="mt-6 text-accent hover:text-accent/80 px-0 group text-md font-semibold">
-                  <Link href="/app/mentor">Consult EVE Now <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"/> </Link>
-                </Button>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <div
+                key={feature.title}
+                className="group"
+                style={{
+                  animationDelay: `${index * 0.1}s`,
+                }}
+              >
+                <Card
+                  className="h-full bg-gradient-to-br from-gray-900/50 to-red-950/30 border-gray-700/50 backdrop-blur-lg hover:border-amber-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-amber-500/20 group-hover:bg-gradient-to-br group-hover:from-gray-800/60 group-hover:to-red-900/40"
+                  style={{
+                    transform: `perspective(1000px) rotateX(${mousePosition.y * 0.005}deg) rotateY(${mousePosition.x * 0.005}deg)`,
+                  }}
+                >
+                  <CardContent className="p-6 h-full flex flex-col">
+                    <div className="space-y-4 flex-1">
+                      <div className="relative">
+                        <div
+                          className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center shadow-2xl group-hover:shadow-lg transition-all duration-300`}
+                        >
+                          <feature.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-amber-300 transition-colors">
+                          {feature.title}
+                        </h3>
+                        <p className="text-gray-400 leading-relaxed text-sm">{feature.description}</p>
+                      </div>
+
+                      {/* Progress indicator */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-500">Optimization Level</span>
+                          <span className="text-xs font-mono text-amber-400">{feature.progress}%</span>
+                        </div>
+                        <Progress value={feature.progress} className="h-1.5 bg-gray-800" indicatorClassName={`bg-gradient-to-r ${feature.color}`} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <div className={cn("relative aspect-[4/3] md:aspect-video rounded-lg overflow-hidden shadow-2xl animate-fadeInUp animation-delay-[0.4s]")} style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-                <Image
-                  src="/new-assets/homepage-feature2.png"
-                  alt="Strategic analytics and predictive insights shown as futuristic charts and data streams."
-                  layout="fill"
-                  objectFit="cover"
-                  quality={85}
-                  className="opacity-100 z-0" // Ensure full opacity
-                  data-ai-hint="symbolic detail ornament"
-                />
-                <div className="absolute inset-0 bg-gradient-to-l from-black/30 via-transparent to-transparent opacity-75 z-10"></div>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* --- Core Benefits/Systems --- */}
-        <section className="py-16 md:py-24 bg-card/30 backdrop-blur-sm">
-          <div className="container mx-auto px-4 text-center">
-            <div className={cn("animate-fadeInUp animation-delay-[0.1s]")} style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-              <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-12 md:mb-16 text-glow-primary">
-                Unlock Strategic Mastery
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-              {[
-                { title: "Risk-Free Experimentation", icon: <ShieldCheck className="w-10 h-10 text-accent" />, delay: "0.2s", description: "Test bold ideas without real-world consequences. Iterate on strategies in a safe, dynamic sandbox." },
-                { title: "Accelerated Learning Cycles", icon: <TrendingUp className="w-10 h-10 text-accent" />, delay: "0.3s", description: "Rapidly understand market dynamics and the cause-and-effect of your strategic choices." },
-                { title: "AI-Powered Foresight", icon: <Lightbulb className="w-10 h-10 text-accent" />, delay: "0.4s", description: "Leverage predictive analytics and expert AI agent insights to anticipate challenges and seize opportunities." },
-                { title: "Digital Twin Precision", icon: <TargetIcon className="w-10 h-10 text-accent" />, delay: "0.5s", description: "Create a comprehensive virtual replica of your business for iterative testing and refinement." },
-                { title: "Expert Agent Team", icon: <Brain className="w-10 h-10 text-accent" />, delay: "0.6s", description: "Collaborate with specialized AI agents for domain-specific insights and simulated actions." },
-                { title: "Dynamic Scenario Simulation", icon: <Zap className="w-10 h-10 text-accent" />, delay: "0.7s", description: "Explore 'what-if' scenarios, predict outcomes, and identify emerging risks and opportunities." },
-              ].map(item => (
-                <div key={item.title} className={cn("p-8 bg-card rounded-xl shadow-xl animate-fadeInUp", `animation-delay-[${item.delay}]`)} style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-                  <div className="flex justify-center mb-5">{item.icon}</div>
-                  <h3 className="text-2xl font-headline font-semibold text-foreground mb-3">{item.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{item.description}</p>
+      {/* Enhanced Footer */}
+      <footer className="relative z-10 py-16 border-t border-gray-800/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center space-y-6">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-2xl shadow-amber-500/25">
+                   {/* Replace with ForgeSimLogo if available, otherwise use Cpu or similar */}
+                  <Cpu className="w-5 h-5 text-black" />
                 </div>
-              ))}
+                <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+              </div>
+              <div>
+                <span className="text-2xl font-black bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
+                  ForgeSim Dynamics
+                </span>
+                <div className="text-xs text-gray-400 font-mono">Neural Architecture vXI.2.7</div>
+              </div>
             </div>
-          </div>
-        </section>
-      </main>
 
-      <footer className="relative z-10 text-center py-10 md:py-16 border-t border-border bg-background/90 backdrop-blur-sm">
-        <div className={cn("animate-fadeInUp animation-delay-[0.2s]")} style={{animationFillMode: 'forwards', animationDuration: '0.7s'}}>
-          <ForgeSimLogo className="h-14 w-14 text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground text-sm">&copy; {new Date().getFullYear()} ForgeSim Dynamics. All Rights Reserved.</p>
-          <p className="text-xs text-muted-foreground/70 mt-1.5">Simulation Protocol vXI. Where Visionaries Become Victors.</p>
-          <div className="mt-6">
-            <Button variant="link" asChild className="text-accent hover:text-accent/80 text-md font-semibold">
-              <Link href="/login">Access Simulation Terminal</Link>
+            <div className="space-y-3">
+              <p className="text-gray-400 text-base">© {new Date().getFullYear()} ForgeSim Dynamics. All Rights Reserved.</p>
+              <p className="text-gray-500 font-mono text-sm">
+                Simulation Protocol vXI • Where Visionaries Become Victors
+              </p>
+            </div>
+
+            <div className="flex justify-center space-x-6 text-xs text-gray-400">
+              <div className="flex items-center space-x-1.5">
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                <span>Quantum Core Online</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <div className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
+                <span>AI Agents Active</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />
+                <span>Neural Network Stable</span>
+              </div>
+            </div>
+
+            <Button 
+              className="bg-gradient-to-r from-red-900 via-amber-700 to-yellow-600 hover:from-red-800 hover:via-amber-600 hover:to-yellow-500 text-white px-8 py-4 text-base font-bold rounded-xl shadow-2xl hover:shadow-amber-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-amber-500/20"
+              asChild
+            >
+              <Link href="/login">
+                <Shield className="w-4 h-4 mr-2" />
+                Access Simulation Terminal
+                <Rocket className="w-4 h-4 ml-2" />
+              </Link>
             </Button>
           </div>
         </div>
       </footer>
     </div>
-  );
+  )
 }
+
+    
