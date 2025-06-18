@@ -120,9 +120,6 @@ function sanitizeJsonString(jsonString: string): string {
     return jsonString;
   }
   // Remove trailing commas from objects and arrays
-  // This regex looks for a comma (,) followed by zero or more whitespace characters (\s*)
-  // that is immediately followed by a closing brace (}) or closing bracket (])
-  // The (?=[}\]]) is a positive lookahead, ensuring the brace/bracket is there but not consumed by the replace.
   let sanitized = jsonString.replace(/,\s*(?=[}\]])/g, '');
   return sanitized;
 }
@@ -133,64 +130,72 @@ const promptStartupFlow = ai.defineFlow(
     inputSchema: PromptStartupInputSchema,
     outputSchema: PromptStartupOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    if (!output || !output.initialConditions || !output.suggestedChallenges) {
-      console.error("AI promptStartup did not return the expected structure (missing initialConditions or suggestedChallenges). Output was:", output);
+  async (input: PromptStartupInput): Promise<PromptStartupOutput> => {
+    const {output: rawOutput} = await prompt(input); // Renamed to rawOutput to avoid confusion
+    
+    if (!rawOutput || !rawOutput.initialConditions || !rawOutput.suggestedChallenges) {
+      console.error("AI promptStartup did not return the expected structure (missing initialConditions or suggestedChallenges). Raw output was:", rawOutput);
       throw new Error("AI failed to provide complete initial data. Missing initialConditions or suggestedChallenges.");
     }
 
-    let parsedConditions;
-    let sanitizedInitialConditionsStr = output.initialConditions;
-    try {
-        sanitizedInitialConditionsStr = sanitizeJsonString(output.initialConditions);
-        parsedConditions = JSON.parse(sanitizedInitialConditionsStr);
-        // Update the output object so the client receives the sanitized (and hopefully valid) string
-        output.initialConditions = sanitizedInitialConditionsStr;
+    let finalInitialConditionsString: string;
+    let finalSuggestedChallengesString: string;
 
-        // Further validation of the parsedConditions structure can be done here if needed.
-        if (parsedConditions.financials && typeof parsedConditions.financials.startingCash !== 'number') {
-            console.warn(`AI returned financials.startingCash that is not a number: `, parsedConditions.financials.startingCash);
+    // Process initialConditions
+    let sanitizedInitialConditionsStr = rawOutput.initialConditions;
+    try {
+        sanitizedInitialConditionsStr = sanitizeJsonString(rawOutput.initialConditions);
+        const parsedObject = JSON.parse(sanitizedInitialConditionsStr);
+        finalInitialConditionsString = JSON.stringify(parsedObject); // Re-stringify
+
+        // Optional: Further validation of the parsedObject structure if needed
+        if (parsedObject.financials && typeof parsedObject.financials.startingCash !== 'number') {
+            console.warn(`AI returned financials.startingCash that is not a number: `, parsedObject.financials.startingCash);
         }
-         if (parsedConditions.resources && typeof parsedConditions.resources.initialFunding !== 'number') {
-            console.warn(`AI returned resources.initialFunding that is not a number: `, parsedConditions.resources.initialFunding);
+         if (parsedObject.resources && typeof parsedObject.resources.initialFunding !== 'number') {
+            console.warn(`AI returned resources.initialFunding that is not a number: `, parsedObject.resources.initialFunding);
         }
-        if (parsedConditions.financials && typeof parsedConditions.financials.estimatedInitialMonthlyBurnRate !== 'number') {
-            console.warn(`AI returned financials.estimatedInitialMonthlyBurnRate that is not a number: `, parsedConditions.financials.estimatedInitialMonthlyBurnRate);
+        if (parsedObject.financials && typeof parsedObject.financials.estimatedInitialMonthlyBurnRate !== 'number') {
+            console.warn(`AI returned financials.estimatedInitialMonthlyBurnRate that is not a number: `, parsedObject.financials.estimatedInitialMonthlyBurnRate);
         }
-        if (parsedConditions.productService && !Array.isArray(parsedConditions.productService.features)) {
-            console.warn(`AI returned productService.features that is not an array: `, parsedConditions.productService.features);
+        if (parsedObject.productService && !Array.isArray(parsedObject.productService.features)) {
+            console.warn(`AI returned productService.features that is not an array: `, parsedObject.productService.features);
         }
-        if (parsedConditions.resources && !Array.isArray(parsedConditions.resources.coreTeam)) {
-            console.warn(`AI returned resources.coreTeam that is not an array: `, parsedConditions.resources.coreTeam);
+        if (parsedObject.resources && !Array.isArray(parsedObject.resources.coreTeam)) {
+            console.warn(`AI returned resources.coreTeam that is not an array: `, parsedObject.resources.coreTeam);
         }
+
     } catch (e) {
         const errorDetails = e instanceof Error ? e.message : String(e);
-        console.error("CRITICAL: AI-generated 'initialConditions' string is NOT valid JSON even after sanitization.", e);
-        console.error("Original 'initialConditions' string from AI:", output.initialConditions);
+        console.error("CRITICAL (prompt-startup.ts): Error processing 'initialConditions'.", e);
+        console.error("Original 'initialConditions' string from AI:", rawOutput.initialConditions);
         console.error("Sanitized 'initialConditions' string attempted:", sanitizedInitialConditionsStr);
         throw new Error(
-            `The AI failed to generate valid startup parameters (initialConditions was not valid JSON: ${errorDetails}). Original: ${output.initialConditions.substring(0, 200)}...`
+            `The AI failed to generate valid startup parameters (error processing initialConditions: ${errorDetails}). Original: ${rawOutput.initialConditions.substring(0, 200)}...`
         );
     }
 
-    let sanitizedSuggestedChallengesStr = output.suggestedChallenges;
+    // Process suggestedChallenges
+    let sanitizedSuggestedChallengesStr = rawOutput.suggestedChallenges;
     try {
-        sanitizedSuggestedChallengesStr = sanitizeJsonString(output.suggestedChallenges);
-        JSON.parse(sanitizedSuggestedChallengesStr); // Validate parsing
-        // Update the output object
-        output.suggestedChallenges = sanitizedSuggestedChallengesStr;
+        sanitizedSuggestedChallengesStr = sanitizeJsonString(rawOutput.suggestedChallenges);
+        const parsedArray = JSON.parse(sanitizedSuggestedChallengesStr); // Validate parsing
+        finalSuggestedChallengesString = JSON.stringify(parsedArray); // Re-stringify
     } catch (e) {
         const errorDetails = e instanceof Error ? e.message : String(e);
-        console.error("CRITICAL: AI-generated 'suggestedChallenges' string is NOT valid JSON even after sanitization.", e);
-        console.error("Original 'suggestedChallenges' string from AI:", output.suggestedChallenges);
+        console.error("CRITICAL (prompt-startup.ts): Error processing 'suggestedChallenges'.", e);
+        console.error("Original 'suggestedChallenges' string from AI:", rawOutput.suggestedChallenges);
         console.error("Sanitized 'suggestedChallenges' string attempted:", sanitizedSuggestedChallengesStr);
         throw new Error(
-            `The AI failed to generate valid startup parameters (suggestedChallenges was not a valid JSON array string: ${errorDetails}). Original: ${output.suggestedChallenges.substring(0,100)}...`
+            `The AI failed to generate valid startup parameters (error processing suggestedChallenges: ${errorDetails}). Original: ${rawOutput.suggestedChallenges.substring(0,100)}...`
         );
     }
     
-    return output;
+    // Return a new object with the processed, re-stringified JSON strings
+    return {
+      initialConditions: finalInitialConditionsString,
+      suggestedChallenges: finalSuggestedChallengesString,
+    };
   }
 );
 
