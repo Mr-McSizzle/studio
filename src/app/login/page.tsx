@@ -31,7 +31,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    ensureDefaultUser(); 
+    ensureDefaultUser();
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -48,7 +48,7 @@ export default function LoginPage() {
 
     if (loginSuccess) {
       toast({ title: "Login Successful", description: `Access granted! Charting course for ForgeSim...`, duration: 3000 });
-      router.push('/app'); 
+      router.push('/app');
     } else {
       toast({ title: "Login Failed", description: "Invalid email or password. Please try again.", variant: "destructive" });
     }
@@ -106,8 +106,8 @@ export default function LoginPage() {
                   className="bg-input/70 border-border focus:bg-input focus:border-accent placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105" /* Primary is deep blue, accent for glow is silver */
               >
@@ -123,7 +123,7 @@ export default function LoginPage() {
               </Button>
             </p>
             <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">
-                <Link href="/"><Home className="mr-1 h-3 w-3"/>Back to ForgeSim Home</Link>
+                <Link href="/"><span><Home className="mr-1 h-3 w-3 inline-block align-middle"/>Back to ForgeSim Home</span></Link>
             </Button>
           </CardFooter>
         </Card>
