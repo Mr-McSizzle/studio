@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -29,8 +28,8 @@ import {
   Atom,
   Command,
 } from "lucide-react"
-import { FloatingParticles } from "@/components/landing/FloatingParticles"; // Added import
-import { MiniChartBars } from "@/components/landing/MiniChartBars"; // Added import
+import { FloatingParticles } from "@/components/landing/FloatingParticles";
+import { MiniChartBars } from "@/components/landing/MiniChartBars";
 
 export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -202,7 +201,7 @@ export default function HomePage() {
         />
       </div>
 
-      <FloatingParticles /> {/* Replaced direct map with component */}
+      <FloatingParticles />
 
       {/* Floating Geometric Shapes with Maroon/Gold */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -431,7 +430,7 @@ export default function HomePage() {
                       </div>
 
                       <div className="mt-6 p-3 bg-black/20 rounded-lg border border-amber-500/10">
-                        <MiniChartBars /> {/* Replaced direct map with component */}
+                        <MiniChartBars />
                       </div>
                     </div>
                   </CardContent>

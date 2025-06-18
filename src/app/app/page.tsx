@@ -4,13 +4,13 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSimulationStore } from '@/store/simulationStore';
-import { useAuthStore } from '@/store/authStore'; // Import auth store
+import { useAuthStore } from '@/store/authStore'; 
 import { Loader2 } from 'lucide-react';
 
 export default function AppRootPage() {
   const router = useRouter();
-  const { isAuthenticated, userEmail } = useAuthStore(); // Get auth state
-  const { isInitialized: simIsInitialized, simulationMonth } = useSimulationStore(); // Renamed to avoid conflict
+  const { isAuthenticated, userEmail } = useAuthStore(); 
+  const { isInitialized: simIsInitialized, simulationMonth } = useSimulationStore();
 
   useEffect(() => {
     // Wait for auth state to be loaded from localStorage
@@ -36,7 +36,7 @@ export default function AppRootPage() {
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-foreground">
       <Loader2 className="h-12 w-12 animate-spin text-accent mb-4" />
       <p className="text-lg">Loading ForgeSim experience...</p>
-      <p className="text-sm text-muted-foreground">Checking authentication and simulation status.</p>
+      <p className="text-sm text-muted-foreground">Verifying session and simulation integrity...</p>
     </div>
   );
 }
