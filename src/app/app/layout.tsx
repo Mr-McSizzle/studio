@@ -23,15 +23,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore"; 
 import { useAuthStore } from "@/store/authStore"; 
-import { DynamicGuidanceSystem } from "@/components/guidance/DynamicGuidanceSystem"; // Added
+import { DynamicGuidanceSystem } from "@/components/guidance/DynamicGuidanceSystem";
 
 function UserProfileDropdown() {
   const router = useRouter();
   const { userName, userEmail, logout } = useAuthStore();
-  const { clearChatHistory } = useAiMentorStore(); 
+  // const { clearChatHistory } = useAiMentorStore(); // clearChatHistory is on authStore now
   
   const handleLogout = () => {
-    logout(); 
+    logout(); // This already handles clearing chat history and sim store
     router.push('/login');
   };
 
@@ -73,17 +73,36 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (userEmail === undefined) return; 
+    if (userEmail === undefined) return; // Zustand store not hydrated yet
 
-    if (!isAuthenticated) {
-      router.replace('/login');
+    // Only apply this redirect logic if we are actually inside the /app/* routes
+    // and not trying to access /login or /signup which should be public even if an old /app path is hit.
+    if (pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup')) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      }
     }
-  }, [isAuthenticated, userEmail, router]);
+  }, [isAuthenticated, userEmail, router, pathname]);
 
 
   const closeMobileSheet = () => setIsMobileSheetOpen(false);
   
-  if (!isAuthenticated && userEmail !== undefined) { 
+  // This check is to prevent flashing the layout if auth state is not yet loaded
+  if (userEmail === undefined) { 
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
+            <ForgeSimLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
+            <p className="text-lg text-glow-primary">Initializing Secure Session...</p>
+        </div>
+    );
+  }
+
+  // If not authenticated and trying to access an /app route, redirect is handled by useEffect.
+  // If we are here, and !isAuthenticated, it means the useEffect is about to redirect,
+  // or the user is trying to access a public page that incorrectly uses this layout.
+  // For robustness, we can show a loading or redirecting message here too,
+  // though the useEffect should handle the actual redirect.
+  if (!isAuthenticated && pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup')) { 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
             <ForgeSimLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
@@ -156,8 +175,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </SidebarInset>
           </div>
         </div>
-        <DynamicGuidanceSystem /> {/* Added Dynamic Guidance System */}
+        <DynamicGuidanceSystem /> 
       </SidebarProvider>
     </TooltipProvider>
   );
 }
+    
