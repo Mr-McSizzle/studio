@@ -4,6 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission, FounderArchetype } from '@/types/simulation'; // Added FounderArchetype
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
+import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from './aiMentorStore'; // Import EVE's context ID
 
 const MOCK_PRICE_PER_USER_PER_MONTH_DEFAULT = 10;
 const MOCK_SALARY_PER_FOUNDER = 0;
@@ -87,7 +88,7 @@ export interface EarnedBadge {
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'missions' | 'earnedBadges' | 'selectedArchetype'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -639,6 +640,36 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
             newState.currentAiReasoning = aiOutput.aiReasoning || "AI completed simulation. Reasoning not explicitly provided.";
             
+            // EVE's Monthly Debrief
+            const { addMessage } = useAiMentorStore.getState();
+            let debriefMessage = `EVE: Month ${newState.simulationMonth} concluded.\nCash is now ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, and active users are at ${newState.userMetrics.activeUsers.toLocaleString()}.\n`;
+            debriefMessage += `This month's net profit/loss: ${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}.\n`;
+            
+            if (aiOutput.keyEventsGenerated.length > 0) {
+              const firstEvent = aiOutput.keyEventsGenerated[0];
+              debriefMessage += `A notable event was: "${firstEvent.description.substring(0, 80)}${firstEvent.description.length > 80 ? '...' : ''}" (${firstEvent.impact}).\n`;
+            }
+            
+            // Simple strategic question logic
+            let strategicQuestion = "What is our primary focus for the upcoming month, Founder?";
+            if (newState.financials.cashOnHand < newState.financials.burnRate * 2 && newState.financials.burnRate > 0) {
+                strategicQuestion = "Our cash reserves are getting low. Should we prioritize aggressive cost-cutting, seeking funding, or a risky growth push next month?";
+            } else if (aiOutput.keyEventsGenerated.some(e => e.category === "Competitor" && e.impact === "Negative")) {
+                strategicQuestion = "A competitor made a significant move. What's our counter-strategy or do we stay the course?";
+            } else if (newState.product.developmentProgress > 75 && newState.product.stage !== 'mature') {
+                strategicQuestion = `Our product '${newState.product.name}' is nearing the next stage. Should we allocate more resources to R&D to accelerate this, or focus on marketing its current capabilities?`;
+            }
+
+            debriefMessage += `\n${strategicQuestion}`;
+
+            addMessage({
+              id: `eve-debrief-${newState.simulationMonth}-${Date.now()}`,
+              role: "assistant",
+              content: debriefMessage,
+              timestamp: new Date(),
+              agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
+            });
+            
             return { ...state, ...newState };
           });
 
@@ -1165,4 +1196,5 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     }
   )
 );
+
 

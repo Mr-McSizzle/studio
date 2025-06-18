@@ -8,7 +8,7 @@ interface SuggestedNextAction {
   label: string;
 }
 
-const EVE_MAIN_CHAT_CONTEXT_ID = "eve_main_chat";
+export const EVE_MAIN_CHAT_CONTEXT_ID = "eve_main_chat";
 
 interface AiMentorState {
   lastMessageText: string | null; 
@@ -27,7 +27,7 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
   messages: [],
   setGuidance: (messageContent, agentContext, suggestion = null) => {
     const newAssistantMessage: ChatMessageType = {
-      id: `assistant-${Date.now()}`,
+      id: `assistant-${agentContext}-${Date.now()}`, // Context in ID for easier debugging
       role: "assistant",
       content: messageContent,
       timestamp: new Date(),
@@ -39,9 +39,9 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
       suggestedNextAction: suggestion,
     }));
   },
-  addMessage: (message: ChatMessageType) => { // Expect message to have agentContextId set by ChatInterface
+  addMessage: (message: ChatMessageType) => { // Expect message to have agentContextId set by ChatInterface or system
     set(state => ({ messages: [...state.messages, message] }));
-    if (message.role === 'assistant') { // Though usually setGuidance will handle this
+    if (message.role === 'assistant') { 
       set({ lastMessageText: message.content });
     }
   },
@@ -49,7 +49,11 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
     const currentAgentContext = focusedAgentId || EVE_MAIN_CHAT_CONTEXT_ID;
     const existingMessagesForContext = get().messages.filter(msg => msg.agentContextId === currentAgentContext);
 
-    if (existingMessagesForContext.length > 0) return; 
+    if (existingMessagesForContext.length > 0 && existingMessagesForContext.some(m => m.id.startsWith('initial-eve-greeting'))) {
+      // If a greeting for THIS SPECIFIC CONTEXT already exists, don't add another.
+      // This allows specific agent chats to get their own greeting if they haven't had one.
+      return; 
+    }
 
     const simState = useSimulationStore.getState();
     const currencyInfo = simState.isInitialized
@@ -59,7 +63,7 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
     let initialMessageText: string;
     if (focusedAgentId && focusedAgentName) {
       initialMessageText = `EVE: Hello! I see you're looking to chat with ${focusedAgentName}. I can help facilitate that. What specific questions do you have for ${focusedAgentName} regarding their expertise?`;
-    } else {
+    } else { // Main EVE chat
       initialMessageText = `Hi, I’m EVE, your AI Queen Hive Mind assistant for ForgeSim. ${currencyInfo}I coordinate our team of specialized AI agents—Alex (Accountant), Maya (Marketing Guru), Ty (Social Media Strategist), Zara (Focus Group Leader), Leo (Expansion Expert), The Advisor, and Brand Lab—to provide you with synthesized insights and personalized guidance. How can I direct our collective intelligence to assist you today?`;
     }
 
@@ -68,14 +72,19 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
       role: "assistant",
       content: initialMessageText,
       timestamp: new Date(),
-      agentContextId: currentAgentContext, // Tag greeting with its context
+      agentContextId: currentAgentContext, 
     };
-    set(state => ({ 
-        messages: [...state.messages, initialMessage], 
-        lastMessageText: initialMessage.content // Also update for guidance bar if it's the very first message overall
-    }));
+    
+    const currentMessages = get().messages;
+    if (!currentMessages.find(m => m.id === initialMessage.id)) { // Prevent duplicate if re-init somehow called rapidly
+        set(state => ({ 
+            messages: [...state.messages, initialMessage], 
+            lastMessageText: initialMessage.content 
+        }));
+    }
   },
   clearSuggestion: () => set(state => ({ ...state, suggestedNextAction: null })),
   clearChatHistory: () => set({ messages: [], lastMessageText: null, suggestedNextAction: null }),
 }));
     
+
