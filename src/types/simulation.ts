@@ -218,6 +218,7 @@ export interface AIAgentProfile {
   title: string;
   icon: ComponentType<LucideProps>;
   iconColorClass: string;
+  avatarUrl?: string; // Added for agent avatar image
   gradientFromClass: string;
   gradientToClass: string;
   description: string;

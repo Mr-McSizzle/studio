@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,8 +12,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 225 30% 15%;
     
-    --primary: 225 60% 35%; /* Rich Deep Blue */
-    --primary-foreground: 210 30% 98%; /* Light Silver/White */
+    --primary: 220 70% 55%; /* Vibrant Deep Blue */
+    --primary-foreground: 210 40% 98%; /* Bright Silver/White */
     
     --secondary: 220 50% 90%; /* Light Bluish Gray */
     --secondary-foreground: 225 50% 30%; /* Darker Blue */
@@ -20,15 +21,15 @@
     --muted: 220 50% 95%; /* Very Light Bluish Gray */
     --muted-foreground: 220 30% 45%; /* Medium Blue-Gray */
     
-    --accent: 210 15% 70%; /* Silver */
-    --accent-foreground: 225 50% 20%; /* Dark Blue */
+    --accent: 210 30% 75%; /* Bright Silver */
+    --accent-foreground: 225 50% 15%; /* Very Dark Blue for contrast on Silver */
     
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     
     --border: 220 40% 80%; /* Light Blue-Gray Border */
     --input: 220 40% 90%; /* Light Blue-Gray Input BG */
-    --ring: 225 60% 55%; /* Brighter Blue Ring */
+    --ring: 220 70% 55%; /* Vibrant Deep Blue Ring */
 
     --chart-1: 220 70% 50%; /* Blue */
     --chart-2: 200 60% 45%; /* Teal-Blue */
@@ -443,9 +444,13 @@ a:focus {
 
 .animate-fadeInUp {
   animation-name: fadeInUp;
+  animation-duration: 0.5s; /* Added default duration */
+  animation-fill-mode: forwards; /* Ensure state is kept at end of animation */
 }
 .animate-fadeIn {
   animation-name: fadeIn;
+  animation-duration: 0.5s; /* Added default duration */
+  animation-fill-mode: forwards;
 }
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -528,3 +533,17 @@ a:focus {
     --nectar-to: hsl(var(--accent) / 0.6);
 }
     
+/* Tooltip animation */
+@keyframes tooltip-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-tooltip-slide-in {
+  animation: tooltip-slide-in 0.2s ease-out forwards;
+}
