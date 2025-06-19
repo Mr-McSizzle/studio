@@ -5,7 +5,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { User, Settings, Swords, Trophy, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // Assuming Button is used, add if not
+import { Button } from '@/components/ui/button';
 
 // Dynamically import the GalaxyCanvas component with SSR disabled
 const GalaxyCanvasComponent = dynamic(
@@ -38,7 +38,7 @@ export default function LaunchpadPage() {
       title: "Clash of Sims",
       description: "Competitive scenarios (Coming Soon)",
       icon: Swords,
-      href: "#", // Placeholder, button will be disabled
+      href: "#", 
       disabled: true,
     },
     {
@@ -149,14 +149,19 @@ export default function LaunchpadPage() {
                     }}
                   >
                     {item.disabled ? (
-                      <div className="relative backdrop-blur-2xl bg-white/[0.01] border border-white/[0.05] rounded-2xl p-8 opacity-70 cursor-not-allowed overflow-hidden">
+                      <Button
+                        className="block w-full h-full relative backdrop-blur-2xl bg-white/[0.01] border border-white/[0.05] rounded-2xl p-8 opacity-70 cursor-not-allowed overflow-hidden text-left"
+                        disabled
+                        aria-label={item.title + " (Coming Soon)"}
+                      >
                         {cardContent}
-                      </div>
+                      </Button>
                     ) : (
-                      <Link href={item.href} passHref legacyBehavior>
-                        <a className="block relative backdrop-blur-2xl bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 transition-all duration-700 hover:scale-[1.02] hover:border-white/[0.15] hover:bg-white/[0.04] cursor-pointer overflow-hidden group-hover:shadow-xl group-hover:shadow-indigo-500/[0.05]">
-                          {cardContent}
-                        </a>
+                      <Link
+                        href={item.href}
+                        className="block relative backdrop-blur-2xl bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 transition-all duration-700 hover:scale-[1.02] hover:border-white/[0.15] hover:bg-white/[0.04] cursor-pointer overflow-hidden group-hover:shadow-xl group-hover:shadow-indigo-500/[0.05]"
+                      >
+                        {cardContent}
                       </Link>
                     )}
                   </div>
