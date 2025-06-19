@@ -15,7 +15,7 @@ import {
   Beaker, 
   Users, 
   ListTodo, 
-  Home, // Added Home icon
+  // Home icon is removed from here as Launchpad is no longer a direct sidebar item
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 
 
 const navItems = [
-  { href: "/app/launchpad", label: "Launchpad", icon: Home }, // Added Launchpad
+  // { href: "/app/launchpad", label: "Launchpad", icon: Home }, // Removed Launchpad
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/setup", label: "Setup Simulation", icon: Rocket },
   { href: "/app/agents", label: "AI Agent Team", icon: Users }, 
@@ -51,7 +51,10 @@ export function SidebarNav() {
     <SidebarMenu>
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app" && item.href !== "/app/launchpad" && item.href.length > "/app/launchpad".length || (item.href === "/app/launchpad" && pathname === "/app/launchpad"));
+        // Adjusted isActive logic to handle cases where item.href might be a prefix of pathname
+        // For example, /app/dashboard is active if pathname is /app/dashboard or /app/dashboard/details
+        // But /app (if it were a nav item) would not be active if pathname is /app/dashboard
+        const isActive = pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== "/app");
         
         return (
           <SidebarMenuItem key={item.label}>
@@ -93,7 +96,7 @@ export function MobileSidebarNav({ onLinkClick }: { onLinkClick?: () => void }) 
      <nav className="grid gap-2 text-lg font-medium">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/app" && item.href !== "/app/launchpad" && item.href.length > "/app/launchpad".length || (item.href === "/app/launchpad" && pathname === "/app/launchpad"));
+          const isActive = pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== "/app");
           return (
             <Link
               key={item.href}

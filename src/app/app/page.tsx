@@ -19,8 +19,7 @@ export default function AppRootPage() {
     if (!isAuthenticated) {
       router.replace('/login');
     } else {
-      // Always redirect to launchpad if authenticated
-      router.replace('/app/launchpad');
+      router.replace('/app/launchpad'); // Changed to redirect to Launchpad
     }
   }, [isAuthenticated, userEmail, router]);
 

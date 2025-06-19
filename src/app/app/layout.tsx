@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { PanelLeft, LogOut, Settings, Home } from "lucide-react"; // Added Home
+import { PanelLeft, LogOut, Settings, LayoutDashboard } from "lucide-react"; // Changed Home to LayoutDashboard
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; 
 
@@ -37,8 +37,8 @@ function UserProfileDropdown() {
     router.push('/app/profile');
   };
 
-  const handleLaunchpad = () => {
-    router.push('/app/launchpad');
+  const handleDashboard = () => { // Changed from handleLaunchpad to handleDashboard
+    router.push('/app/dashboard');
   };
 
   if (!userName && !userEmail) return null;
@@ -56,8 +56,8 @@ function UserProfileDropdown() {
         </div>
       </button>
       <div className="absolute bottom-full mb-2 left-0 w-full min-w-[180px] bg-sidebar border border-sidebar-border rounded-md shadow-xl p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto group-data-[sidebar-state=collapsed]:left-full group-data-[sidebar-state=collapsed]:bottom-auto group-data-[sidebar-state=collapsed]:top-0 group-data-[sidebar-state=collapsed]:ml-2">
-        <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLaunchpad}>
-          <Home className="mr-2 h-4 w-4"/> Launchpad
+        <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleDashboard}>
+          <LayoutDashboard className="mr-2 h-4 w-4"/> Dashboard 
         </Button>
         <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleProfile}>
           <Settings className="mr-2 h-4 w-4"/> Profile
@@ -80,6 +80,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userEmail === undefined) return; 
 
+    // If trying to access any /app/* route (except login/signup) without auth, redirect to login
     if (pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup')) {
       if (!isAuthenticated) {
         router.replace('/login');
@@ -99,6 +100,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  // This check might be redundant if the useEffect above handles it, but kept for safety during initial render
   if (!isAuthenticated && pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup')) { 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
@@ -120,7 +122,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             className="border-r bg-sidebar text-sidebar-foreground shadow-2xl border-sidebar-border"
           >
             <SidebarHeader className="h-20 flex items-center justify-between px-4 border-b border-sidebar-border">
-              <Link href="/app/launchpad" className="flex items-center gap-2.5 font-semibold text-sidebar-foreground hover:text-sidebar-primary transition-colors">
+              <Link href="/app/dashboard" className="flex items-center gap-2.5 font-semibold text-sidebar-foreground hover:text-sidebar-primary transition-colors">
                 <ForgeSimLogo className="h-10 w-10 text-primary group-hover:text-accent transition-colors duration-300" />
                 <span className="font-headline text-2xl text-glow-accent group-data-[sidebar-state=collapsed]:hidden">ForgeSim</span>
               </Link>
@@ -138,7 +140,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
           <div className="flex flex-col sm:gap-4 sm:py-4 md:ml-[var(--sidebar-width-icon)] peer-data-[state=expanded]:md:ml-[var(--sidebar-width)] transition-[margin-left] duration-300 ease-in-out">
              <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-md px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
-               <Link href="/app/launchpad" className="flex items-center gap-2 font-semibold">
+               <Link href="/app/dashboard" className="flex items-center gap-2 font-semibold">
                   <ForgeSimLogo className="h-8 w-8 text-primary" />
                   <span className="font-headline text-xl text-glow-accent">ForgeSim</span>
                 </Link>
@@ -151,7 +153,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 </SheetTrigger>
                 <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border shadow-xl p-0">
                    <div className="h-20 flex items-center px-4 border-b border-sidebar-border mb-4">
-                    <Link href="/app/launchpad" onClick={closeMobileSheet} className="flex items-center gap-2.5 font-semibold text-sidebar-foreground hover:text-sidebar-primary transition-colors">
+                    <Link href="/app/dashboard" onClick={closeMobileSheet} className="flex items-center gap-2.5 font-semibold text-sidebar-foreground hover:text-sidebar-primary transition-colors">
                       <ForgeSimLogo className="h-10 w-10 text-primary" />
                       <span className="font-headline text-2xl text-glow-accent">ForgeSim</span>
                     </Link>

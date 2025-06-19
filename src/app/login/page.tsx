@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type FormEvent, useEffect } from 'react';
@@ -51,10 +52,10 @@ export default function LoginPage() {
     if (loginSuccess) {
       toast({
         title: "Login Successful",
-        description: `Access granted! Charting course for ForgeSim...`,
+        description: `Access granted! Charting course for ForgeSim Launchpad...`,
         duration: 3000
       });
-      router.push('/app');
+      router.push('/app/launchpad'); // Changed to redirect to Launchpad
     } else {
       toast({
         title: "Login Failed",
@@ -124,11 +125,11 @@ export default function LoginPage() {
               >
                 <span className="inline-flex items-center">
                   {isLoading ? (
-                    "Authenticating..."
+                   "Authenticating..."
                   ) : (
                     <>
                       <LogInIcon className="mr-2 h-5 w-5 inline-block align-middle" />
-                      Secure Login
+                       Secure Login
                     </>
                   )}
                 </span>
@@ -139,7 +140,7 @@ export default function LoginPage() {
             <p className="text-sm text-muted-foreground">
               New to ForgeSim?{' '}
               <Button variant="link" asChild className="text-accent hover:text-accent/80 p-0 h-auto font-semibold text-glow-accent">
-                <Link href="/signup">Create Your Account</Link>
+                <Link href="/signup"><span>Create Your Account</span></Link>
               </Button>
             </p>
             <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">

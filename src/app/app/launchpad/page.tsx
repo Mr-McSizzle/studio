@@ -4,9 +4,9 @@
 import dynamic from "next/dynamic"
 import { Suspense, useMemo, useRef } from "react"
 import Link from "next/link"
-// Removed R3F/Drei imports from here
+// Moved R3F/Drei imports inside GalaxyCanvasContent
 import { User, Settings, Swords, Trophy, ChevronRight } from "lucide-react"
-// Removed THREE imports from here
+import { Button } from "@/components/ui/button"; // Import Button for disabled state
 
 // Define GalaxyCanvas and its sub-components first, including their R3F/Drei imports
 const GalaxyCanvasContent = () => {
@@ -182,7 +182,8 @@ export default function LaunchpadPage() {
       title: "Clash of Sims",
       description: "Battle across dimensions (Coming Soon)",
       icon: Swords,
-      href: "/app/launchpad", // Placeholder, links back to itself
+      href: "#", // No navigation for disabled button
+      disabled: true,
     },
     {
       title: "Milestones & Score",
@@ -221,9 +222,8 @@ export default function LaunchpadPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
             {navigationItems.map((item, index) => {
               const Icon = item.icon
-              return (
-                <Link href={item.href} key={item.title}>
-                  <div className="group relative">
+              const cardContent = (
+                 <div className="group relative">
                     <div className="relative backdrop-blur-2xl bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 transition-all duration-700 hover:scale-[1.02] hover:border-white/[0.15] hover:bg-white/[0.04] cursor-pointer overflow-hidden group-hover:shadow-xl group-hover:shadow-indigo-500/[0.05]">
                       <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.03),transparent_70%)]" />
                       <div className="relative z-10 text-center">
@@ -249,8 +249,35 @@ export default function LaunchpadPage() {
                       </div>
                     </div>
                   </div>
+              );
+              
+              return item.disabled ? (
+                <Button key={item.title} variant="outline" disabled className="relative backdrop-blur-2xl bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 text-white/50 cursor-not-allowed h-full flex flex-col items-center justify-center text-center">
+                   <div className="mb-6 flex justify-center">
+                      <div className="w-20 h-20 relative">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                           <Icon className="w-10 h-10" />
+                        </div>
+                      </div>
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-medium mb-3 tracking-[-0.01em]">
+                      {item.title}
+                    </h3>
+                    <p className="text-base mb-6 leading-relaxed tracking-[0.005em]">
+                      {item.description}
+                    </p>
+                    <div className="flex items-center justify-center">
+                      <span className="mr-3 font-normal tracking-[0.1em] text-xs uppercase">Enter</span>
+                      <div className="backdrop-blur-sm bg-white/[0.04] border border-white/[0.08] rounded-full p-1.5">
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                </Button>
+              ) : (
+                <Link href={item.href} key={item.title}>
+                  {cardContent}
                 </Link>
-              )
+              );
             })}
           </div>
         </main>
@@ -272,3 +299,4 @@ export default function LaunchpadPage() {
     </div>
   )
 }
+
