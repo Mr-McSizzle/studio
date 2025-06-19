@@ -138,7 +138,7 @@ export default function SignUpPage() {
             <p className="text-sm text-muted-foreground">
               Already a Founder?{' '}
               <Button variant="link" asChild className="text-primary hover:text-primary/80 p-0 h-auto font-semibold text-glow-primary"> {/* Primary is blue */}
-                <Link href="/login">Log In to Your Simulation</Link>
+                <Link href="/login">Log In to Your Inceptico Simulation</Link>
               </Button>
             </p>
              <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">
