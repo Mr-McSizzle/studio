@@ -7,7 +7,7 @@ import { PanelLeft, LogOut, Settings, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; 
 
-import { ForgeSimLogo } from "@/components/icons/logo";
+import { IncepticoLogo } from "@/components/icons/logo"; // Updated import
 import { SidebarNav, MobileSidebarNav, SidebarToggleButton } from "@/components/layout/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -95,7 +95,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   if (userEmail === undefined && pathname !== '/login' && pathname !== '/signup') { 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
-            <ForgeSimLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
+            <IncepticoLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
             <p className="text-lg text-glow-primary">Initializing Secure Session...</p>
         </div>
     );
@@ -104,7 +104,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   if (!isAuthenticated && pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup')) { 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
-            <ForgeSimLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
+            <IncepticoLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
             <p className="text-lg text-glow-primary">Redirecting to Secure Access Point...</p>
         </div>
     );
@@ -133,7 +133,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           >
             <SidebarHeader className="h-20 flex items-center justify-between px-4 border-b border-sidebar-border">
               <Link href="/app/dashboard" className="flex items-center gap-2.5 font-semibold text-sidebar-foreground hover:text-sidebar-primary transition-colors">
-                <ForgeSimLogo className="h-10 w-10 text-primary group-hover:text-accent transition-colors duration-300" />
+                <IncepticoLogo className="h-10 w-10 text-primary group-hover:text-accent transition-colors duration-300" /> 
                 <span className="font-headline text-2xl text-glow-accent group-data-[sidebar-state=collapsed]:hidden">Inceptico</span>
               </Link>
               <div className="hidden md:block group-data-[sidebar-state=expanded]:opacity-100 group-data-[sidebar-state=collapsed]:opacity-0 transition-opacity">
@@ -151,7 +151,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <div className="flex flex-col sm:gap-4 sm:py-4 md:ml-[var(--sidebar-width-icon)] peer-data-[state=expanded]:md:ml-[var(--sidebar-width)] transition-[margin-left] duration-300 ease-in-out">
              <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-md px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
                <Link href="/app/dashboard" className="flex items-center gap-2 font-semibold">
-                  <ForgeSimLogo className="h-8 w-8 text-primary" />
+                  <IncepticoLogo className="h-8 w-8 text-primary" />
                   <span className="font-headline text-xl text-glow-accent">Inceptico</span>
                 </Link>
               <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
@@ -164,7 +164,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border shadow-xl p-0">
                    <div className="h-20 flex items-center px-4 border-b border-sidebar-border mb-4">
                     <Link href="/app/dashboard" onClick={closeMobileSheet} className="flex items-center gap-2.5 font-semibold text-sidebar-foreground hover:text-sidebar-primary transition-colors">
-                      <ForgeSimLogo className="h-10 w-10 text-primary" />
+                      <IncepticoLogo className="h-10 w-10 text-primary" />
                       <span className="font-headline text-2xl text-glow-accent">Inceptico</span>
                     </Link>
                   </div>

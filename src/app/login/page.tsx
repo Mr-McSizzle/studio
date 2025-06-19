@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ForgeSimLogo } from '@/components/icons/logo';
-import { Mail, Lock, LogInIcon, Home, Rocket } from 'lucide-react'; // Changed LayoutDashboard to Rocket
+import { IncepticoLogo } from '@/components/icons/logo'; // Updated import
+import { Mail, Lock, LogInIcon, Home } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const NexusBackground = () => (
@@ -52,10 +52,10 @@ export default function LoginPage() {
     if (loginSuccess) {
       toast({
         title: "Login Successful",
-        description: `Access granted! Navigating to the Launchpad...`,
+        description: `Access granted! Charting course for Inceptico...`, // Updated
         duration: 3000
       });
-      router.push('/app/launchpad'); 
+      router.push('/app');
     } else {
       toast({
         title: "Login Failed",
@@ -73,15 +73,15 @@ export default function LoginPage() {
         <Card className="bg-card/80 backdrop-blur-lg border border-primary/30 shadow-primary-glow-md animate-fadeInUp">
           <CardHeader className="text-center pt-8 pb-6">
             <Link href="/" className="flex justify-center mb-6 group">
-              <ForgeSimLogo className="h-20 w-20 text-primary group-hover:text-accent transition-colors duration-300 animate-subtle-pulse" />
+              <IncepticoLogo className="h-20 w-20 text-primary group-hover:text-accent transition-colors duration-300 animate-subtle-pulse" /> {/* Updated usage */}
             </Link>
             <CardTitle className="text-3xl font-headline text-glow-primary">
               Welcome Back, Founder
             </CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
-              Log in to your Inceptico Digital Twin.
+              Log in to your Inceptico Digital Twin. {/* Updated */}
               <br />
-              <span className="text-xs">(Test with: founder@forgesim.ai / password123)</span>
+              <span className="text-xs">(Test with: founder@inceptico.ai / password123)</span> {/* Updated */}
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6 sm:px-8 py-6">
@@ -96,7 +96,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="founder@forgesim.ai"
+                  placeholder="founder@inceptico.ai" // Updated placeholder
                   required
                   disabled={isLoading}
                   className="bg-input/70 border-border focus:bg-input focus:border-accent placeholder:text-muted-foreground/60 py-3 text-base"
@@ -124,11 +124,13 @@ export default function LoginPage() {
                 className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105"
               >
                 <span className="inline-flex items-center">
-                  {isLoading ? "Authenticating..." : (
-                    <span className="inline-flex items-center">
+                  {isLoading ? (
+                    "Authenticating..."
+                  ) : (
+                    <>
                       <LogInIcon className="mr-2 h-5 w-5 inline-block align-middle" />
-                       Secure Login
-                    </span>
+                      Secure Login
+                    </>
                   )}
                 </span>
               </Button>
@@ -136,16 +138,16 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col items-center text-center pb-8 pt-4">
             <p className="text-sm text-muted-foreground">
-              New to Inceptico?{' '}
+              New to Inceptico?{' '} {/* Updated */}
               <Button variant="link" asChild className="text-accent hover:text-accent/80 p-0 h-auto font-semibold text-glow-accent">
-                <Link href="/signup"><span>Create Your Account</span></Link>
+                <Link href="/signup">Create Your Account</Link>
               </Button>
             </p>
             <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">
               <Link href="/">
                 <span className="inline-flex items-center">
                   <Home className="mr-1 h-3 w-3 inline-block align-middle" />
-                  Back to Inceptico Home
+                  Back to Inceptico Home {/* Updated */}
                 </span>
               </Link>
             </Button>
