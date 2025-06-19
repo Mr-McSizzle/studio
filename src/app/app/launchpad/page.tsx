@@ -1,43 +1,49 @@
 
-"use client"
+"use client";
 
-import dynamic from "next/dynamic"
-import { Suspense, useMemo, useRef } from "react"
-import Link from "next/link"
-// Moved R3F/Drei imports inside GalaxyCanvasContent
-import { User, Settings, Swords, Trophy, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"; // Import Button for disabled state
+import dynamic from "next/dynamic";
+import { Suspense, useMemo, useRef, useEffect, useState } from "react"; // Added useEffect, useState
+import Link from "next/link";
+import { User, Settings, Swords, Trophy, ChevronRight, LogIn } from "lucide-react"; // Added LogIn
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation"; // For navigation
+import { useAuthStore } from "@/store/authStore"; // For auth status
 
-// Define GalaxyCanvas and its sub-components first, including their R3F/Drei imports
+// Define GalaxyCanvas and its sub-components first.
+// All R3F/Drei/Three imports are MOVED INSIDE this component.
 const GalaxyCanvasContent = () => {
-  // Moved R3F/Drei imports inside this component or a component it uses
   const { Canvas, useFrame } = require("@react-three/fiber");
   const { Stars, OrbitControls, Float, MeshDistortMaterial, Environment } = require("@react-three/drei");
   const THREE_NAMESPACE = require("three");
 
+  // React hooks like useRef, useMemo are standard and can be used here as GalaxyCanvasContent
+  // will be part of a client component tree.
+  const reactUseRef = useRef;
+  const reactUseMemo = useMemo;
+
 
   function GalaxyCore() {
-    const meshRef = useRef<THREE.Mesh>(null)
-    const materialRef = useRef<THREE.ShaderMaterial>(null)
+    const meshRef = reactUseRef<THREE.Mesh>(null);
+    const materialRef = reactUseRef<THREE.ShaderMaterial>(null);
 
-    const uniforms = useMemo(
+    const uniforms = reactUseMemo(
       () => ({
         time: { value: 0 },
         colorA: { value: new THREE_NAMESPACE.Color("#1a0b2e") },
         colorB: { value: new THREE_NAMESPACE.Color("#16213e") },
       }),
       [],
-    )
+    );
 
     useFrame((state: any) => {
       if (materialRef.current) {
-        materialRef.current.uniforms.time.value = state.clock.elapsedTime * 0.1
+        materialRef.current.uniforms.time.value = state.clock.elapsedTime * 0.1;
       }
       if (meshRef.current) {
-        meshRef.current.rotation.y = state.clock.elapsedTime * 0.05
-        meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1
+        meshRef.current.rotation.y = state.clock.elapsedTime * 0.05;
+        meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
       }
-    })
+    });
 
     return (
       <mesh ref={meshRef} position={[0, 0, -50]}>
@@ -69,18 +75,18 @@ const GalaxyCanvasContent = () => {
           side={THREE_NAMESPACE.DoubleSide}
         />
       </mesh>
-    )
+    );
   }
 
   function NebulaCloud({ position }: { position: [number, number, number] }) {
-    const meshRef = useRef<THREE.Mesh>(null)
+    const meshRef = reactUseRef<THREE.Mesh>(null);
 
     useFrame((state: any) => {
       if (meshRef.current) {
-        meshRef.current.rotation.y = state.clock.elapsedTime * 0.02
-        meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.05) * 0.1
+        meshRef.current.rotation.y = state.clock.elapsedTime * 0.02;
+        meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.05) * 0.1;
       }
-    })
+    });
 
     return (
       <Float speed={1} rotationIntensity={0.2} floatIntensity={0.5}>
@@ -97,26 +103,26 @@ const GalaxyCanvasContent = () => {
           />
         </mesh>
       </Float>
-    )
+    );
   }
 
   function StarField() {
     return (
       <>
-        <Stars radius={300} depth={100} count={25000} factor={6} saturation={0} fade speed={0.5} />
-        <Stars radius={150} depth={50} count={8000} factor={3} saturation={0} fade speed={0.3} />
+        <Stars radius={300} depth={100} count={25000} factor={6} saturation={0} fade={true} />
+        <Stars radius={150} depth={50} count={8000} factor={3} saturation={0} fade={true} />
       </>
-    )
+    );
   }
 
   function FloatingDust() {
-    const points = useMemo(() => {
-      const temp = []
+    const points = reactUseMemo(() => {
+      const temp = [];
       for (let i = 0; i < 2000; i++) {
-        temp.push((Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200)
+        temp.push((Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200);
       }
-      return new Float32Array(temp)
-    }, [])
+      return new Float32Array(temp);
+    }, []);
 
     return (
       // @ts-ignore
@@ -127,7 +133,7 @@ const GalaxyCanvasContent = () => {
         {/* @ts-ignore */}
         <pointsMaterial size={0.5} color="#6366f1" transparent opacity={0.6} />
       </points>
-    )
+    );
   }
 
   return (
@@ -157,7 +163,6 @@ const GalaxyCanvasContent = () => {
   );
 };
 
-
 const GalaxyCanvas = dynamic(() => Promise.resolve(GalaxyCanvasContent), {
   ssr: false,
   loading: () => <div className="absolute inset-0 flex items-center justify-center bg-slate-950"><p className="text-white text-lg">Loading Galaxy...</p></div>,
@@ -165,6 +170,25 @@ const GalaxyCanvas = dynamic(() => Promise.resolve(GalaxyCanvasContent), {
 
 
 export default function LaunchpadPage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    // This check is a bit redundant if AppLayout handles general auth,
+    // but good for direct navigation to this page.
+    if (!isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <p className="text-foreground">Redirecting to login...</p>
+      </div>
+    );
+  }
+
   const navigationItems = [
     {
       title: "Founder Profile",
@@ -182,7 +206,7 @@ export default function LaunchpadPage() {
       title: "Clash of Sims",
       description: "Battle across dimensions (Coming Soon)",
       icon: Swords,
-      href: "#", // No navigation for disabled button
+      href: "#", // Stays as placeholder
       disabled: true,
     },
     {
@@ -191,7 +215,7 @@ export default function LaunchpadPage() {
       icon: Trophy,
       href: "/app/gamification",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 relative overflow-hidden font-inter">
@@ -221,7 +245,7 @@ export default function LaunchpadPage() {
         <main className="flex-1 flex items-center justify-center p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
             {navigationItems.map((item, index) => {
-              const Icon = item.icon
+              const Icon = item.icon;
               const cardContent = (
                  <div className="group relative">
                     <div className="relative backdrop-blur-2xl bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 transition-all duration-700 hover:scale-[1.02] hover:border-white/[0.15] hover:bg-white/[0.04] cursor-pointer overflow-hidden group-hover:shadow-xl group-hover:shadow-indigo-500/[0.05]">
@@ -297,6 +321,5 @@ export default function LaunchpadPage() {
         </footer>
       </div>
     </div>
-  )
+  );
 }
-
