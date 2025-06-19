@@ -24,13 +24,13 @@ import {
   Bot,
   BarChart3,
   Layers,
-  Rocket,
+  Rocket, // Changed from LogIn
   Eye,
   Activity,
   Globe,
   Atom,
   Command,
-  LogIn,
+  // LogIn icon is no longer directly used here for the nav button, Rocket is used instead
 } from "lucide-react"
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
 import { MiniChartBars } from "@/components/landing/MiniChartBars";
@@ -250,8 +250,8 @@ export default function HomePage() {
               className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 backdrop-blur-sm text-sm" 
               onClick={handleLaunchpadAccess}
             >
-              <LogIn className="w-3 h-3 mr-2" />
-              Enter ForgeSim
+              <Rocket className="w-3 h-3 mr-2" />
+              Enter Launchpad
             </Button>
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function HomePage() {
               >
                 <div className="flex items-center space-x-3">
                   <Play className="w-5 h-5" />
-                  <span>Enter the Forge</span>
+                  <span>Enter Launchpad</span>
                   <ChevronRight className="w-5 h-5" />
                 </div>
               </Button>
@@ -631,7 +631,7 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-slate-400 text-base">© {new Date().getFullYear()} ForgeSim Dynamics. All Rights Reserved.</p>
+              <p className="text-slate-400 text-base">© ${new Date().getFullYear()} ForgeSim Dynamics. All Rights Reserved.</p>
               <p className="text-slate-500 font-mono text-sm">
                 Simulation Protocol vXI • Where Visionaries Become Victors
               </p>
@@ -656,9 +656,8 @@ export default function HomePage() {
               className="bg-gradient-to-r from-primary via-blue-700 to-sky-600 hover:from-blue-800 hover:via-blue-600 hover:to-sky-500 text-white px-8 py-4 text-base font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-sky-500/20" 
               onClick={handleLaunchpadAccess}
             >
-              <Shield className="w-4 h-4 mr-2" />
-              Access Simulation Terminal
-              <Rocket className="w-4 h-4 ml-2" />
+              <Rocket className="w-4 h-4 mr-2" />
+              Enter Launchpad
             </Button>
           </div>
         </div>
