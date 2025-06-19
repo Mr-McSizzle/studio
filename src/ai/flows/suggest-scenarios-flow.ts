@@ -28,7 +28,7 @@ const prompt = ai.definePrompt({
   config: {
     temperature: 0.7, 
   },
-  prompt: `You are an expert strategic advisor for ForgeSim, a business simulation platform. Your task is to analyze the current state of the user's simulated business and generate 2-3 distinct, plausible, and insightful "what-if" scenarios for them to explore. These scenarios should prompt strategic thinking and cover different aspects like market dynamics, operational challenges, financial situations, or product development hurdles.
+  prompt: `You are an expert strategic advisor for Inceptico, a business simulation platform. Your task is to analyze the current state of the user's simulated business and generate 2-3 distinct, plausible, and insightful "what-if" scenarios for them to explore. These scenarios should prompt strategic thinking and cover different aspects like market dynamics, operational challenges, financial situations, or product development hurdles.
 
 Current Simulation State (JSON):
 {{{simulationStateJSON}}}

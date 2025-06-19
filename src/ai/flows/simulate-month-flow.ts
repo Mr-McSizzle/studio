@@ -30,7 +30,7 @@ const prompt = ai.definePrompt({
       { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
     ],
   },
-  prompt: `You are the core simulation engine for ForgeSim, an AI-powered business strategy platform.
+  prompt: `You are the core simulation engine for Inceptico, an AI-powered business strategy platform.
 Your task is to simulate one month of operations for the startup: {{{companyName}}}.
 The simulation is currently in month {{{currentSimulationMonth}}}. You will calculate outcomes for the upcoming month (which will be month {{{currentSimulationMonth}}} + 1).
 Strictly adhere to the JSON output schema. All monetary values should be interpreted in {{{financials.currencyCode}}}.

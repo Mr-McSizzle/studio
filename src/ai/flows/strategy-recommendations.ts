@@ -44,7 +44,7 @@ const prompt = ai.definePrompt({
   name: 'strategyRecommendationsPrompt',
   input: {schema: StrategyRecommendationsInputSchema},
   output: {schema: StrategyRecommendationsOutputSchema},
-  prompt: `You are an expert business strategist and predictive analyst AI for ForgeSim. Your role is to analyze the provided "digital twin" simulation data for a startup and deliver actionable strategic recommendations.
+  prompt: `You are an expert business strategist and predictive analyst AI for Inceptico. Your role is to analyze the provided "digital twin" simulation data for a startup and deliver actionable strategic recommendations.
 
 Current Digital Twin Simulation Data:
 {{{simulationData}}}
@@ -75,3 +75,4 @@ const strategyRecommendationsFlow = ai.defineFlow(
     return output;
   }
 );
+
