@@ -49,7 +49,7 @@ export default function SignUpPage() {
 
     if (signUpSuccess) {
       toast({ title: "Account Creation Initiated!", description: "Welcome to ForgeSim, Founder! Please proceed to login with your new credentials.", duration: 4000 });
-      router.push('/login'); 
+      router.push('/login');
     } else {
       toast({ title: "Sign-Up Failed", description: "This email may already be registered. Please try a different email or log in.", variant: "destructive" });
     }
@@ -117,13 +117,17 @@ export default function SignUpPage() {
                   className="bg-input/70 border-border focus:bg-input focus:border-primary placeholder:text-muted-foreground/60 py-3 text-base"
                 />
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-accent to-sky-500 hover:from-accent/90 hover:to-sky-400 text-accent-foreground text-lg py-6 shadow-md hover:shadow-primary-glow-sm transition-all duration-300 transform hover:scale-105" /* Silver to Sky Blue gradient */
               >
                 <span className="inline-flex items-center">
-                  {isLoading ? "Creating Account..." : <><Sparkles className="mr-2 h-5 w-5" />Create Account & Begin</>}
+                  {isLoading ? "Creating Account..." : (
+                    <span className="inline-flex items-center">
+                      <Sparkles className="mr-2 h-5 w-5" />Create Account & Begin
+                    </span>
+                  )}
                 </span>
               </Button>
             </form>
