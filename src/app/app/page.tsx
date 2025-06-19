@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from 'react';
@@ -24,7 +23,7 @@ export default function AppRootPage() {
       // Auth is true, now check simulation state (ensure store is hydrated)
       if (typeof simulationMonth === 'number') { 
         if (!simIsInitialized) {
-          router.replace('/app/setup');
+          router.replace('/launchpad'); // Redirect to launchpad instead of setup
         } else {
           router.replace('/app/dashboard');
         }

@@ -9,8 +9,7 @@ import {
   Box,
   Trophy,
   PanelLeft,
-  Rocket,
-  User as UserIcon, 
+  UserIcon, 
   Beaker, 
   Users, 
   ListTodo,
@@ -32,7 +31,6 @@ import { useSimulationStore } from "@/store/simulationStore";
 
 const navItems = [
   { href: "/app/dashboard", label: "Command Center", icon: LayoutDashboard, xpReward: 5 },
-  { href: "/app/setup", label: "Launch Pad", icon: Rocket, xpReward: 10 },
   { href: "/app/agents", label: "AI Squad", icon: Users, xpReward: 3 }, 
   { href: "/app/mentor", label: "EVE Assistant", icon: MessageSquare, xpReward: 5 },
   { href: "/app/simulation", label: "Control Room", icon: Box, xpReward: 8 },

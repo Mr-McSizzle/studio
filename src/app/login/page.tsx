@@ -62,7 +62,7 @@ export default function LoginPage() {
         ),
         duration: 3000 
       });
-      router.push('/app'); 
+      router.push('/launchpad'); // Redirect to launchpad instead of /app
     } else {
       toast({ title: "Login Failed", description: "Invalid email or password. Please try again.", variant: "destructive" });
     }

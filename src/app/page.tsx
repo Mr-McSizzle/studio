@@ -110,9 +110,9 @@ export default function HomePage() {
               size="lg" 
               className="w-full max-w-md bg-gradient-to-r from-accent to-yellow-400 hover:from-accent/90 hover:to-yellow-400/90 text-black font-bold text-xl py-7 rounded-lg shadow-lg hover:shadow-accent-glow-md transition-all duration-300 hover:scale-105"
             >
-              <Link href="/app">
+              <Link href="/launchpad">
                 <LogIn className="mr-3 h-6 w-6" />
-                Start Your Adventure
+                Enter Launchpad
               </Link>
             </Button>
             <p className="text-sm text-muted-foreground mt-8 flex items-center justify-center gap-1">

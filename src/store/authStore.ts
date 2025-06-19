@@ -1,4 +1,3 @@
-
 "use client";
 
 import { create } from 'zustand';
@@ -69,4 +68,3 @@ export const ensureDefaultUser = () => {
     console.log("Default mock user created for testing.");
   }
 };
-    
