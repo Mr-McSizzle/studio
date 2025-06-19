@@ -48,7 +48,7 @@ export default function AIAgentsPage() {
                 Meet Your AI Agent Team
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                Leverage specialized AI expertise to guide your startup's journey in ForgeSim. Click on an agent to start a focused conversation.
+                Leverage specialized AI expertise to guide your startup's journey in Inceptico. Click on an agent to start a focused conversation.
                 </p>
             </div>
         </div>

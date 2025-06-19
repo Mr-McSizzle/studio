@@ -1,4 +1,4 @@
-# **App Name**: ForgeSim
+# **App Name**: Inceptico
 
 ## Core Features:
 

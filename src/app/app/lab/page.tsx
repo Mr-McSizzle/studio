@@ -342,7 +342,7 @@ export default function InnovationLabPage() {
             <TestTube2 className="h-10 w-10 text-accent" />
             <div>
                 <h1 className="text-3xl font-headline text-foreground">
-                    ForgeSim Innovation Lab
+                Inceptico Innovation Lab
                 </h1>
                 <p className="text-muted-foreground">Experiment with 'what-if' scenarios, sandbox decisions, save simulation states, and get AI-driven insights.</p>
             </div>

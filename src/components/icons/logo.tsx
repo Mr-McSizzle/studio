@@ -10,13 +10,13 @@ export function IncepticoLogo(props: SVGProps<SVGSVGElement> & { width?: number 
 
   return (
     <Image
-      src="/new-assets/inceptico-logo.png" // Path to the new PNG logo in public/new-assets
-      alt="Inceptico Logo" // Updated alt text
-      width={imgWidth}
-      height={imgHeight}
-      className={props.className}
-      priority // Optional: if this logo is critical for LCP
-      data-ai-hint="company brand"
-    />
+  src="/new-assets/inceptico-logo.png"
+  alt="Inceptico Logo"
+  width={imgWidth + 7} // Increase width by 5px
+  height={imgHeight}
+  className={`${props.className} rounded-[7px]`} // Add border-radius
+  priority
+  data-ai-hint="company brand"
+/>
   );
 }

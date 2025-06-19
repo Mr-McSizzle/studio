@@ -99,7 +99,7 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <Palette className="h-6 w-6 text-accent" />
-              ForgeSim Preferences
+              Inceptico Preferences
             </CardTitle>
             <CardDescription>
               Customize your simulation experience.

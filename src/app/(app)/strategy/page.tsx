@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 // Dummy simulation data
 const dummySimulationData = {
-  companyName: "ForgeSim Innovations",
+  companyName: "Inceptico Innovations",
   currentQuarter: "Q3 2024",
   financials: {
     revenue: 45231,

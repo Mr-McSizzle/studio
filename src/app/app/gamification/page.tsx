@@ -107,7 +107,7 @@ export default function GamificationPage() {
             Progress & Achievements
         </h1>
         <p className="text-muted-foreground">
-          Track your startup score, earned rewards, active missions, and key milestones achieved within the ForgeSim AI simulation.
+          Track your startup score, earned rewards, active missions, and key milestones achieved within the Inceptico AI simulation.
         </p>
       </header>
 

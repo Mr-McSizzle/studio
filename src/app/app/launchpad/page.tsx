@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { Suspense } from 'react'; // Keep Suspense if other parts might use it, but not for canvas now
+import React from 'react'; // Removed Suspense as GalaxyCanvas is removed
 import Link from 'next/link';
 // Removed dynamic import for GalaxyCanvasComponent
 import { User, Settings, Swords, Trophy, ChevronRight } from 'lucide-react';
@@ -38,12 +38,22 @@ export default function LaunchpadPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 text-white relative overflow-hidden">
-      {/* CSS Starfield Background */}
-      <div className="stars-container">
-        <div className="stars-layer1"></div>
-        <div className="stars-layer2"></div>
-        <div className="stars-layer3"></div>
-      </div>
+      <iframe
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: -1,
+          width: '100vw',
+          height: '100vh',
+          border: 'none',
+        }}
+        src="https://embed.figma.com/design/l5G9ysj1NOhoYn8ucW1qaM/Untitled?node-id=1-2&embed-host=share"
+        allowFullScreen
+      ></iframe>
+
+      {/* Removed CSS Starfield Background and GalaxyCanvas */}
+      {/* The z-index: -1 on the iframe should place it behind the content below */}
 
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-indigo-950/30 z-10" />
       <div className="absolute inset-0 bg-gradient-to-r from-purple-950/20 via-transparent to-indigo-950/20 z-10" />
@@ -54,7 +64,7 @@ export default function LaunchpadPage() {
             <div className="flex items-center justify-center mb-6">
               <div className="w-1 h-10 bg-gradient-to-b from-transparent via-indigo-400/60 to-transparent mr-6" />
               <h1 className="text-6xl md:text-7xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-white to-slate-200 tracking-[-0.03em] leading-[0.9]">
-                ForgeSim Launchpad
+              Inceptico Launchpad
               </h1>
               <div className="w-1 h-10 bg-gradient-to-b from-transparent via-purple-400/60 to-transparent ml-6" />
             </div>

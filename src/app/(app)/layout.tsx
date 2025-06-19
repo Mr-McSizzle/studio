@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { PanelLeft } from "lucide-react";
 
-import { ForgeSimLogo } from "@/components/icons/logo";
+import { IncepticoLogo } from "@/components/icons/logo";
 import { SidebarNav, MobileSidebarNav, SidebarToggleButton } from "@/components/layout/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -24,8 +24,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <Sidebar collapsible="icon" side="left" variant="sidebar" className="border-r bg-sidebar text-sidebar-foreground">
             <SidebarHeader className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
               <Link href="/app/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground hover:text-sidebar-accent transition-colors">
-                <ForgeSimLogo className="h-7 w-7" />
-                <span className="font-headline text-lg">ForgeSim</span>
+                <IncepticoLogo className="h-7 w-7" />
+                <span className="font-headline text-lg">Inceptico</span>
               </Link>
               <div className="hidden md:block">
                 <SidebarToggleButton/>
@@ -51,8 +51,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border">
                    <div className="h-16 flex items-center px-4 border-b border-sidebar-border mb-4">
                     <Link href="/app/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground hover:text-sidebar-accent transition-colors">
-                      <ForgeSimLogo className="h-7 w-7" />
-                      <span className="font-headline text-lg">ForgeSim</span>
+                      <IncepticoLogo className="h-7 w-7" />
+                      <span className="font-headline text-lg">Inceptico</span>
                     </Link>
                   </div>
                   <MobileSidebarNav />
