@@ -267,7 +267,7 @@ export default function SetupSimulationPage() {
             Initialize Your Digital Twin
           </h1>
           <p className="text-muted-foreground">
-            Begin by choosing your founder's approach, then detail your venture. ForgeSim's AI will generate your initial simulation.
+            Begin by choosing your founder's approach, then detail your venture. Inceptico's AI will generate your initial simulation.
           </p>
         </header>
 
