@@ -1079,7 +1079,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
     }),
     {
-      name: 'simulation-storage',
+      name: 'inceptico-simulation-storage',
       storage: createJSONStorage(() => localStorage),
       merge: (persistedStateUnknown, currentState) => {
         const persistedState = persistedStateUnknown as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
@@ -1196,5 +1196,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     }
   )
 );
+
 
 

@@ -6,15 +6,15 @@ import type { GuidanceStep, QuestCompletionReward } from '@/types/guidance';
 import { predefinedGuidanceSteps, questCompletionRewardsData } from '@/lib/guidanceData';
 import { useSimulationStore } from './simulationStore'; // For awarding badges
 
-const LOCALSTORAGE_SHOWN_STEPS_KEY = 'forgeSimShownGuidanceSteps';
-const LOCALSTORAGE_AWARDED_XP_STEPS_KEY = 'forgeSimAwardedXpSteps';
-const LOCALSTORAGE_COMPLETED_QUESTS_KEY = 'forgeSimCompletedQuests';
-const LOCALSTORAGE_FOUNDER_ACUMEN_SCORE_KEY = 'forgeSimFounderAcumenScore';
-const LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY = 'forgeSimFounderAcumenLevel';
-const LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY = 'forgeSimLastDailyInsightDate';
-const LOCALSTORAGE_DAILY_INSIGHT_STREAK_KEY = 'forgeSimDailyInsightStreak';
-const LOCALSTORAGE_UNLOCKED_COSMETIC_IDS_KEY = 'forgeSimUnlockedCosmeticIds';
-const LOCALSTORAGE_ACTIVE_TIP_THEME_ID_KEY = 'forgeSimActiveTipThemeId';
+const LOCALSTORAGE_SHOWN_STEPS_KEY = 'incepticoShownGuidanceSteps';
+const LOCALSTORAGE_AWARDED_XP_STEPS_KEY = 'incepticoAwardedXpSteps';
+const LOCALSTORAGE_COMPLETED_QUESTS_KEY = 'incepticoCompletedQuests';
+const LOCALSTORAGE_FOUNDER_ACUMEN_SCORE_KEY = 'incepticoFounderAcumenScore';
+const LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY = 'incepticoFounderAcumenLevel';
+const LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY = 'incepticoLastDailyInsightDate';
+const LOCALSTORAGE_DAILY_INSIGHT_STREAK_KEY = 'incepticoDailyInsightStreak';
+const LOCALSTORAGE_UNLOCKED_COSMETIC_IDS_KEY = 'incepticoUnlockedCosmeticIds';
+const LOCALSTORAGE_ACTIVE_TIP_THEME_ID_KEY = 'incepticoActiveTipThemeId';
 
 
 interface GuidanceState {
@@ -235,7 +235,7 @@ export const useGuidanceStore = create<GuidanceState>()(
             shownSteps: loadItem(LOCALSTORAGE_SHOWN_STEPS_KEY, [], (val) => Array.isArray(val) && val.every(item => typeof item === 'string')),
             awardedXpForSteps: loadItem(LOCALSTORAGE_AWARDED_XP_STEPS_KEY, [], (val) => Array.isArray(val) && val.every(item => typeof item === 'string')),
             completedQuests: loadItem(LOCALSTORAGE_COMPLETED_QUESTS_KEY, [], (val) => Array.isArray(val) && val.every(item => typeof item === 'string')),
-            insightXp: loadItem('forgesim-guidance-storage', { insightXp: 0 })?.insightXp || 0, // From main persist key
+            insightXp: loadItem('inceptico-guidance-storage', { insightXp: 0 })?.insightXp || 0, // From main persist key
             founderAcumenScore: loadItem(LOCALSTORAGE_FOUNDER_ACUMEN_SCORE_KEY, 0, (val) => typeof val === 'number'),
             founderAcumenLevel: loadItem(LOCALSTORAGE_FOUNDER_ACUMEN_LEVEL_KEY, "Novice", (val) => typeof val === 'string'),
             lastDailyInsightShownDate: loadItem(LOCALSTORAGE_LAST_DAILY_INSIGHT_DATE_KEY, null, (val) => typeof val === 'string' || val === null),
@@ -263,7 +263,7 @@ export const useGuidanceStore = create<GuidanceState>()(
       },
     }),
     {
-      name: 'forgesim-guidance-storage', // Main key for persist middleware
+      name: 'inceptico-guidance-storage', // Main key for persist middleware
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         // Only insightXp needs to be part of the main persist object if others are handled manually
@@ -310,3 +310,4 @@ if (tip_was_user_submitted_and_now_approved) {
   // Grant "Community Sage" badge to original submitter
 }
 */
+

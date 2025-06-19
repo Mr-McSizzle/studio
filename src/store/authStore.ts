@@ -9,7 +9,7 @@ import { useAiMentorStore } from './aiMentorStore'; // Import AI Mentor store
 // !!! THIS IS A MOCK USER DATABASE AND IS NOT SECURE !!!
 // !!! FOR DEMONSTRATION PURPOSES ONLY !!!
 const mockUsers: Record<string, { name: string; passwordSaltedHash: string }> = { // passwordSaltedHash is still plaintext for mock
-  "founder@forgesim.ai": { name: "Demo Founder", passwordSaltedHash: "password123" }
+  "founder@inceptico.ai": { name: "Demo Founder", passwordSaltedHash: "password123" }
 };
 
 interface AuthState {
@@ -37,7 +37,7 @@ export const useAuthStore = create<AuthState>()(
         return false;
       },
       logout: () => {
-        localStorage.removeItem('simulation-storage'); 
+        localStorage.removeItem('inceptico-simulation-storage'); 
         useSimulationStore.getState().resetSimulation(); 
         useAiMentorStore.getState().clearChatHistory(); // Clear chat history on logout
         set({ isAuthenticated: false, userEmail: null, userName: null });
@@ -63,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
 );
 
 export const ensureDefaultUser = () => {
-  const email = "founder@forgesim.ai";
+  const email = "founder@inceptico.ai";
   if (!mockUsers[email.toLowerCase()]) {
     mockUsers[email.toLowerCase()] = { name: "Demo Founder", passwordSaltedHash: "password123" };
     console.log("Default mock user created for testing.");
