@@ -48,7 +48,7 @@ export default function SignUpPage() {
     const signUpSuccess = signUp(name, email, password);
 
     if (signUpSuccess) {
-      toast({ title: "Account Creation Initiated!", description: "Welcome to ForgeSim, Founder! Please proceed to login with your new credentials.", duration: 4000 });
+      toast({ title: "Account Creation Initiated!", description: "Welcome to Inceptico, Founder! Please proceed to login with your new credentials.", duration: 4000 });
       router.push('/login');
     } else {
       toast({ title: "Sign-Up Failed", description: "This email may already be registered. Please try a different email or log in.", variant: "destructive" });
@@ -67,7 +67,7 @@ export default function SignUpPage() {
             </Link>
             <CardTitle className="text-3xl font-headline text-glow-accent">Join the Forge</CardTitle> {/* Accent glow */}
             <CardDescription className="text-muted-foreground mt-2">
-              Begin your journey. Create your ForgeSim Founder account.
+              Begin your journey. Create your Inceptico Founder account.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6 sm:px-8 py-6">
@@ -96,7 +96,7 @@ export default function SignUpPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ada.lovelace@forgesim.ai"
+                  placeholder="ada.lovelace@inceptico.ai"
                   required
                   disabled={isLoading}
                   className="bg-input/70 border-border focus:bg-input focus:border-primary placeholder:text-muted-foreground/60 py-3 text-base"
@@ -145,7 +145,7 @@ export default function SignUpPage() {
               <Link href="/">
                 <span className="inline-flex items-center">
                     <Home className="mr-1 h-3 w-3 inline-block align-middle"/>
-                    Back to ForgeSim Home
+                    Back to Inceptico Home
                 </span>
               </Link>
             </Button>

@@ -79,7 +79,7 @@ export default function LoginPage() {
               Welcome Back, Founder
             </CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
-              Log in to your ForgeSim Digital Twin.
+              Log in to your Inceptico Digital Twin.
               <br />
               <span className="text-xs">(Test with: founder@forgesim.ai / password123)</span>
             </CardDescription>
@@ -136,7 +136,7 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col items-center text-center pb-8 pt-4">
             <p className="text-sm text-muted-foreground">
-              New to ForgeSim?{' '}
+              New to Inceptico?{' '}
               <Button variant="link" asChild className="text-accent hover:text-accent/80 p-0 h-auto font-semibold text-glow-accent">
                 <Link href="/signup"><span>Create Your Account</span></Link>
               </Button>
@@ -145,7 +145,7 @@ export default function LoginPage() {
               <Link href="/">
                 <span className="inline-flex items-center">
                   <Home className="mr-1 h-3 w-3 inline-block align-middle" />
-                  Back to ForgeSim Home
+                  Back to Inceptico Home
                 </span>
               </Link>
             </Button>

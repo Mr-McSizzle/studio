@@ -4,8 +4,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'ForgeSim - AI Business Simulation',
-  description: 'ForgeSim: An innovative AI-powered platform to simulate business operations, empowering startups to test, refine, and perfect their strategies. Create a digital twin of your business for predictive analytics, risk assessment, and personalized guidance.',
+  title: 'Inceptico - AI Business Simulation',
+  description: 'Inceptico: An innovative AI-powered platform to simulate business operations, empowering startups to test, refine, and perfect their strategies. Create a digital twin of your business for predictive analytics, risk assessment, and personalized guidance.',
 };
 
 export default function RootLayout({

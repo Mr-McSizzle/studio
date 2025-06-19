@@ -134,7 +134,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <SidebarHeader className="h-20 flex items-center justify-between px-4 border-b border-sidebar-border">
               <Link href="/app/dashboard" className="flex items-center gap-2.5 font-semibold text-sidebar-foreground hover:text-sidebar-primary transition-colors">
                 <ForgeSimLogo className="h-10 w-10 text-primary group-hover:text-accent transition-colors duration-300" />
-                <span className="font-headline text-2xl text-glow-accent group-data-[sidebar-state=collapsed]:hidden">ForgeSim</span>
+                <span className="font-headline text-2xl text-glow-accent group-data-[sidebar-state=collapsed]:hidden">Inceptico</span>
               </Link>
               <div className="hidden md:block group-data-[sidebar-state=expanded]:opacity-100 group-data-[sidebar-state=collapsed]:opacity-0 transition-opacity">
                 <SidebarToggleButton/>
@@ -152,7 +152,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
              <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-md px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
                <Link href="/app/dashboard" className="flex items-center gap-2 font-semibold">
                   <ForgeSimLogo className="h-8 w-8 text-primary" />
-                  <span className="font-headline text-xl text-glow-accent">ForgeSim</span>
+                  <span className="font-headline text-xl text-glow-accent">Inceptico</span>
                 </Link>
               <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
                 <SheetTrigger asChild>
@@ -165,7 +165,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                    <div className="h-20 flex items-center px-4 border-b border-sidebar-border mb-4">
                     <Link href="/app/dashboard" onClick={closeMobileSheet} className="flex items-center gap-2.5 font-semibold text-sidebar-foreground hover:text-sidebar-primary transition-colors">
                       <ForgeSimLogo className="h-10 w-10 text-primary" />
-                      <span className="font-headline text-2xl text-glow-accent">ForgeSim</span>
+                      <span className="font-headline text-2xl text-glow-accent">Inceptico</span>
                     </Link>
                   </div>
                   <div className="p-2">
