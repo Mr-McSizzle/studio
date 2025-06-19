@@ -123,7 +123,9 @@ export default function SignUpPage() {
                 className="w-full bg-gradient-to-r from-accent to-sky-500 hover:from-accent/90 hover:to-sky-400 text-accent-foreground text-lg py-6 shadow-md hover:shadow-primary-glow-sm transition-all duration-300 transform hover:scale-105" /* Silver to Sky Blue gradient */
               >
                 <span className="inline-flex items-center">
-                  {isLoading ? "Creating Account..." : (
+                  {isLoading ? (
+                    "Creating Account..."
+                  ) : (
                     <span className="inline-flex items-center">
                       <Sparkles className="mr-2 h-5 w-5" />Create Account & Begin
                     </span>
@@ -136,7 +138,7 @@ export default function SignUpPage() {
             <p className="text-sm text-muted-foreground">
               Already a Founder?{' '}
               <Button variant="link" asChild className="text-primary hover:text-primary/80 p-0 h-auto font-semibold text-glow-primary"> {/* Primary is blue */}
-                <Link href="/login"><span>Log In to Your Simulation</span></Link>
+                <Link href="/login">Log In to Your Simulation</Link>
               </Button>
             </p>
              <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">
