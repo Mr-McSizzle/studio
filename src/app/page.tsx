@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import Link from 'next/link'; 
+import Link from 'next/link';
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button"
@@ -29,7 +29,7 @@ import {
   Globe,
   Atom,
   Command,
-  Rocket // Changed from LayoutDashboard
+  Rocket
 } from "lucide-react"
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
 import { MiniChartBars } from "@/components/landing/MiniChartBars";
@@ -48,21 +48,21 @@ export default function HomePage() {
       name: "EVE",
       role: "Central AI Strategist",
       icon: Brain,
-      color: "from-sky-500 to-blue-600", 
+      color: "from-sky-500 to-blue-600",
       status: "Online",
     },
     {
       name: "ALEX",
       role: "Financial Forecaster",
       icon: BarChart3,
-      color: "from-blue-600 to-sky-700", 
+      color: "from-blue-600 to-sky-700",
       status: "Analyzing",
     },
     {
       name: "MAYA",
       role: "Marketing Mastermind",
-      icon: Rocket, // Changed from LayoutDashboard
-      color: "from-sky-600 to-blue-500", 
+      icon: Rocket,
+      color: "from-sky-600 to-blue-500",
       status: "Optimizing",
     },
   ]
@@ -106,14 +106,14 @@ export default function HomePage() {
       title: "Risk-Free Experimentation",
       description: "Test bold ideas without real-world consequences. Iterate on strategies in a safe, dynamic sandbox.",
       progress: 95,
-      color: "from-blue-700 to-sky-600", 
+      color: "from-blue-700 to-sky-600",
     },
     {
       icon: TrendingUp,
       title: "Accelerated Learning Cycles",
       description: "Rapidly understand market dynamics and the cause-and-effect of your strategic choices.",
       progress: 88,
-      color: "from-sky-600 to-blue-700", 
+      color: "from-sky-600 to-blue-700",
     },
     {
       icon: Brain,
@@ -121,28 +121,28 @@ export default function HomePage() {
       description:
         "Leverage predictive analytics and expert AI agent insights to anticipate challenges and seize opportunities.",
       progress: 92,
-      color: "from-blue-500 to-sky-500", 
+      color: "from-blue-500 to-sky-500",
     },
     {
       icon: Layers,
       title: "Digital Twin Precision",
       description: "Create a comprehensive virtual replica of your business for iterative testing and refinement.",
       progress: 97,
-      color: "from-sky-700 to-blue-700", 
+      color: "from-sky-700 to-blue-700",
     },
     {
       icon: Users,
       title: "Expert Agent Team",
       description: "Collaborate with specialized AI agents for domain-specific insights and simulated actions.",
       progress: 90,
-      color: "from-blue-800 to-sky-700", 
+      color: "from-blue-800 to-sky-700",
     },
     {
       icon: BarChart3,
       title: "Dynamic Scenario Simulation",
       description: "Explore 'what-if' scenarios, predict outcomes, and identify emerging risks and opportunities.",
       progress: 94,
-      color: "from-sky-500 to-blue-600", 
+      color: "from-sky-500 to-blue-600",
     },
   ]
 
@@ -151,7 +151,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative font-body">
       <div className="fixed inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/40 to-background" /> 
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/40 to-background" />
         <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-primary/10" />
         <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-background" />
         <div
@@ -162,7 +162,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 opacity-20">
           <div
-            className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10" 
+            className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10"
             style={{
               transform: `translateY(${scrollY * 0.5}px) rotate(${scrollY * 0.1}deg)`,
             }}
@@ -197,7 +197,7 @@ export default function HomePage() {
             }}
           >
             <div
-              className={`w-12 h-12 border border-accent/20 ${i % 2 === 0 ? "rotate-45" : "rounded-full"}`} 
+              className={`w-12 h-12 border border-accent/20 ${i % 2 === 0 ? "rotate-45" : "rounded-full"}`}
               style={{
                 transform: `rotate(${scrollY * 0.1 + i * 45}deg)`,
               }}
@@ -209,14 +209,14 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary/25 group-hover:shadow-blue-400/40 transition-shadow"> 
-                <Cpu className="w-5 h-5 text-primary-foreground" /> 
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary/25 group-hover:shadow-blue-400/40 transition-shadow">
+                <Cpu className="w-5 h-5 text-primary-foreground" />
               </div>
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </div>
             <div>
-              <span className="text-lg font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent group-hover:text-sky-200 transition-colors"> 
-                ForgeSim
+              <span className="text-lg font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent group-hover:text-sky-200 transition-colors">
+                Inceptico
               </span>
               <div className="text-xs text-slate-500 font-mono">vXI.2.7</div>
             </div>
@@ -230,7 +230,7 @@ export default function HomePage() {
             <Button
               variant="outline"
               size="sm"
-              className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 backdrop-blur-sm text-sm" 
+              className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 backdrop-blur-sm text-sm"
               onClick={handleAppAccess}
             >
               <Rocket className="w-3 h-3 mr-2" />
@@ -243,14 +243,14 @@ export default function HomePage() {
       <section ref={heroRef} className="relative z-10 pt-8 pb-16">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <div
-            className={`transition-all duration-1000 ${ 
+            className={`transition-all duration-1000 ${
               isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
             }`}
           >
             <div className="mb-6 flex justify-center">
-              <Badge className="bg-gradient-to-r from-primary/20 to-blue-500/20 text-sky-300 border-sky-500/30 hover:bg-blue-500/30 transition-all duration-300 px-4 py-1 text-xs backdrop-blur-sm"> 
+              <Badge className="bg-gradient-to-r from-primary/20 to-blue-500/20 text-sky-300 border-sky-500/30 hover:bg-blue-500/30 transition-all duration-300 px-4 py-1 text-xs backdrop-blur-sm">
                 <Sparkles className="w-3 h-3 mr-2 animate-pulse" />
-                Simulation Protocol vXI • Neural Network Active
+                Inceptico Protocol vXI • Neural Network Active
                 <Activity className="w-3 h-3 ml-2" />
               </Badge>
             </div>
@@ -263,8 +263,8 @@ export default function HomePage() {
                     transform: `perspective(1000px) rotateX(${scrollY * 0.02}deg) rotateY(${mousePosition.x * 0.01 - 5}deg)`,
                   }}
                 >
-                  <span className="block bg-gradient-to-r from-white via-slate-200 to-sky-300 bg-clip-text text-transparent drop-shadow-2xl"> 
-                    FORGE
+                  <span className="block bg-gradient-to-r from-white via-slate-200 to-sky-300 bg-clip-text text-transparent drop-shadow-2xl">
+                    INCEPT
                   </span>
                   <span className="block bg-gradient-to-r from-sky-400 via-blue-400 to-sky-500 bg-clip-text text-transparent drop-shadow-2xl">
                     YOUR
@@ -275,7 +275,7 @@ export default function HomePage() {
                 </div>
               </h1>
 
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-48 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent opacity-60 animate-pulse" /> 
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-48 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent opacity-60 animate-pulse" />
             </div>
 
             <div className="mb-8 space-y-3">
@@ -286,15 +286,15 @@ export default function HomePage() {
 
               <div className="flex justify-center space-x-6 text-xs text-slate-400 mt-6">
                 <div className="flex items-center space-x-1.5">
-                  <Globe className="w-3 h-3 text-sky-400" /> 
+                  <Globe className="w-3 h-3 text-sky-400" />
                   <span>10,000+ Simulations</span>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <Users className="w-3 h-3 text-blue-400" /> 
+                  <Users className="w-3 h-3 text-blue-400" />
                   <span>500+ Startups</span>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <Zap className="w-3 h-3 text-sky-500" /> 
+                  <Zap className="w-3 h-3 text-sky-500" />
                   <span>99.9% Uptime</span>
                 </div>
               </div>
@@ -303,7 +303,7 @@ export default function HomePage() {
             <div className="relative inline-block">
               <Button
                 size="lg"
-                className="relative bg-gradient-to-r from-primary via-blue-700 to-sky-600 hover:from-blue-800 hover:via-blue-600 hover:to-sky-500 text-white px-10 py-5 text-lg font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-sky-500/20" 
+                className="relative bg-gradient-to-r from-primary via-blue-700 to-sky-600 hover:from-blue-800 hover:via-blue-600 hover:to-sky-500 text-white px-10 py-5 text-lg font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-sky-500/20"
                 style={{
                   boxShadow: `0 0 30px hsl(var(--primary) / 0.2), 0 0 60px hsl(var(--accent) / 0.1)`,
                 }}
@@ -315,7 +315,7 @@ export default function HomePage() {
                   <ChevronRight className="w-5 h-5" />
                 </div>
               </Button>
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-sky-600/20 to-blue-600/20 rounded-xl blur-xl -z-10 animate-pulse" /> 
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-sky-600/20 to-blue-600/20 rounded-xl blur-xl -z-10 animate-pulse" />
             </div>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function HomePage() {
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-primary/25"> 
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-primary/25">
                     <Network className="w-6 h-6 text-primary-foreground" />
                   </div>
                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full flex items-center justify-center">
@@ -335,7 +335,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent"> 
+                  <h2 className="text-3xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
                     Dynamic Simulation Core
                   </h2>
                   <p className="text-slate-400 text-sm">Real-time business modeling engine</p>
@@ -348,13 +348,13 @@ export default function HomePage() {
               </p>
 
               <p className="text-base text-slate-400 leading-relaxed">
-                ForgeSim's advanced algorithms model complex interactions, offering a risk-free environment to
+                Inceptico's advanced algorithms model complex interactions, offering a risk-free environment to
                 experiment and iterate towards perfection.
               </p>
 
               <Button
                 variant="outline"
-                className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 px-6 py-3 text-sm backdrop-blur-sm hover:shadow-lg hover:shadow-accent/25" 
+                className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 px-6 py-3 text-sm backdrop-blur-sm hover:shadow-lg hover:shadow-accent/25"
                 asChild
               >
                 <Link href="/app/simulation">
@@ -372,7 +372,7 @@ export default function HomePage() {
                   transform: `perspective(1000px) rotateY(${mousePosition.x * 0.02 - 10}deg) rotateX(${mousePosition.y * 0.01 - 5}deg)`,
                 }}
               >
-                <Card className="bg-gradient-to-br from-background/30 to-primary/30 border-accent/30 backdrop-blur-lg shadow-2xl shadow-accent/20"> 
+                <Card className="bg-gradient-to-br from-background/30 to-primary/30 border-accent/30 backdrop-blur-lg shadow-2xl shadow-accent/20">
                   <CardContent className="p-8">
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
@@ -385,7 +385,7 @@ export default function HomePage() {
 
                       <div className="space-y-4">
                         {[
-                          { name: "Market Analysis", progress: 87, color: "sky" }, 
+                          { name: "Market Analysis", progress: 87, color: "sky" },
                           { name: "Risk Assessment", progress: 92, color: "blue" },
                           { name: "Growth Projection", progress: 78, color: "indigo" },
                         ].map((item, i) => (
@@ -402,8 +402,8 @@ export default function HomePage() {
                         ))}
                       </div>
 
-                      <div className="mt-6 p-3 bg-black/20 rounded-lg border border-accent/10"> 
-                        <MiniChartBars barColors={["from-sky-600 to-blue-500", "from-blue-700 to-sky-600"]} /> 
+                      <div className="mt-6 p-3 bg-black/20 rounded-lg border border-accent/10">
+                        <MiniChartBars barColors={["from-sky-600 to-blue-500", "from-blue-700 to-sky-600"]} />
                       </div>
                     </div>
                   </CardContent>
@@ -424,12 +424,12 @@ export default function HomePage() {
                   transform: `perspective(1000px) rotateY(${-mousePosition.x * 0.02 + 10}deg) rotateX(${mousePosition.y * 0.01 - 5}deg)`,
                 }}
               >
-                <Card className="bg-gradient-to-br from-background/30 to-primary/30 border-accent/30 backdrop-blur-lg shadow-2xl shadow-accent/20"> 
+                <Card className="bg-gradient-to-br from-background/30 to-primary/30 border-accent/30 backdrop-blur-lg shadow-2xl shadow-accent/20">
                   <CardContent className="p-8">
                     <div className="space-y-6">
                       <div className="text-center">
                         <div className="relative inline-block mb-4">
-                          <div className="w-16 h-16 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center shadow-2xl shadow-primary/25"> 
+                          <div className="w-16 h-16 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center shadow-2xl shadow-primary/25">
                             <AgentIcon className="w-8 h-8 text-primary-foreground" />
                           </div>
                           <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full flex items-center justify-center animate-pulse">
@@ -451,7 +451,7 @@ export default function HomePage() {
                             key={agent.name}
                             className={`p-3 rounded-lg border transition-all duration-300 cursor-pointer ${
                               index === activeAgent
-                                ? "bg-white/10 border-accent/30 shadow-lg" 
+                                ? "bg-white/10 border-accent/30 shadow-lg"
                                 : "bg-white/5 border-white/10 hover:bg-white/10"
                             }`}
                             onClick={() => setActiveAgent(index)}
@@ -466,7 +466,7 @@ export default function HomePage() {
                         ))}
                       </div>
 
-                      <div className="relative h-16 bg-black/20 rounded-lg border border-accent/10 overflow-hidden"> 
+                      <div className="relative h-16 bg-black/20 rounded-lg border border-accent/10 overflow-hidden">
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="flex space-x-3">
                             {[...Array(5)].map((_, i) => (
@@ -474,7 +474,7 @@ export default function HomePage() {
                                 {[...Array(3)].map((_, j) => (
                                   <div
                                     key={j}
-                                    className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse" 
+                                    className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse"
                                     style={{
                                       animationDelay: `${(i + j) * 0.2}s`,
                                     }}
@@ -494,15 +494,15 @@ export default function HomePage() {
             <div className="space-y-6 order-1 lg:order-2">
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-primary/25"> 
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-primary/25">
                     <Brain className="w-6 h-6 text-primary-foreground" />
                   </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-sky-400 rounded-full flex items-center justify-center"> 
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-sky-400 rounded-full flex items-center justify-center">
                     <Zap className="w-2 h-2 text-black" />
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent"> 
+                  <h2 className="text-3xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
                     AI Hive Mind Guidance
                   </h2>
                   <p className="text-slate-400 text-sm">Neural network intelligence</p>
@@ -521,7 +521,7 @@ export default function HomePage() {
 
               <Button
                 variant="outline"
-                className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 px-6 py-3 text-sm backdrop-blur-sm hover:shadow-lg hover:shadow-accent/25" 
+                className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 px-6 py-3 text-sm backdrop-blur-sm hover:shadow-lg hover:shadow-accent/25"
                 asChild
               >
                 <Link href="/app/mentor">
@@ -538,7 +538,7 @@ export default function HomePage() {
       <section className="relative z-10 py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-sky-300 via-blue-300 to-sky-400 bg-clip-text text-transparent"> 
+            <h2 className="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-sky-300 via-blue-300 to-sky-400 bg-clip-text text-transparent">
               Unlock Strategic Mastery
             </h2>
             <p className="text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed font-light">
@@ -556,7 +556,7 @@ export default function HomePage() {
                 }}
               >
                 <Card
-                  className="h-full bg-gradient-to-br from-slate-900/50 to-primary/30 border-slate-700/50 backdrop-blur-lg hover:border-accent/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-accent/20 group-hover:bg-gradient-to-br group-hover:from-slate-800/60 group-hover:to-primary/40" 
+                  className="h-full bg-gradient-to-br from-slate-900/50 to-primary/30 border-slate-700/50 backdrop-blur-lg hover:border-accent/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-accent/20 group-hover:bg-gradient-to-br group-hover:from-slate-800/60 group-hover:to-primary/40"
                   style={{
                     transform: `perspective(1000px) rotateX(${mousePosition.y * 0.005}deg) rotateY(${mousePosition.x * 0.005}deg)`,
                   }}
@@ -573,7 +573,7 @@ export default function HomePage() {
                       </div>
 
                       <div>
-                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-sky-300 transition-colors"> 
+                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-sky-300 transition-colors">
                           {feature.title}
                         </h3>
                         <p className="text-slate-400 leading-relaxed text-sm">{feature.description}</p>
@@ -582,7 +582,7 @@ export default function HomePage() {
                       <div className="space-y-1.5">
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-slate-500">Optimization Level</span>
-                          <span className="text-xs font-mono text-sky-400">{feature.progress}%</span> 
+                          <span className="text-xs font-mono text-sky-400">{feature.progress}%</span>
                         </div>
                         <Progress value={feature.progress} className="h-1.5 bg-slate-800" indicatorClassName={`bg-gradient-to-r ${feature.color}`} />
                       </div>
@@ -600,21 +600,21 @@ export default function HomePage() {
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center space-x-3">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-primary/25"> 
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-primary/25">
                   <Cpu className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
               </div>
               <div>
-                <span className="text-2xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent"> 
-                  ForgeSim Dynamics
+                <span className="text-2xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
+                  Inceptico Dynamics
                 </span>
                 <div className="text-xs text-slate-400 font-mono">Neural Architecture vXI.2.7</div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <p className="text-slate-400 text-base">© ${new Date().getFullYear()} ForgeSim Dynamics. All Rights Reserved.</p>
+              <p className="text-slate-400 text-base">© ${new Date().getFullYear()} Inceptico Dynamics. All Rights Reserved.</p>
               <p className="text-slate-500 font-mono text-sm">
                 Simulation Protocol vXI • Where Visionaries Become Victors
               </p>
@@ -626,17 +626,17 @@ export default function HomePage() {
                 <span>Quantum Core Online</span>
               </div>
               <div className="flex items-center space-x-1.5">
-                <div className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse" /> 
+                <div className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse" />
                 <span>AI Agents Active</span>
               </div>
               <div className="flex items-center space-x-1.5">
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" /> 
+                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
                 <span>Neural Network Stable</span>
               </div>
             </div>
 
-            <Button 
-              className="bg-gradient-to-r from-primary via-blue-700 to-sky-600 hover:from-blue-800 hover:via-blue-600 hover:to-sky-500 text-white px-8 py-4 text-base font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-sky-500/20" 
+            <Button
+              className="bg-gradient-to-r from-primary via-blue-700 to-sky-600 hover:from-blue-800 hover:via-blue-600 hover:to-sky-500 text-white px-8 py-4 text-base font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-sky-500/20"
               onClick={handleAppAccess}
             >
               <Rocket className="w-4 h-4 mr-2" />

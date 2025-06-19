@@ -3,23 +3,23 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore'; 
-import { Loader2, ShieldCheck, Settings2, Activity, Rocket } from 'lucide-react'; // Changed LayoutDashboard to Rocket
+import { useAuthStore } from '@/store/authStore';
+import { Loader2, ShieldCheck, Settings2, Activity, Rocket } from 'lucide-react';
 import { ForgeSimLogo } from '@/components/icons/logo';
 
 export default function AppRootPage() {
   const router = useRouter();
-  const { isAuthenticated, userEmail } = useAuthStore(); 
+  const { isAuthenticated, userEmail } = useAuthStore();
 
   useEffect(() => {
-    if (userEmail === undefined) { 
-      return; 
+    if (userEmail === undefined) {
+      return;
     }
 
     if (!isAuthenticated) {
       router.replace('/login');
     } else {
-      router.replace('/app/launchpad'); 
+      router.replace('/app/launchpad');
     }
   }, [isAuthenticated, userEmail, router]);
 
@@ -31,7 +31,7 @@ export default function AppRootPage() {
       </div>
       <h2 className="text-2xl font-headline text-glow-primary mb-2">Engaging Simulation Core...</h2>
       <p className="text-md text-muted-foreground mb-6 max-w-md text-center">
-        Verifying credentials and preparing your ForgeSim Launchpad. Please wait.
+        Verifying credentials and preparing your Inceptico Launchpad. Please wait.
       </p>
       <div className="flex space-x-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-1.5">

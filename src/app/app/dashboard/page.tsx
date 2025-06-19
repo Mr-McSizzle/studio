@@ -304,7 +304,7 @@ export default function DashboardPage() {
               </Tooltip>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-headline text-foreground text-glow-primary">
-                  {isInitialized ? companyName : "ForgeSim"} Hive Command
+                  {isInitialized ? companyName : "Inceptico"} Hive Command
                 </h1>
                 <p className="text-xs text-muted-foreground mt-1">Overall Progress: Month {isInitialized ? simulationMonth : "0"} / {MAX_SIMULATION_MONTHS}</p>
                 <Progress value={overallProgress} className="mt-1.5 h-2 rounded-sm glow-progress-bar" indicatorClassName="bg-gradient-to-r from-primary via-accent to-primary/70 shadow-sm shadow-primary/40"/>
