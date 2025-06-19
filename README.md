@@ -1,18 +1,18 @@
 
-# ForgeSim: AI-Powered Business Simulation Platform
+# Inceptico: AI-Powered Business Simulation Platform
 
-ForgeSim is an innovative platform designed to simulate business operations, empowering startups and established businesses to test, refine, and perfect their strategies in a risk-free, dynamic environment. By harnessing the power of AI, ForgeSim provides a "digital twin" for businesses, offering a unique blend of predictive analytics, risk assessment, scenario simulation, and personalized guidance from AI expert agents.
+Inceptico is an innovative platform designed to simulate business operations, empowering startups and established businesses to test, refine, and perfect their strategies in a risk-free, dynamic environment. By harnessing the power of AI, Inceptico provides a "digital twin" for businesses, offering a unique blend of predictive analytics, risk assessment, scenario simulation, and personalized guidance from AI expert agents.
 
-## How ForgeSim Works
+## How Inceptico Works
 
-1.  **Pre-Launch & Scenario Simulation**: Users input their business plan, including target market, financial projections, operational details, and strategic goals. ForgeSim's AI processes this information to create a dynamic digital twin of the business.
+1.  **Pre-Launch & Scenario Simulation**: Users input their business plan, including target market, financial projections, operational details, and strategic goals. Inceptico's AI processes this information to create a dynamic digital twin of the business.
 2.  **AI Expert Agents**: A suite of AI agents, each with distinct personalities and specialized expertise (e.g., AI Accountant, AI Marketing Guru, AI Social Media Strategist, AI Operations Manager, AI Expansion Expert), interact with the simulation. They analyze data, provide recommendations, and react to decisions made within the simulation.
 3.  **Hive Mind Guidance**: A central AI assistant, acting as the "Queen Hive Mind," communicates with the startup founders. This assistant synthesizes insights from all specialized AI agents, offering tailored advice, strategic guidance, and highlighting critical areas for attention.
 4.  **Risk Assessment and Mitigation**: By running various "what-if" scenarios (e.g., market downturns, competitor actions, supply chain disruptions), startups can identify potential risks. The AI agents and Hive Mind Assistant help develop strategies to mitigate these risks.
 5.  **Performance Visualization & Dashboards**: Dynamic dashboards visually track key performance indicators (KPIs), simulation outcomes, financial health, market penetration, and other critical business metrics.
 6.  **Strategic Recommendations**: The platform aggregates simulation data and AI agent insights to provide actionable strategic recommendations, helping users make informed decisions to optimize for growth, profitability, and resilience.
 7.  **Gamification & Progress Tracking**: Gamified elements, including missions, rewards, and a "Startup Score," motivate users and provide a clear path for progressing through simulation challenges and learning objectives.
-8.  **Post-Launch & Continuous Support**: ForgeSim continues to support businesses by allowing them to model future scenarios, predict outcomes of strategic pivots, and receive ongoing actionable insights based on evolving simulated market conditions.
+8.  **Post-Launch & Continuous Support**: Inceptico continues to support businesses by allowing them to model future scenarios, predict outcomes of strategic pivots, and receive ongoing actionable insights based on evolving simulated market conditions.
 
 ## Key Features
 
@@ -33,7 +33,7 @@ ForgeSim is an innovative platform designed to simulate business operations, emp
 
 ## Target Market
 
-ForgeSim is designed for a broad range of users:
+Inceptico is designed for a broad range of users:
 
 *   **Early-Stage Startups**: Helping founders refine their business models, validate assumptions, and prepare for launch.
 *   **Growth-Stage Startups**: Supporting established businesses in exploring expansion strategies, new market entry, or product diversification.
@@ -42,11 +42,11 @@ ForgeSim is designed for a broad range of users:
 
 ## Competitive Advantage
 
-ForgeSim's unique blend of comprehensive digital twin simulation, a diverse team of AI-powered expert agents, a coordinating Hive Mind Assistant, and dynamic predictive analytics sets it apart from traditional business planning tools or simpler simulators. It offers a deeply interactive and insightful approach to strategic development.
+Inceptico's unique blend of comprehensive digital twin simulation, a diverse team of AI-powered expert agents, a coordinating Hive Mind Assistant, and dynamic predictive analytics sets it apart from traditional business planning tools or simpler simulators. It offers a deeply interactive and insightful approach to strategic development.
 
 ## Vision
 
-ForgeSim aims to revolutionize the startup and business strategy ecosystem by providing a cutting-edge platform for AI-driven simulation and development. We empower founders and leaders to achieve their full potential by making complex decision-making more accessible, insightful, and data-driven.
+Inceptico aims to revolutionize the startup and business strategy ecosystem by providing a cutting-edge platform for AI-driven simulation and development. We empower founders and leaders to achieve their full potential by making complex decision-making more accessible, insightful, and data-driven.
 
 This is a NextJS starter in Firebase Studio.
 To get started, take a look at `src/app/page.tsx`.
