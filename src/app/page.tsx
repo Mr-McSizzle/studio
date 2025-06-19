@@ -16,7 +16,6 @@ import {
   Shield,
   TrendingUp,
   Users,
-  Cpu,
   Network,
   ChevronRight,
   Play,
@@ -33,6 +32,7 @@ import {
 } from "lucide-react"
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
 import { MiniChartBars } from "@/components/landing/MiniChartBars";
+import { ForgeSimLogo } from "@/components/icons/logo"; // Import the logo component
 
 export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -210,7 +210,7 @@ export default function HomePage() {
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary/25 group-hover:shadow-blue-400/40 transition-shadow">
-                <Cpu className="w-5 h-5 text-primary-foreground" />
+                <ForgeSimLogo width={20} height={20} className="text-primary-foreground" />
               </div>
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </div>
@@ -601,7 +601,7 @@ export default function HomePage() {
             <div className="flex items-center justify-center space-x-3">
               <div className="relative">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-primary/25">
-                  <Cpu className="w-5 h-5 text-primary-foreground" />
+                  <ForgeSimLogo width={24} height={24} className="text-primary-foreground" />
                 </div>
                 <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
               </div>
@@ -648,5 +648,3 @@ export default function HomePage() {
     </div>
   )
 }
-
-    
