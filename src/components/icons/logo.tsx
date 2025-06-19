@@ -12,7 +12,7 @@ export function ForgeSimLogo(props: SVGProps<SVGSVGElement> & { width?: number |
 
   return (
     <Image
-      src="/new-assets/inceptico-logo.svg" // Path to the new logo in public/new-assets
+      src="/new-assets/inceptico-logo.png" // Path to the new PNG logo in public/new-assets
       alt="Inceptico Logo"
       width={imgWidth}
       height={imgHeight}
