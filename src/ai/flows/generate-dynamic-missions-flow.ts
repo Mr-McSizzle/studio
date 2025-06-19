@@ -22,7 +22,7 @@ const prompt = ai.definePrompt({
   config: {
     temperature: 0.75, // Slightly higher for more creative/varied missions
   },
-  prompt: `You are an expert game designer and startup advisor for ForgeSim, a business simulation platform.
+  prompt: `You are an expert game designer and startup advisor for Inceptico, a business simulation platform.
 Your task is to analyze the current state of the user's simulated business and generate 2-3 relevant, challenging, and rewarding missions.
 
 Current Simulation State (JSON):

@@ -23,7 +23,7 @@ const prompt = ai.definePrompt({
   config: {
     temperature: 0.5,
   },
-  prompt: `You are Alex, the AI Accountant for ForgeSim. Provide a detailed financial analysis based on the provided simulation data and user query.
+  prompt: `You are Alex, the AI Accountant for Inceptico. Provide a detailed financial analysis based on the provided simulation data and user query.
 
 Current Simulation State (JSON):
 {{{simulationStateJSON}}}
@@ -57,8 +57,8 @@ const detailedFinancialAnalysisGenkitFlow = ai.defineFlow(
 
     if (!output || !output.analysisSummary || !Array.isArray(output.keyObservations)) {
       console.error("AI detailedFinancialAnalysisFlow did not return the expected structure.", output);
-      return { 
-        analysisSummary: "Error: AI failed to generate a financial analysis summary.", 
+      return {
+        analysisSummary: "Error: AI failed to generate a financial analysis summary.",
         keyObservations: ["Could not retrieve key observations."],
       };
     }

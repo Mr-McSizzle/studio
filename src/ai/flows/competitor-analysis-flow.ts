@@ -23,7 +23,7 @@ const prompt = ai.definePrompt({
   config: {
     temperature: 0.6,
   },
-  prompt: `You are The Advisor for ForgeSim, specializing in competitive strategy.
+  prompt: `You are The Advisor for Inceptico, specializing in competitive strategy.
 The user wants an analysis of their competitors.
 
 User's Current Simulation State (JSON):
@@ -67,7 +67,7 @@ const competitorAnalysisGenkitFlow = ai.defineFlow(
 
     if (!output || !output.overallMarketPerspective || !Array.isArray(output.detailedAnalyses)) {
       console.error("AI competitorAnalysisFlow did not return the expected structure.", output);
-      return { 
+      return {
         overallMarketPerspective: "Error: AI failed to generate market perspective.",
         detailedAnalyses: [{ competitorName: "N/A", aiAssessedStrengths: [], aiAssessedWeaknesses: [], potentialThreatsToUser: [], potentialOpportunitiesForUser: [], strategicConsiderations: "Analysis failed." }],
         strategicRecommendations: ["Could not generate recommendations."]

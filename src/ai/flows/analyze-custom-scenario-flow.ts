@@ -22,9 +22,9 @@ const prompt = ai.definePrompt({
   input: { schema: AnalyzeCustomScenarioInputSchema },
   output: { schema: AnalyzeCustomScenarioOutputSchema },
   config: {
-    temperature: 0.6, 
+    temperature: 0.6,
   },
-  prompt: `You are an expert strategic business analyst for ForgeSim. Your task is to analyze a hypothetical "what-if" scenario provided by the user, considering the current state of their simulated business.
+  prompt: `You are an expert strategic business analyst for Inceptico. Your task is to analyze a hypothetical "what-if" scenario provided by the user, considering the current state of their simulated business.
 
 Current Simulation State (JSON):
 {{{simulationStateJSON}}}
@@ -68,7 +68,7 @@ const analyzeCustomScenarioGenkitFlow = ai.defineFlow(
       }
       throw new Error("AI scenario analysis failed to produce a valid output structure.");
     }
-    
+
     return output;
   }
 );
