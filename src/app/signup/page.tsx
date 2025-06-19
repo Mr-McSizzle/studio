@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type FormEvent } from 'react';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { IncepticoLogo } from '@/components/icons/logo'; // Updated import
+import { IncepticoLogo } from '@/components/icons/logo';
 import { User, Mail, Lock, Sparkles, Home } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,12 +34,20 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     if (!name.trim() || !email.trim() || !password.trim()) {
-      toast({ title: "All fields required", description: "Please provide your name, email, and choose a password.", variant: "destructive" });
+      toast({
+        title: "All fields required",
+        description: "Please provide your name, email, and choose a password.",
+        variant: "destructive"
+      });
       setIsLoading(false);
       return;
     }
     if (password.length < 8) {
-      toast({ title: "Password Too Short", description: "Password must be at least 8 characters long.", variant: "destructive" });
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive"
+      });
       setIsLoading(false);
       return;
     }
@@ -48,10 +55,18 @@ export default function SignUpPage() {
     const signUpSuccess = signUp(name, email, password);
 
     if (signUpSuccess) {
-      toast({ title: "Account Creation Initiated!", description: "Welcome to Inceptico, Founder! Please proceed to login with your new credentials.", duration: 4000 });
+      toast({
+        title: "Account Creation Initiated!",
+        description: "Welcome to Inceptico, Founder! Please proceed to login with your new credentials.",
+        duration: 4000
+      });
       router.push('/login');
     } else {
-      toast({ title: "Sign-Up Failed", description: "This email may already be registered. Please try a different email or log in.", variant: "destructive" });
+      toast({
+        title: "Sign-Up Failed",
+        description: "This email may already be registered. Please try a different email or log in.",
+        variant: "destructive"
+      });
     }
     setIsLoading(false);
   };
@@ -63,11 +78,11 @@ export default function SignUpPage() {
         <Card className="bg-card/80 backdrop-blur-lg border border-accent/30 shadow-accent-glow-md animate-fadeInUp">
           <CardHeader className="text-center pt-8 pb-6">
             <Link href="/" className="flex justify-center mb-6 group">
-              <IncepticoLogo className="h-20 w-20 text-accent group-hover:text-primary transition-colors duration-300 animate-subtle-pulse" /> {/* Updated usage */}
+              <IncepticoLogo className="h-20 w-20 text-accent group-hover:text-primary transition-colors duration-300 animate-subtle-pulse" />
             </Link>
             <CardTitle className="text-3xl font-headline text-glow-accent">Join the Forge</CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
-              Begin your journey. Create your Inceptico Founder account. {/* Updated */}
+              Begin your journey. Create your Inceptico Founder account.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6 sm:px-8 py-6">
@@ -96,7 +111,7 @@ export default function SignUpPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ada.lovelace@inceptico.ai" // Updated placeholder
+                  placeholder="ada.lovelace@inceptico.ai"
                   required
                   disabled={isLoading}
                   className="bg-input/70 border-border focus:bg-input focus:border-primary placeholder:text-muted-foreground/60 py-3 text-base"
@@ -139,14 +154,16 @@ export default function SignUpPage() {
             <p className="text-sm text-muted-foreground">
               Already a Founder?{' '}
               <Button variant="link" asChild className="text-primary hover:text-primary/80 p-0 h-auto font-semibold text-glow-primary">
-                <Link href="/login">Log In to Your Inceptico Simulation</Link> {/* Updated */}
+                <Link href="/login">
+                  <span>Log In to Your Inceptico Simulation</span>
+                </Link>
               </Button>
             </p>
             <Button variant="link" asChild className="text-xs text-muted-foreground/70 hover:text-muted-foreground p-0 h-auto mt-4">
               <Link href="/">
                 <span className="inline-flex items-center">
                   <Home className="mr-1 h-3 w-3 inline-block align-middle" />
-                  Back to Inceptico Home {/* Updated */}
+                  Back to Inceptico Home
                 </span>
               </Link>
             </Button>

@@ -19,7 +19,7 @@ export default function LaunchpadPage() {
       title: "Setup Simulation",
       description: "Initialize or adjust your venture",
       icon: Settings,
-      href: "/app/setup", // Updated from /simulation to /setup
+      href: "/app/setup",
     },
     {
       title: "Clash of Sims",
@@ -32,7 +32,7 @@ export default function LaunchpadPage() {
       title: "Milestones & Score",
       description: "Track your progress and achievements",
       icon: Trophy,
-      href: "/app/gamification", // Updated from /score to /gamification
+      href: "/app/gamification",
     },
   ];
 
