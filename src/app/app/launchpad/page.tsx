@@ -1,51 +1,51 @@
-
 "use client"
 
-import React, { Suspense, useMemo, useRef, useEffect, useState } from "react";
-import Link from "next/link";
+import React from "react"; // Import React
+import Link from "next/link"
 import dynamic from 'next/dynamic';
-import { User, Settings, Swords, Trophy, ChevronRight } from "lucide-react";
-// NOTE: All @react-three/fiber, @react-three/drei, and three imports are moved
-// into the dynamically imported GalaxyCanvasComponent.
-
-const navigationItems = [
-  {
-    title: "Founder's Profile",
-    description: "Craft your cosmic identity",
-    icon: User,
-    href: "/app/profile",
-  },
-  {
-    title: "Setup Simulation",
-    description: "Design your universe",
-    icon: Settings,
-    href: "/app/setup",
-  },
-  {
-    title: "Clash of Sims",
-    description: "Battle across dimensions (Coming Soon)",
-    icon: Swords,
-    href: "#", // Placeholder, no actual link or make it disabled
-    disabled: true,
-  },
-  {
-    title: "Milestones & Score",
-    description: "Unlock cosmic rewards",
-    icon: Trophy,
-    href: "/app/gamification",
-  },
-];
+import { User, Settings, Swords, Trophy, ChevronRight } from "lucide-react"
 
 // Dynamically import the 3D canvas component with SSR turned off
 const GalaxyCanvasComponent = dynamic(
   () => import('@/components/launchpad/GalaxyCanvas').then(mod => mod.GalaxyCanvas),
   {
     ssr: false,
-    loading: () => <div className="absolute inset-0 flex items-center justify-center bg-slate-950"><p className="text-white">Loading Galaxy...</p></div>,
+    loading: () => <div className="absolute inset-0 flex items-center justify-center bg-slate-950"><p className="text-white text-xl animate-pulse">Loading Galaxy...</p></div>,
   }
 );
 
 export default function LaunchpadPage() {
+  const navigationItems = [
+    {
+      title: "Founder's Profile",
+      description: "Craft your cosmic identity",
+      icon: User,
+      href: "/app/profile",
+      disabled: false,
+    },
+    {
+      title: "Setup Simulation",
+      description: "Design your universe",
+      icon: Settings,
+      href: "/app/setup",
+      disabled: false,
+    },
+    {
+      title: "Clash of Sims",
+      description: "Battle across dimensions (Coming Soon)",
+      icon: Swords,
+      href: "/app/launchpad", // Links back to launchpad for now
+      disabled: true,
+    },
+    {
+      title: "Milestones & Score",
+      description: "Unlock cosmic rewards",
+      icon: Trophy,
+      href: "/app/gamification",
+      disabled: false,
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 relative overflow-hidden font-inter">
       <div className="absolute inset-0 z-0">
@@ -137,6 +137,11 @@ export default function LaunchpadPage() {
                                 </div>
                               </div>
                             )}
+                             {isComingSoon && (
+                                <div className="text-xs text-purple-400/80 font-semibold tracking-wider group-hover:text-purple-300 transition-colors">
+                                (COMING SOON)
+                                </div>
+                            )}
                           </div>
                         </div>
                         <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
@@ -173,5 +178,5 @@ export default function LaunchpadPage() {
       <div className="absolute top-8 right-8 w-8 h-8 border-t border-r border-white/10 backdrop-blur-sm" />
       <div className="absolute bottom-8 left-8 w-8 h-8 border-b border-l border-white/10 backdrop-blur-sm" />
     </div>
-  );
+  )
 }
