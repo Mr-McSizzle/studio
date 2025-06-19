@@ -1,24 +1,11 @@
 
 "use client";
 
-import React, { Suspense } from 'react';
+import React, { Suspense } from 'react'; // Keep Suspense if other parts might use it, but not for canvas now
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+// Removed dynamic import for GalaxyCanvasComponent
 import { User, Settings, Swords, Trophy, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
-// Dynamically import the GalaxyCanvas component with SSR disabled
-const GalaxyCanvasComponent = dynamic(
-  () => import('@/components/launchpad/GalaxyCanvas').then(mod => mod.GalaxyCanvas),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
-        <p className="text-white text-xl animate-pulse">Loading Galaxy...</p>
-      </div>
-    ),
-  }
-);
+import { Button } from '@/components/ui/button'; // Keep Button if used, otherwise remove
 
 export default function LaunchpadPage() {
   const navigationItems = [
@@ -32,33 +19,30 @@ export default function LaunchpadPage() {
       title: "Setup Simulation",
       description: "Initialize or adjust your venture",
       icon: Settings,
-      href: "/app/setup",
+      href: "/app/setup", // Updated from /simulation to /setup
     },
     {
       title: "Clash of Sims",
       description: "Competitive scenarios (Coming Soon)",
       icon: Swords,
-      href: "#", 
+      href: "#",
       disabled: true,
     },
     {
       title: "Milestones & Score",
       description: "Track your progress and achievements",
       icon: Trophy,
-      href: "/app/gamification",
+      href: "/app/gamification", // Updated from /score to /gamification
     },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 text-white relative overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <Suspense fallback={
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
-            <p className="text-white text-xl animate-pulse">Initializing Canvas...</p>
-          </div>
-        }>
-          <GalaxyCanvasComponent />
-        </Suspense>
+      {/* CSS Starfield Background */}
+      <div className="stars-container">
+        <div className="stars-layer1"></div>
+        <div className="stars-layer2"></div>
+        <div className="stars-layer3"></div>
       </div>
 
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-indigo-950/30 z-10" />

@@ -547,3 +547,83 @@ a:focus {
 .animate-tooltip-slide-in {
   animation: tooltip-slide-in 0.2s ease-out forwards;
 }
+
+/* CSS Starfield for Launchpad */
+@keyframes animStar {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-2000px); /* Adjust for desired speed/loop */
+  }
+}
+
+.stars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: hidden; /* Important to contain the stars */
+  z-index: 0; /* Behind other content */
+  background: transparent; /* Or a very dark base color: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); */
+}
+
+.stars-layer1, .stars-layer2, .stars-layer3 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%; /* Or 2000px if stars go beyond viewport */
+  display: block;
+}
+
+/* Generate a few stars. Many more needed for a dense field. */
+/* Layer 1: Small, slow stars */
+.stars-layer1 {
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  box-shadow: 
+    7vw 82vh 0px 0px #FFF, 83vw 82vh 1px 0px #FFF, 3vw 14vh 1px 1px #FFF,
+    43vw 13vh 0px 1px #FFF, 57vw 39vh 0px 1px #FFF, 74vw 3vh 1px 0px #FFF,
+    13vw 10vh 0px 1px #FFF, 15vw 36vh 0px 1px #FFF, 68vw 28vh 1px 0px #FFF,
+    6vw 50vh 1px 0px #FFF, 51vw 80vh 0px 1px #FFF, 93vw 2vh 0px 0px #FFF,
+    20vw 90vh 1px 0px #FFF, 80vw 30vh 0px 1px #FFF, 5vw 60vh 1px 1px #FFF,
+    90vw 40vh 0px 1px #FFF, 30vw 70vh 1px 0px #FFF, 70vw 10vh 0px 1px #FFF,
+    /* ... add many more stars ... */
+    50vw 200vh 0px 0px #FFF; /* Add one star beyond viewport to ensure loop looks okay */
+  animation: animStar 200s linear infinite;
+}
+
+/* Layer 2: Medium, medium-speed stars */
+.stars-layer2 {
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow:
+    18vw 79vh 0px 1px #FFF, 5vw 8vh 0px 1px #FFF, 56vw 3vh 0px 1px #FFF,
+    63vw 59vh 0px 0px #FFF, 63vw 66vh 0px 1px #FFF, 87vw 52vh 0px 0px #FFF,
+    95vw 13vh 1px 0px #FFF, 63vw 33vh 0px 1px #FFF, 18vw 89vh 1px 0px #FFF,
+    /* ... add many more stars ... */
+    25vw 200vh 1px 0px #FFF;
+  animation: animStar 150s linear infinite;
+}
+
+/* Layer 3: Large, fast stars */
+.stars-layer3 {
+  width: 3px;
+  height: 3px;
+  background: transparent;
+  box-shadow:
+    89vw 16vh 1px 1px #FFF, 30vw 2vh 0px 0px #FFF, 7vw 84vh 1px 1px #FFF,
+    24vw 74vh 1px 1px #FFF, 94vw 42vh 1px 0px #FFF, 74vw 7vh 0px 1px #FFF,
+    /* ... add many more stars ... */
+    75vw 200vh 0px 1px #FFF;
+  animation: animStar 100s linear infinite;
+}
