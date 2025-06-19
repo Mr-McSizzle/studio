@@ -24,13 +24,12 @@ import {
   Bot,
   BarChart3,
   Layers,
-  Rocket, // Changed from LogIn
   Eye,
   Activity,
   Globe,
   Atom,
   Command,
-  // LogIn icon is no longer directly used here for the nav button, Rocket is used instead
+  LayoutDashboard 
 } from "lucide-react"
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
 import { MiniChartBars } from "@/components/landing/MiniChartBars";
@@ -62,7 +61,7 @@ export default function HomePage() {
     {
       name: "MAYA",
       role: "Marketing Mastermind",
-      icon: Rocket,
+      icon: LayoutDashboard, // Changed from Rocket
       color: "from-sky-600 to-blue-500", 
       status: "Optimizing",
     },
@@ -93,9 +92,9 @@ export default function HomePage() {
     }
   }, [])
 
-  const handleLaunchpadAccess = () => {
+  const handleAppAccess = () => {
     if (isAuthenticated) {
-      router.push('/app/launchpad');
+      router.push('/app/dashboard');
     } else {
       router.push('/login');
     }
@@ -248,10 +247,10 @@ export default function HomePage() {
               variant="outline"
               size="sm"
               className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 backdrop-blur-sm text-sm" 
-              onClick={handleLaunchpadAccess}
+              onClick={handleAppAccess}
             >
-              <Rocket className="w-3 h-3 mr-2" />
-              Enter Launchpad
+              <LayoutDashboard className="w-3 h-3 mr-2" />
+              Dashboard
             </Button>
           </div>
         </div>
@@ -324,11 +323,11 @@ export default function HomePage() {
                 style={{
                   boxShadow: `0 0 30px hsl(var(--primary) / 0.2), 0 0 60px hsl(var(--accent) / 0.1)`,
                 }}
-                onClick={handleLaunchpadAccess}
+                onClick={handleAppAccess}
               >
                 <div className="flex items-center space-x-3">
                   <Play className="w-5 h-5" />
-                  <span>Enter Launchpad</span>
+                  <span>Get Started</span>
                   <ChevronRight className="w-5 h-5" />
                 </div>
               </Button>
@@ -654,10 +653,10 @@ export default function HomePage() {
 
             <Button 
               className="bg-gradient-to-r from-primary via-blue-700 to-sky-600 hover:from-blue-800 hover:via-blue-600 hover:to-sky-500 text-white px-8 py-4 text-base font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-sky-500/20" 
-              onClick={handleLaunchpadAccess}
+              onClick={handleAppAccess}
             >
-              <Rocket className="w-4 h-4 mr-2" />
-              Enter Launchpad
+              <LayoutDashboard className="w-4 h-4 mr-2" />
+              Open Dashboard
             </Button>
           </div>
         </div>

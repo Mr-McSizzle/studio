@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ForgeSimLogo } from '@/components/icons/logo';
-import { Mail, Lock, LogInIcon, Home } from 'lucide-react';
+import { Mail, Lock, LogInIcon, Home, LayoutDashboard } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const NexusBackground = () => (
@@ -52,10 +52,10 @@ export default function LoginPage() {
     if (loginSuccess) {
       toast({
         title: "Login Successful",
-        description: `Access granted! Charting course for ForgeSim Launchpad...`,
+        description: `Access granted! Charting course for ForgeSim Dashboard...`,
         duration: 3000
       });
-      router.push('/app/launchpad'); // Changed to redirect to Launchpad
+      router.push('/app/dashboard'); 
     } else {
       toast({
         title: "Login Failed",
@@ -124,13 +124,11 @@ export default function LoginPage() {
                 className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-primary-foreground text-lg py-6 shadow-md hover:shadow-accent-glow-sm transition-all duration-300 transform hover:scale-105"
               >
                 <span className="inline-flex items-center">
-                  {isLoading ? (
-                   "Authenticating..."
-                  ) : (
-                    <>
+                  {isLoading ? "Authenticating..." : (
+                    <span className="inline-flex items-center">
                       <LogInIcon className="mr-2 h-5 w-5 inline-block align-middle" />
                        Secure Login
-                    </>
+                    </span>
                   )}
                 </span>
               </Button>

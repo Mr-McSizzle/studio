@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { PanelLeft, LogOut, Settings, LayoutDashboard } from "lucide-react"; // Changed Home to LayoutDashboard
+import { PanelLeft, LogOut, Settings, LayoutDashboard } from "lucide-react"; 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; 
 
@@ -37,7 +37,7 @@ function UserProfileDropdown() {
     router.push('/app/profile');
   };
 
-  const handleDashboard = () => { // Changed from handleLaunchpad to handleDashboard
+  const handleDashboard = () => { 
     router.push('/app/dashboard');
   };
 
@@ -80,7 +80,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userEmail === undefined) return; 
 
-    // If trying to access any /app/* route (except login/signup) without auth, redirect to login
     if (pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup')) {
       if (!isAuthenticated) {
         router.replace('/login');
@@ -100,7 +99,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // This check might be redundant if the useEffect above handles it, but kept for safety during initial render
   if (!isAuthenticated && pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup')) { 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
