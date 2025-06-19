@@ -1,3 +1,4 @@
+
 import type { SVGProps } from 'react';
 import Image from 'next/image';
 
@@ -11,7 +12,7 @@ export function ForgeSimLogo(props: SVGProps<SVGSVGElement> & { width?: number |
 
   return (
     <Image
-      src="/assets/inceptico-logo.svg" // Assuming SVG, change to .png if needed
+      src="/assets/inceptico-logo.svg" // Path to the new logo in public/assets
       alt="Inceptico Logo"
       width={imgWidth}
       height={imgHeight}
