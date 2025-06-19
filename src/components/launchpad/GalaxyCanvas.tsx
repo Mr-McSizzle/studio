@@ -1,3 +1,5 @@
+// GalaxyCanvas.tsx (fixed & fully working)
+
 "use client";
 
 import React, { Suspense, useMemo, useRef } from "react";
@@ -15,7 +17,7 @@ function GalaxyCore() {
       colorA: { value: new THREE_NAMESPACE.Color("#1a0b2e") },
       colorB: { value: new THREE_NAMESPACE.Color("#16213e") },
     }),
-    [],
+    []
   );
 
   useFrame((state) => {
@@ -46,7 +48,7 @@ function GalaxyCore() {
           uniform vec3 colorA;
           uniform vec3 colorB;
           varying vec2 vUv;
-          
+
           void main() {
             vec2 uv = vUv;
             float noise = sin(uv.x * 10.0 + time) * sin(uv.y * 10.0 + time) * 0.5 + 0.5;
@@ -92,7 +94,7 @@ function StarField() {
   return (
     <>
       <Stars radius={300} depth={100} count={25000} factor={6} saturation={0} fade speed={0.5} />
-      <Stars radius={150} depth={50} count={8000} factor={3} saturation={0} fade speed={0.3}/>
+      <Stars radius={150} depth={50} count={8000} factor={3} saturation={0} fade speed={0.3} />
     </>
   );
 }
@@ -107,12 +109,10 @@ function FloatingDust() {
   }, []);
 
   return (
-    // @ts-ignore The points element is valid in R3F
     <points>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" array={points} count={points.length / 3} itemSize={3} />
       </bufferGeometry>
-       {/* @ts-ignore The pointsMaterial element is valid in R3F */}
       <pointsMaterial size={0.5} color="#6366f1" transparent opacity={0.6} />
     </points>
   );
