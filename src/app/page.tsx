@@ -29,7 +29,7 @@ import {
   Globe,
   Atom,
   Command,
-  LayoutDashboard 
+  Rocket // Changed from LayoutDashboard
 } from "lucide-react"
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
 import { MiniChartBars } from "@/components/landing/MiniChartBars";
@@ -61,7 +61,7 @@ export default function HomePage() {
     {
       name: "MAYA",
       role: "Marketing Mastermind",
-      icon: LayoutDashboard, // Changed from Rocket
+      icon: Rocket, // Changed from LayoutDashboard
       color: "from-sky-600 to-blue-500", 
       status: "Optimizing",
     },
@@ -94,7 +94,7 @@ export default function HomePage() {
 
   const handleAppAccess = () => {
     if (isAuthenticated) {
-      router.push('/app/dashboard');
+      router.push('/app/launchpad');
     } else {
       router.push('/login');
     }
@@ -183,22 +183,6 @@ export default function HomePage() {
           />
         </div>
       </div>
-      <div className="fixed inset-0 opacity-15">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              linear-gradient(hsla(var(--accent-rgb), 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, hsla(var(--accent-rgb), 0.1) 1px, transparent 1px),
-              linear-gradient(hsla(var(--accent-rgb), 0.05) 1px, transparent 1px),
-              linear-gradient(90deg, hsla(var(--accent-rgb), 0.05) 1px, transparent 1px)
-            `,
-            backgroundSize: "100px 100px, 100px 100px, 20px 20px, 20px 20px",
-            transform: `translate(${mousePosition.x * 0.01}px, ${mousePosition.y * 0.01}px)`,
-            '--accent-rgb': '210 30% 75%', 
-          }}
-        />
-      </div>
       <FloatingParticles particleColors={["bg-sky-400", "bg-blue-500", "bg-slate-400", "bg-sky-600"]} />
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {[...Array(6)].map((_, i) => (
@@ -249,8 +233,8 @@ export default function HomePage() {
               className="border-accent/50 text-accent hover:bg-accent/20 hover:border-accent transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 backdrop-blur-sm text-sm" 
               onClick={handleAppAccess}
             >
-              <LayoutDashboard className="w-3 h-3 mr-2" />
-              Dashboard
+              <Rocket className="w-3 h-3 mr-2" />
+              Enter Launchpad
             </Button>
           </div>
         </div>
@@ -327,7 +311,7 @@ export default function HomePage() {
               >
                 <div className="flex items-center space-x-3">
                   <Play className="w-5 h-5" />
-                  <span>Get Started</span>
+                  <span>Enter Launchpad</span>
                   <ChevronRight className="w-5 h-5" />
                 </div>
               </Button>
@@ -566,7 +550,7 @@ export default function HomePage() {
             {features.map((feature, index) => (
               <div
                 key={feature.title}
-                className="group"
+                className="group animate-fadeInUp"
                 style={{
                   animationDelay: `${index * 0.1}s`,
                 }}
@@ -655,8 +639,8 @@ export default function HomePage() {
               className="bg-gradient-to-r from-primary via-blue-700 to-sky-600 hover:from-blue-800 hover:via-blue-600 hover:to-sky-500 text-white px-8 py-4 text-base font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 backdrop-blur-sm border border-sky-500/20" 
               onClick={handleAppAccess}
             >
-              <LayoutDashboard className="w-4 h-4 mr-2" />
-              Open Dashboard
+              <Rocket className="w-4 h-4 mr-2" />
+              Enter Launchpad
             </Button>
           </div>
         </div>

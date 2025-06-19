@@ -80,17 +80,19 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userEmail === undefined) return; 
 
-    if (pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup')) {
+    if (pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup') && pathname !== '/app/launchpad') {
       if (!isAuthenticated) {
         router.replace('/login');
       }
+    } else if (pathname === '/app/launchpad' && !isAuthenticated) {
+      router.replace('/login');
     }
   }, [isAuthenticated, userEmail, router, pathname]);
 
 
   const closeMobileSheet = () => setIsMobileSheetOpen(false);
   
-  if (userEmail === undefined) { 
+  if (userEmail === undefined && pathname !== '/login' && pathname !== '/signup') { 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
             <ForgeSimLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
@@ -105,6 +107,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <ForgeSimLogo className="h-20 w-20 text-primary animate-subtle-pulse mb-4"/>
             <p className="text-lg text-glow-primary">Redirecting to Secure Access Point...</p>
         </div>
+    );
+  }
+
+  // Hide sidebar for the Launchpad page
+  if (pathname === '/app/launchpad') {
+    return (
+      <div className="min-h-screen w-full bg-background">
+        {children}
+        <DynamicGuidanceSystem />
+      </div>
     );
   }
 

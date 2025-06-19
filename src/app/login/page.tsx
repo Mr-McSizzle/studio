@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ForgeSimLogo } from '@/components/icons/logo';
-import { Mail, Lock, LogInIcon, Home, LayoutDashboard } from 'lucide-react';
+import { Mail, Lock, LogInIcon, Home, Rocket } from 'lucide-react'; // Changed LayoutDashboard to Rocket
 import { useToast } from "@/hooks/use-toast";
 
 const NexusBackground = () => (
@@ -52,10 +52,10 @@ export default function LoginPage() {
     if (loginSuccess) {
       toast({
         title: "Login Successful",
-        description: `Access granted! Charting course for ForgeSim Dashboard...`,
+        description: `Access granted! Navigating to the Launchpad...`,
         duration: 3000
       });
-      router.push('/app/dashboard'); 
+      router.push('/app/launchpad'); 
     } else {
       toast({
         title: "Login Failed",
