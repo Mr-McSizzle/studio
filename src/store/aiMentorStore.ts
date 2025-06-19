@@ -16,7 +16,7 @@ interface AiMentorState {
   messages: ChatMessageType[]; // This will store ALL messages across all contexts
   setGuidance: (messageContent: string, agentContext: string, suggestion?: SuggestedNextAction | null) => void;
   addMessage: (message: ChatMessageType) => void; // Message object should now include agentContextId
-  initializeGreeting: (focusedAgentId?: string, focusedAgentName?: string) => void;
+  initializeGreeting: (currentChatContext: string, focusedAgentId?: string, focusedAgentName?: string) => void;
   clearSuggestion: () => void;
   clearChatHistory: () => void;
 }
@@ -45,13 +45,10 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
       set({ lastMessageText: message.content });
     }
   },
-  initializeGreeting: (focusedAgentId?: string, focusedAgentName?: string) => {
-    const currentAgentContext = focusedAgentId || EVE_MAIN_CHAT_CONTEXT_ID;
-    const existingMessagesForContext = get().messages.filter(msg => msg.agentContextId === currentAgentContext);
+  initializeGreeting: (currentChatContext: string, focusedAgentId?: string, focusedAgentName?: string) => {
+    const existingMessagesForContext = get().messages.filter(msg => msg.agentContextId === currentChatContext);
 
     if (existingMessagesForContext.length > 0 && existingMessagesForContext.some(m => m.id.startsWith('initial-eve-greeting'))) {
-      // If a greeting for THIS SPECIFIC CONTEXT already exists, don't add another.
-      // This allows specific agent chats to get their own greeting if they haven't had one.
       return; 
     }
 
@@ -64,15 +61,15 @@ export const useAiMentorStore = create<AiMentorState>((set, get) => ({
     if (focusedAgentId && focusedAgentName) {
       initialMessageText = `EVE: Hello! I see you're looking to chat with ${focusedAgentName}. I can help facilitate that. What specific questions do you have for ${focusedAgentName} regarding their expertise?`;
     } else { // Main EVE chat
-      initialMessageText = `Hi, I’m EVE, your AI Queen Hive Mind assistant for ForgeSim. ${currencyInfo}I coordinate our team of specialized AI agents—Alex (Accountant), Maya (Marketing Guru), Ty (Social Media Strategist), Zara (Focus Group Leader), Leo (Expansion Expert), The Advisor, and Brand Lab—to provide you with synthesized insights and personalized guidance. How can I direct our collective intelligence to assist you today?`;
+      initialMessageText = `Hi, I’m EVE, your AI Queen Hive Mind assistant for Inceptico. ${currencyInfo}I coordinate our team of specialized AI agents—Alex (Accountant), Maya (Marketing Guru), Ty (Social Media Strategist), Zara (Focus Group Leader), Leo (Expansion Expert), The Advisor, and Brand Lab—to provide you with synthesized insights and personalized guidance. How can I direct our collective intelligence to assist you today?`;
     }
 
     const initialMessage: ChatMessageType = {
-      id: `initial-eve-greeting-${currentAgentContext}-${Date.now()}`,
+      id: `initial-eve-greeting-${currentChatContext}-${Date.now()}`,
       role: "assistant",
       content: initialMessageText,
       timestamp: new Date(),
-      agentContextId: currentAgentContext, 
+      agentContextId: currentChatContext, 
     };
     
     const currentMessages = get().messages;

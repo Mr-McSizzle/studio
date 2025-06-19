@@ -22,7 +22,7 @@ export const agentsList: AIAgentProfile[] = [
     avatarUrl: "/new-assets/agents/eve-hive-mind.png",
     gradientFromClass: "from-primary",
     gradientToClass: "to-blue-400", // Adjusted to a lighter blue for EVE
-    description: "Your central AI strategist. EVE coordinates the specialized AI agents, synthesizes insights, and provides personalized guidance throughout your ForgeSim journey.",
+    description: "Your central AI strategist. EVE coordinates the specialized AI agents, synthesizes insights, and provides personalized guidance throughout your Inceptico journey.",
     specialties: ["Strategic Coordination", "Personalized Guidance", "Insight Synthesis", "Simulation Navigation"],
     actionText: "Consult EVE",
     actionLink: "/app/mentor",
@@ -137,3 +137,4 @@ export const agentsList: AIAgentProfile[] = [
 export const getAgentProfileById = (id: string): AIAgentProfile | undefined => {
   return agentsList.find(agent => agent.id === id);
 };
+
