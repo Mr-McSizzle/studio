@@ -117,6 +117,7 @@ export default function TodoPage() {
   const deleteTodo = (id: string) => {
     const todoToDelete = todos.find(t => t.id === id);
     if (todoToDelete && todoToDelete.completed) {
+      // If you want to subtract XP when a completed task is deleted, uncomment below
       // setTotalXp(prevXp => Math.max(0, prevXp - todoToDelete.points));
     }
     setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
@@ -128,6 +129,8 @@ export default function TodoPage() {
   };
   
   if (!isAuthenticated) {
+    // This should ideally be caught by a layout or higher-order component redirecting
+    // For robustness, include a fallback.
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Redirecting to login...</p>
@@ -165,6 +168,7 @@ export default function TodoPage() {
               </SheetDescription>
             </SheetHeader>
             <div className="flex-grow overflow-y-hidden">
+              {/* Ensures ChatInterface fits and allows its own scroll */}
               <ChatInterface />
             </div>
              <div className="p-4 border-t">
@@ -326,3 +330,4 @@ export default function TodoPage() {
     </div>
   );
 }
+
