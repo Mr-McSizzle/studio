@@ -23,33 +23,31 @@ const puzzleVariants = {
     transition: { type: "spring", stiffness: 300, damping: 15 }
   },
   locked: { scale: 1, opacity: 0.7, filter: "grayscale(50%)" },
-  // Variant for the state just before unlocking, to animate from
-  unlockedEntryStart: { scale: 0.5, opacity: 0, filter: "blur(5px)" },
-  // Variant for the final unlocked state, including the glow animation
+  unlockedEntryStart: { scale: 0.5, opacity: 0, filter: "blur(5px)", y: 10 },
   unlockedAnimated: {
     scale: 1,
     opacity: 1,
     filter: "blur(0px)",
-    boxShadow: [ // Animate boxShadow for glow
+    y: 0,
+    boxShadow: [ 
       "0 0 0px 0px hsla(var(--accent)/0)",
-      "0 0 25px 12px hsla(var(--accent)/0.5)", // Peak glow
-      "0 0 10px 5px hsla(var(--accent)/0.3)",  // Settle glow
-      "0 1px 3px hsla(var(--card-foreground)/0.1)" // Final subtle shadow
+      "0 0 25px 12px hsla(var(--accent)/0.5)", 
+      "0 0 10px 5px hsla(var(--accent)/0.3)",  
+      "0 1px 3px hsla(var(--card-foreground)/0.1)" 
     ],
     transition: {
       type: "spring",
       stiffness: 180,
       damping: 12,
       duration: 0.7,
-      boxShadow: { // Specific transition for boxShadow
+      boxShadow: { 
         duration: 0.7,
         times: [0, 0.3, 0.7, 1],
         ease: "easeInOut",
       },
     }
   },
-  // Variant for already unlocked items (no entry animation)
-  unlockedStatic: { scale: 1, opacity: 1, filter: "blur(0px)", boxShadow: "0 1px 3px hsla(var(--card-foreground)/0.1)" }
+  unlockedStatic: { scale: 1, opacity: 1, filter: "blur(0px)", y: 0, boxShadow: "0 1px 3px hsla(var(--card-foreground)/0.1)" }
 };
 
 export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }) => {
@@ -58,28 +56,19 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }
   const borderColor = milestone.isUnlocked ? 'border-green-500/50' : 'border-dashed border-border/70';
   const bgColor = milestone.isUnlocked ? 'bg-green-500/10' : 'bg-muted/30';
 
-  const [initialRenderComplete, setInitialRenderComplete] = useState(false);
-  const [isCurrentlyUnlocked, setIsCurrentlyUnlocked] = useState(milestone.isUnlocked);
+  const [wasUnlocked, setWasUnlocked] = useState(milestone.isUnlocked);
 
   useEffect(() => {
-    setIsCurrentlyUnlocked(milestone.isUnlocked);
-    // Ensure initial animation for items that are unlocked on first load but after initial state check.
-    // Or, if it transitions from locked to unlocked.
-    if (milestone.isUnlocked && !isCurrentlyUnlocked && initialRenderComplete) {
-      // This means it just became unlocked
+    if (milestone.isUnlocked && !wasUnlocked) {
+      // It just became unlocked
     }
-    if (!initialRenderComplete) {
-      setInitialRenderComplete(true);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [milestone.isUnlocked]);
+    setWasUnlocked(milestone.isUnlocked);
+  }, [milestone.isUnlocked, wasUnlocked]);
 
 
   const getInitialVariantState = () => {
     if (milestone.isUnlocked) {
-      // If it was already unlocked (isCurrentlyUnlocked was true on component's previous state), show static.
-      // If it just became unlocked (isCurrentlyUnlocked was false, now true), start animation.
-      return isCurrentlyUnlocked ? "unlockedStatic" : "unlockedEntryStart";
+      return wasUnlocked ? "unlockedStatic" : "unlockedEntryStart";
     }
     return "locked";
   };
@@ -110,7 +99,7 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }
             variants={puzzleVariants}
             initial={getInitialVariantState()}
             animate={getAnimateVariantState()}
-            whileHover={milestone.isUnlocked ? "hover" : undefined} // Only allow hover effect if unlocked
+            whileHover={milestone.isUnlocked ? "hover" : undefined} 
           >
             <IconComponent className={cn("w-5 h-5 sm:w-6 sm:h-6 mb-1", iconColor)} />
             {milestone.isUnlocked && (
