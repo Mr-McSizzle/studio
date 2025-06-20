@@ -3,21 +3,19 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation'; // Import useRouter
+// Removed useRouter as redirect is now handled by parent
 import { PuzzlePiece } from './PuzzlePiece';
 import type { DashboardMilestone } from '@/types/simulation';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Sparkles, X, Database, CloudUpload, CloudDownload } from 'lucide-react';
+import { CheckCircle, Sparkles, X, CloudDownload } from 'lucide-react'; // Removed Database, CloudUpload
 import { cn } from '@/lib/utils';
-// import { db } from '@/lib/firebase'; // Assuming db is exported from your firebase setup
-// import { doc, setDoc, getDoc } from "firebase/firestore"; // Firestore functions
 
 interface MilestonePuzzleProps {
   milestones: DashboardMilestone[];
-  onMilestonesChange: (updatedMilestones: DashboardMilestone[]) => void; // To update parent state
+  onMilestonesChange: (updatedMilestones: DashboardMilestone[]) => void;
   title?: string;
-  puzzleId: string; // Unique ID for this puzzle instance (e.g., "dashboardDemoPuzzle")
-  userId: string; // For Firestore path
+  puzzleId: string;
+  userId: string;
   onPuzzleComplete?: (puzzleId: string) => void;
 }
 
@@ -46,12 +44,12 @@ const particleVariants = {
   }),
   animate: (i: number) => ({
     opacity: [0, 1, 0],
-    scale: [0, Math.random() * 0.8 + 0.3, 0],
-    x: Math.random() * 200 - 100,
-    y: Math.random() * 200 - 100,
+    scale: [0, Math.random() * 1 + 0.5, 0], // Increased particle scale range
+    x: Math.random() * 250 - 125, // Wider particle spread
+    y: Math.random() * 250 - 125,
     transition: {
-      duration: Math.random() * 1.5 + 1, // Slightly longer duration for particles
-      delay: Math.random() * 0.8,
+      duration: Math.random() * 2 + 1.5,
+      delay: Math.random() * 1,
       ease: "easeOut",
     },
   }),
@@ -64,14 +62,16 @@ const savePuzzleProgressToFirestore = async (userId: string, puzzleId: string, f
     return;
   }
   console.log(`[Firestore Placeholder] Saving puzzle progress for user ${userId}, puzzle ${puzzleId}:`, filledSlots);
-  // Example Firestore call (replace with actual implementation)
+  // Example Firestore call (replace with actual implementation using your `db` instance)
+  // import { doc, setDoc } from "firebase/firestore";
+  // import { db } from '@/lib/firebase'; // Assuming db is exported
   // const puzzleDocRef = doc(db, "users", userId, "puzzles", puzzleId);
   // try {
   //   await setDoc(puzzleDocRef, { filledSlots, lastUpdated: new Date().toISOString() }, { merge: true });
   //   console.log(`[Firestore Placeholder] Progress for puzzle ${puzzleId} saved.`);
   // } catch (error) {
   //   console.error(`[Firestore Placeholder] Error saving puzzle ${puzzleId}:`, error);
-  //   throw error; // Re-throw for handling in UI if needed
+  //   throw error;
   // }
 };
 
@@ -81,7 +81,9 @@ const loadPuzzleProgressFromFirestore = async (userId: string, puzzleId: string)
     return null;
   }
   console.log(`[Firestore Placeholder] Loading puzzle progress for user ${userId}, puzzle ${puzzleId}`);
-  // Example Firestore call (replace with actual implementation)
+  // Example Firestore call (replace with actual implementation using your `db` instance)
+  // import { doc, getDoc } from "firebase/firestore";
+  // import { db } from '@/lib/firebase'; // Assuming db is exported
   // const puzzleDocRef = doc(db, "users", userId, "puzzles", puzzleId);
   // try {
   //   const docSnap = await getDoc(puzzleDocRef);
@@ -97,8 +99,7 @@ const loadPuzzleProgressFromFirestore = async (userId: string, puzzleId: string)
   //   console.error(`[Firestore Placeholder] Error loading puzzle ${puzzleId}:`, error);
   //   return null;
   // }
-  // For demo, return a default empty state or a mock loaded state
-  return Array(6).fill(0) as number[]; // Assuming 6 pieces for demo
+  return Array(6).fill(0) as number[]; // Demo: Return 6 empty slots if no data
 };
 
 
@@ -113,7 +114,6 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
   const [showCelebration, setShowCelebration] = useState(false);
   const [hasCelebrated, setHasCelebrated] = useState(false);
   const [isLoadingProgress, setIsLoadingProgress] = useState(false);
-  const router = useRouter(); // Initialize router
 
   const unlockedCount = useMemo(() => milestones.filter(m => m.isUnlocked).length, [milestones]);
   const totalCount = milestones.length;
@@ -123,7 +123,6 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
     return milestones.map(m => m.isUnlocked ? 1 : 0);
   }, [milestones]);
 
-  // Effect to save progress to Firestore when milestones change
   useEffect(() => {
     if (userId && puzzleId && milestones.length > 0) {
       const binaryProgress = convertMilestonesToBinaryArray();
@@ -132,32 +131,18 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
     }
   }, [milestones, userId, puzzleId, convertMilestonesToBinaryArray]);
 
-  // Effect for celebration and redirect
   useEffect(() => {
-    let redirectTimer: NodeJS.Timeout;
     if (allUnlocked && !hasCelebrated) {
       setShowCelebration(true);
       setHasCelebrated(true);
       if (onPuzzleComplete) {
         onPuzzleComplete(puzzleId);
       }
-      
-      // Redirect after 3 seconds
-      redirectTimer = setTimeout(() => {
-        router.push('/app/phase-unlocked'); // Ensure this page exists or is handled
-      }, 3000); 
+      // Automatic redirect removed, parent (dashboard) will handle post-completion actions
     }
-    
-    // Cleanup timer on component unmount or if dependencies change before redirect
-    return () => {
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-      }
-    };
-  }, [allUnlocked, hasCelebrated, onPuzzleComplete, puzzleId, router]); // Added router to dependencies
+  }, [allUnlocked, hasCelebrated, onPuzzleComplete, puzzleId]);
 
   useEffect(() => {
-    // Reset hasCelebrated if the puzzle becomes incomplete again
     if (!allUnlocked && hasCelebrated) {
       setHasCelebrated(false);
     }
@@ -165,8 +150,6 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
 
   const handleCloseCelebration = () => {
     setShowCelebration(false);
-    // If redirect is not desired on auto-close or if user closes manually before auto-redirect:
-    // router.push('/app/next-destination-after-manual-close'); 
   };
 
   const handleLoadProgress = async () => {
@@ -179,7 +162,7 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
           ...m,
           isUnlocked: loadedSlots[index] === 1,
         }));
-        onMilestonesChange(updatedMilestones); // Update parent state
+        onMilestonesChange(updatedMilestones);
       }
     } catch (error) {
       console.error("Error in handleLoadProgress:", error);
@@ -217,7 +200,7 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={handleCloseCelebration} // Allow closing modal by clicking overlay
+            onClick={handleCloseCelebration}
           >
             <motion.div
               className="relative p-6 md:p-8 bg-gradient-to-br from-primary to-blue-700 text-primary-foreground rounded-xl shadow-2xl w-full max-w-md mx-4 text-center overflow-hidden"
@@ -225,16 +208,16 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
               initial="hidden"
               animate="visible"
               exit="exit"
-              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="absolute inset-0 pointer-events-none">
-                {Array.from({ length: 50 }).map((_, i) => ( // Increased particle count
+                {Array.from({ length: 50 }).map((_, i) => (
                   <motion.div
                     key={`sparkle-${i}`}
                     className="absolute bg-yellow-400 rounded-full"
                     style={{
-                        width: Math.random() * 10 + 5, // Larger particles
-                        height: Math.random() * 10 + 5,
+                        width: Math.random() * 12 + 6, // particles size
+                        height: Math.random() * 12 + 6,
                         left: '50%',
                         top: '50%',
                         transform: 'translate(-50%, -50%)',
@@ -258,22 +241,13 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
               </Button>
 
               <div className="relative z-10">
-                <Sparkles className="h-16 w-16 text-yellow-300 mx-auto mb-4 animate-pulse" />
-                <h2 className="text-3xl font-bold mb-2 text-glow-accent">
-                  {title ? `${title} Complete!` : "Milestone Set Achieved!"}
+                <CheckCircle className="h-20 w-20 text-green-300 mx-auto mb-4 animate-pulse" />
+                <h2 className="text-3xl font-bold mb-3 text-glow-accent">
+                  {title ? `${title} Complete!` : "Objective Set Achieved!"}
                 </h2>
                 <p className="text-lg mb-6 opacity-90">
-                  Phenomenal work, Founder! A new phase of your journey is unlocking...
+                  Excellent work, Founder! All milestones in this set are secured.
                 </p>
-                {/* Button can be kept for manual interaction or removed if auto-redirect is preferred */}
-                {/* 
-                <Button
-                  onClick={handleCloseCelebration} // Or directly router.push('/app/phase-unlocked')
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 px-6 py-3 text-base font-semibold"
-                >
-                  Proceed to Next Phase
-                </Button>
-                */}
               </div>
             </motion.div>
           </motion.div>

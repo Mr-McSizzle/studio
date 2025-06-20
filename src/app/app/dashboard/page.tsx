@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
-  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb, Puzzle, Check, X
+  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb, Puzzle, Check, X, Award
 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -23,7 +23,8 @@ import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece";
 import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
 import { PuzzleBoard } from "@/components/dashboard/PuzzleBoard";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthStore } from "@/store/authStore"; // Added for userId
+import { useAuthStore } from "@/store/authStore"; 
+import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from "@/store/aiMentorStore"; // EVE
 
 const MAX_SIMULATION_MONTHS = 24;
 
@@ -210,9 +211,10 @@ export default function DashboardPage() {
     keyEvents, isInitialized, currentAiReasoning, historicalRevenue, historicalUserGrowth,
     historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
     historicalChurnRate, historicalProductProgress, advanceMonth, resetSimulation,
-    puzzleProgressForDemo, // Get demo puzzle progress from store
+    puzzleProgressForDemo,
   } = useSimulationStore();
-  const { userEmail } = useAuthStore(); // Get userId (email for this mock)
+  const { userEmail } = useAuthStore(); 
+  const { addMessage: addEveMessage } = useAiMentorStore();
 
   const currencySymbol = financials.currencySymbol || "$";
   const [prevSimulationMonth, setPrevSimulationMonth] = useState<number | null>(null);
@@ -221,6 +223,9 @@ export default function DashboardPage() {
   const [eveTooltipMessage, setEveTooltipMessage] = useState("EVE: Monitoring all simulation parameters.");
   const [isSimulating, setIsSimulating] = useState(false);
   const { toast } = useToast();
+
+  const [isDemoMonthEffectivelyUnlocked, setIsDemoMonthEffectivelyUnlocked] = useState(false);
+
 
   const initialMockMilestones: DashboardMilestone[] = useMemo(() => [
     { id: 'mock-ms-genesis-forge', name: "Complete Genesis Forge", icon: Rocket, isUnlocked: false, description: "Successfully navigate the initial phase of your venture." },
@@ -232,12 +237,8 @@ export default function DashboardPage() {
   ], []);
   const [mockMilestones, setMockMilestones] = useState<DashboardMilestone[]>(initialMockMilestones);
 
-  // This effect will "listen" to the store's puzzleProgressForDemo and update the mockMilestones
   useEffect(() => {
     if (!isInitialized) return;
-    // This is where a real Firestore listener would typically update the local state (mockMilestones).
-    // For now, we derive it from the store's demo progress.
-    // console.log("[Dashboard] puzzleProgressForDemo changed in store:", puzzleProgressForDemo);
     setMockMilestones(prev =>
       prev.map((ms, index) => ({
         ...ms,
@@ -248,29 +249,18 @@ export default function DashboardPage() {
 
 
   const handleMockMilestonesChange = useCallback((updatedMilestones: DashboardMilestone[]) => {
-    // This function is primarily for the MilestonePuzzle component to update parent state if it were managing its own data loading.
-    // Since we are deriving from the global store, this might not be strictly necessary for this demo's flow.
     setMockMilestones(updatedMilestones);
   }, []);
 
   const toggleMockMilestone = useCallback((id: string) => {
-    // This function is for the *manual* demo controls on the dashboard page itself.
-    // It will update the local `mockMilestones` state.
-    // A real application might directly update Firestore here, and the listener would propagate the change.
     setMockMilestones(prev =>
       prev.map(ms => {
         if (ms.id === id) {
           const newUnlockedState = !ms.isUnlocked;
-          // Simulate the store update that would happen if a task was completed or undone
-          // This is a bit of a simplification for the demo.
           const currentUnlockedInStore = useSimulationStore.getState().puzzleProgressForDemo.piecesUnlocked;
           if (newUnlockedState && id === initialMockMilestones[currentUnlockedInStore]?.id) {
-            // Only allow unlocking if it's the "next" piece in sequence for this demo control
              useSimulationStore.getState().completeTaskForDemoPuzzle();
           } else if (!newUnlockedState && ms.isUnlocked) {
-             // If unchecking, we might conceptually want to decrement in store,
-             // but the current store logic is increment-only.
-             // For this demo, we'll just update local state.
              console.warn("[Dashboard Demo] Unlocking a piece via demo controls. Actual puzzle piece unlock is driven by task completion via Todo page.");
           }
           return { ...ms, isUnlocked: newUnlockedState };
@@ -281,8 +271,6 @@ export default function DashboardPage() {
   }, [initialMockMilestones]);
 
   const unlockAllMockMilestones = useCallback(() => {
-    // This directly sets all mock milestones to unlocked for demo purposes
-    // And updates the store to reflect this for the demo puzzle.
     setMockMilestones(prev => prev.map(ms => ({ ...ms, isUnlocked: true })));
     const total = useSimulationStore.getState().puzzleProgressForDemo.totalPieces;
     for (let i = 0; i < total; i++) {
@@ -294,21 +282,33 @@ export default function DashboardPage() {
 
   const resetAllMockMilestones = useCallback(() => {
     setMockMilestones(initialMockMilestones);
-    // Reset the store's demo puzzle progress
     useSimulationStore.setState(state => ({
       ...state,
       puzzleProgressForDemo: { ...state.puzzleProgressForDemo, piecesUnlocked: 0 }
     }));
+    setIsDemoMonthEffectivelyUnlocked(false); // Also reset this conceptual unlock
   }, [initialMockMilestones]);
 
 
   const handleMockPuzzleComplete = useCallback((puzzleId: string) => {
     toast({
       title: "Demo Puzzle Complete!",
-      description: `Congratulations, you've unlocked all milestones for the "${puzzleId}" demo puzzle!`,
+      description: `Congratulations, you've unlocked all milestones for the "${puzzleId}" demo puzzle! Check out the new Hexagon!`,
       duration: 5000,
     });
-  }, [toast]);
+    setIsDemoMonthEffectivelyUnlocked(true);
+    // This is where you'd conceptually:
+    // 1. Update Firestore: `db.collection('users').doc(userId).update({ 'puzzleProgress.isMonthUnlocked': true, ... })`
+    // 2. Dispatch an EVE message:
+    addEveMessage({
+        id: `eve-demo-puzzle-complete-${Date.now()}`,
+        role: "assistant",
+        content: `EVE: Excellent work, Founder! You've completed all objectives for the "${puzzleId}" demo set. A new strategic node has activated. This represents your progress for this simulated period.`,
+        timestamp: new Date(),
+        agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
+    });
+
+  }, [toast, addEveMessage]);
 
 
   useEffect(() => {
@@ -345,7 +345,11 @@ export default function DashboardPage() {
       setIsSimulating(false);
     }
   };
-  const handleReset = () => { resetSimulation(); router.push('/app/setup'); };
+  const handleReset = () => { 
+    resetSimulation(); 
+    setIsDemoMonthEffectivelyUnlocked(false); // Reset demo state too
+    router.push('/app/setup'); 
+  };
 
   useEffect(() => {
     let baseMessages = [
@@ -717,10 +721,12 @@ export default function DashboardPage() {
               </CardTitle>
               <CardDescription>
                 Test the MilestonePuzzle component. Completing tasks on the "Todo List" page will unlock pieces here. User ID for demo: {userEmail || "mockUser"}
-                 {/* Comment: A real Firestore listener would typically be set up here or in MilestonePuzzle.tsx to listen to changes in user's puzzleProgress and update the UI reactively.
+                 {/* 
+                  A real Firestore listener would typically be set up here or in MilestonePuzzle.tsx
+                  to listen to changes in user's puzzleProgress and update the UI reactively.
                   Example:
                   useEffect(() => {
-                    if (userId && puzzleId && db) {
+                    if (userId && puzzleId && db) { // Assuming db is your Firestore instance
                       const puzzleDocRef = doc(db, "users", userId, "puzzles", puzzleId);
                       const unsubscribe = onSnapshot(puzzleDocRef, (docSnap) => {
                         if (docSnap.exists()) {
@@ -731,7 +737,7 @@ export default function DashboardPage() {
                       });
                       return () => unsubscribe();
                     }
-                  }, [userId, puzzleId]);
+                  }, [userId, puzzleId, db]);
                 */}
               </CardDescription>
             </CardHeader>
@@ -771,6 +777,61 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </section>
+        
+        {isDemoMonthEffectivelyUnlocked && (
+          <motion.section 
+            className="relative z-20 mt-10 py-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
+            <Card className="shadow-2xl border-accent/60 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 backdrop-blur-lg overflow-hidden">
+              <CardHeader className="text-center">
+                <div className="w-24 h-24 mx-auto mb-4 relative flex items-center justify-center">
+                  {/* Pulsing background for the hexagon */}
+                  <motion.div
+                    className="absolute inset-0 bg-accent/50 rounded-full"
+                    animate={{
+                      scale: [1, 1.3, 1],
+                      opacity: [0.5, 0.8, 0.5],
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ filter: 'blur(20px)'}}
+                  />
+                  {/* Hexagon shape */}
+                  <motion.div 
+                    className="relative w-full h-full bg-gradient-to-r from-accent to-yellow-400 flex items-center justify-center text-accent-foreground shadow-xl"
+                    style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
+                    initial={{ scale: 0.5, rotate: -45 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 150, damping: 15, delay: 0.2 }}
+                  >
+                    <Award className="h-12 w-12" />
+                  </motion.div>
+                </div>
+                <CardTitle className="text-3xl font-headline text-glow-accent">
+                  Strategic Node Activated!
+                </CardTitle>
+                <CardDescription className="text-lg text-muted-foreground mt-1">
+                  All objectives for this simulated period are complete.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-foreground mb-6 max-w-md mx-auto">
+                  EVE confirms: "Your strategic acumen has unlocked new potentials. This represents a significant milestone achieved in your simulation. The path forward is now clearer."
+                </p>
+                <Button 
+                  onClick={() => setIsDemoMonthEffectivelyUnlocked(false)} 
+                  variant="outline"
+                  className="border-accent text-accent hover:bg-accent/10"
+                >
+                  Acknowledge & Continue
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.section>
+        )}
+
       </div>
     </TooltipProvider>
   );
