@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
-  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb, Puzzle, Check, X // Added Puzzle, Check, X
+  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb, Puzzle, Check, X
 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -19,9 +19,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { StructuredKeyEvent, DashboardMilestone } from "@/types/simulation";
 import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
-import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece"; 
-import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle"; // Import MilestonePuzzle
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece";
+import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
+import { PuzzleBoard } from "@/components/dashboard/PuzzleBoard"; // Import the new PuzzleBoard
+import { useToast } from "@/hooks/use-toast";
 
 const MAX_SIMULATION_MONTHS = 24;
 
@@ -32,7 +33,7 @@ interface SimulationPhase {
   description: string;
   unlockMonth: number;
   totalMonthsInPhase: number;
-  milestones: DashboardMilestone[]; 
+  milestones: DashboardMilestone[];
   themeColor: string;
   ringColor: string;
   shadowColor: string;
@@ -113,14 +114,14 @@ const PhaseCard = ({ phase, currentSimMonth, index }: { phase: SimulationPhase; 
   let cardClasses = "hex-card relative flex flex-col justify-between p-4 md:p-5 min-h-[220px] sm:min-h-[250px] md:min-h-[300px] w-[200px] sm:w-[230px] md:w-[280px] aspect-[1/0.866] transition-all duration-300 ease-in-out group ";
   let IconComponent = phase.icon;
 
-  cardClasses += " hover:shadow-2xl"; 
+  cardClasses += " hover:shadow-2xl";
 
   if (isLocked) {
     cardClasses += "bg-card/20 backdrop-blur-xs opacity-60 cursor-not-allowed shadow-inner-soft-dim border-border/30";
     IconComponent = LockIcon;
   } else if (isActive) {
     cardClasses += `${phase.bgColor} ${phase.ringColor} shadow-lg ${phase.shadowColor} animate-pulse-glow-border-alt`;
-  } else { 
+  } else {
     cardClasses += `bg-card/50 border-green-600/50 opacity-80 shadow-md ${isCompleted ? 'animate-digital-nectar-fill' : ''}`;
     IconComponent = CheckCircle;
   }
@@ -141,7 +142,7 @@ const PhaseCard = ({ phase, currentSimMonth, index }: { phase: SimulationPhase; 
       initial="initial"
       animate="animate"
       whileHover="hover"
-      custom={index} 
+      custom={index}
     >
       <div className="transform-style-preserve-3d group-hover:rotate-y-2 group-hover:rotate-x-1 transition-transform duration-300 text-center px-2 pt-3 pb-1 flex flex-col flex-grow justify-between">
         <div>
@@ -203,7 +204,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const {
     companyName, simulationMonth, financials, userMetrics, product,
-    market: storeMarket, 
+    market: storeMarket,
     startupScore,
     keyEvents, isInitialized, currentAiReasoning, historicalRevenue, historicalUserGrowth,
     historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
@@ -308,7 +309,7 @@ export default function DashboardPage() {
         if (product.developmentProgress > 85 && product.stage !== 'mature') {
             baseMessages.push(`EVE: Opportunity Alert: Product '${product.name}' development at ${product.developmentProgress}%. Next stage breakthrough is imminent. Consider resource allocation.`);
         }
-        if (userMetrics.churnRate > 0.15) { 
+        if (userMetrics.churnRate > 0.15) {
             baseMessages.push(`EVE: User Retention Alert: Churn rate at ${(userMetrics.churnRate * 100).toFixed(1)}%. Zara, our Focus Group Lead, suggests investigating user feedback.`);
         }
         if (keyEvents.length > 0) {
@@ -634,7 +635,24 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-        {/* Milestone Puzzle Demo Section */}
+        {/* New PuzzleBoard Section */}
+        <section className="relative z-10 mt-8">
+          <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-xl text-purple-400">
+                <Puzzle className="h-7 w-7" /> Placeholder Puzzle Board
+              </CardTitle>
+              <CardDescription>
+                This is a static display of empty puzzle slots. Future iterations will make this dynamic.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PuzzleBoard />
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Existing Milestone Puzzle Demo Section - Kept for reference */}
         <section className="relative z-10 mt-8">
           <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
             <CardHeader>
