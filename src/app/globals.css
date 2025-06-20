@@ -458,8 +458,8 @@ button:focus, a:focus { outline: 2px solid hsl(var(--accent) / 0.5); outline-off
 .theme-founders-choice .prose { 
   @apply text-primary-foreground/90;
 }
- .theme-founders-choice .lucide-lightbulb { 
-  @apply text-primary;
+.theme-founders-choice .lucide-lightbulb { 
+  @apply text-primary; 
 }
 
 /* General Fade In Animations */

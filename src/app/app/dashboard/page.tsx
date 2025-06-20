@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion"; // Added framer-motion
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -51,7 +52,22 @@ const STAGE_UNLOCK_THRESHOLDS: Record<number, {id: string, name: string}> = {
     13: {id: "sovereign_dominion_unlocked", name: "Sovereign Dominion"},
 };
 
-const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; currentSimMonth: number }) => {
+const cardVariants = {
+  initial: { opacity: 0, y: 20, scale: 0.95 },
+  animate: (index: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { delay: index * 0.1, duration: 0.4, ease: "easeOut" },
+  }),
+  hover: {
+    scale: 1.03,
+    y: -5,
+    transition: { duration: 0.2, ease: "easeOut" },
+  },
+};
+
+const PhaseCard = ({ phase, currentSimMonth, index }: { phase: SimulationPhase; currentSimMonth: number; index: number }) => {
   const isLocked = currentSimMonth < phase.unlockMonth;
   const isCompleted = currentSimMonth >= phase.unlockMonth + phase.totalMonthsInPhase;
   const isActive = !isLocked && !isCompleted;
@@ -59,11 +75,11 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
   const currentMonthInPhase = isLocked ? 0 : Math.min(phase.totalMonthsInPhase, Math.max(0, currentSimMonth - phase.unlockMonth));
   const progressPercentage = phase.totalMonthsInPhase > 0 ? (currentMonthInPhase / phase.totalMonthsInPhase) * 100 : (isCompleted ? 100 : 0);
 
-  let cardClasses = "hex-card relative flex flex-col justify-between p-4 md:p-5 min-h-[220px] sm:min-h-[250px] md:min-h-[280px] w-[200px] sm:w-[230px] md:w-[260px] aspect-[1/0.866] transition-all duration-300 ease-in-out transform group "; // Adjusted aspect ratio for hexagon
+  let cardClasses = "hex-card relative flex flex-col justify-between p-4 md:p-5 min-h-[220px] sm:min-h-[250px] md:min-h-[280px] w-[200px] sm:w-[230px] md:w-[260px] aspect-[1/0.866] transition-all duration-300 ease-in-out group ";
   let IconComponent = phase.icon;
 
-  cardClasses += " hover:shadow-2xl hover:-translate-y-1 group-hover:rotate-y-2 group-hover:rotate-x-1";
-
+  // Removed "transform" from cardClasses to let Framer Motion handle it.
+  cardClasses += " hover:shadow-2xl"; // Keep CSS shadow hover
 
   if (isLocked) {
     cardClasses += "bg-card/20 backdrop-blur-xs opacity-60 cursor-not-allowed shadow-inner-soft-dim border-border/30";
@@ -77,7 +93,7 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
 
 
   return (
-    <div
+    <motion.div
       className={cn(cardClasses, "perspective-1000")}
       style={{
         clipPath: phase.hexPath,
@@ -87,7 +103,13 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
         '--nectar-color-from': `hsl(var(${phase.glowColorVar}) / 0.3)`,
         '--nectar-color-to': `hsl(var(${phase.glowColorVar}) / 0.7)`,
       } as React.CSSProperties}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      whileHover="hover"
+      custom={index} // For staggered animation
     >
+      {/* Inner div for 3D tilt on hover, driven by parent's group hover state */}
       <div className="transform-style-preserve-3d group-hover:rotate-y-2 group-hover:rotate-x-1 transition-transform duration-300 text-center px-2 pt-3 pb-1">
         <div className="flex flex-col items-center justify-center mb-2">
           <IconComponent className={cn("h-6 w-6 sm:h-7 sm:w-7", isLocked ? "text-muted-foreground/60" : phase.themeColor)} />
@@ -105,7 +127,7 @@ const PhaseCard = ({ phase, currentSimMonth }: { phase: SimulationPhase; current
       </div>
       {isLocked && <div className="absolute inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center" style={{clipPath: phase.hexPath}}><LockIcon className="h-8 w-8 sm:h-10 sm:h-10 text-white/50"/></div>}
       {!isLocked && <div className="absolute inset-0 overflow-hidden"><div className="shimmer-effect"></div></div>}
-    </div>
+    </motion.div>
   );
 };
 
@@ -350,8 +372,8 @@ export default function DashboardPage() {
         <section className="relative z-10">
           <h2 className="text-xl font-headline text-foreground mb-6 flex items-center gap-2"><Settings2 className="h-6 w-6 text-accent"/>Phase Matrix</h2>
           <div className="flex flex-wrap justify-center gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:gap-x-5 md:gap-y-12 lg:gap-x-6 lg:gap-y-14 px-2">
-            {simulationPhases.map(phase => (
-              <PhaseCard key={phase.id} phase={phase} currentSimMonth={simulationMonth} />
+            {simulationPhases.map((phase, index) => (
+              <PhaseCard key={phase.id} phase={phase} currentSimMonth={simulationMonth} index={index} />
             ))}
           </div>
         </section>
@@ -529,5 +551,3 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
-
-    
