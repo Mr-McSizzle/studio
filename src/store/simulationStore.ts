@@ -646,6 +646,14 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
             newState.currentAiReasoning = aiOutput.aiReasoning || "AI completed simulation. Reasoning not explicitly provided.";
             
+            // Reset puzzle progress for the new month
+            if (newState.puzzleProgressForDemo) {
+              newState.puzzleProgressForDemo.piecesUnlocked = 0;
+            } else {
+              // This case should ideally not happen if initialized correctly, but as a fallback:
+              newState.puzzleProgressForDemo = { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES };
+            }
+
             // EVE's Monthly Debrief
             const { addMessage } = useAiMentorStore.getState();
             let debriefMessage = `EVE: Month ${newState.simulationMonth} concluded.\nCash is now ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, and active users are at ${newState.userMetrics.activeUsers.toLocaleString()}.\n`;
