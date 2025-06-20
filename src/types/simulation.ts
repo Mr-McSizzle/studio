@@ -235,6 +235,15 @@ export interface SimulationSnapshot {
   simulationState: DigitalTwinState; // The actual state snapshot
 }
 
+// Dashboard Milestone Type
+export interface DashboardMilestone {
+  id: string;
+  name: string;
+  icon: ComponentType<LucideProps>; // Using ComponentType for Lucide icons
+  isUnlocked: boolean;
+  description?: string; // Optional description for tooltip
+}
+
 
 // Alex the Accountant Tool
 export const AlexTheAccountantToolInputSchema = z.object({
@@ -406,7 +415,7 @@ export const SimulateMonthOutputSchema = z.object({
   newUserAcquisition: z.number().describe("Number of new users acquired during this month."),
   productDevelopmentDelta: z.number().describe("The percentage points by which product development progressed this month (e.g., 10 for 10% progress). This will be added to existing progress."),
   newProductStage: z.enum(['idea', 'prototype', 'mvp', 'growth', 'mature']).optional().describe("If the product advanced to a new stage this month, specify the new stage. Otherwise, omit this field."),
-  keyEventsGenerated: z.array(AIKeyEventSchema).length(2).describe("An array of exactly two significant, context-aware events that occurred during the month. Each event must be an object with 'description', 'category', and 'impact' fields."),
+  keyEventsGenerated: z.array(AIKeyEventSchema).length(2).describe("An array of exactly two significant, context-aware events that occurred during the month. Each event must be an object with 'description', 'category', 'and 'impact' fields."),
   rewardsGranted: z.array(RewardSchema).optional().describe("List of rewards granted this month if a significant milestone was achieved. These rewards should be thematic to the achievement."),
   startupScoreAdjustment: z.number().int().describe("An integer representing the change to the startup score based on this month's performance, achievements, and rewards."),
   aiReasoning: z.string().optional().describe("A brief, 1-2 sentence explanation from the AI about its key considerations or calculations for this month's simulation outcomes, especially if they were influenced by nuanced logic or dynamic events."),
