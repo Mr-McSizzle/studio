@@ -1,19 +1,19 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission, FounderArchetype } from '@/types/simulation'; // Added FounderArchetype
+import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission, FounderArchetype } from '@/types/simulation';
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
-import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from './aiMentorStore'; // Import EVE's context ID
+import { generateDynamicMissions, type GenerateDynamicMissionsInput } from '@/ai/flows/generate-dynamic-missions-flow';
+import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from './aiMentorStore';
 
 const MOCK_PRICE_PER_USER_PER_MONTH_DEFAULT = 10;
 const MOCK_SALARY_PER_FOUNDER = 0;
 const MOCK_SALARY_PER_EMPLOYEE = 4000;
-const MOCK_OTHER_OPERATIONAL_COSTS_FALLBACK = 1500; // Fallback only
+const MOCK_OTHER_OPERATIONAL_COSTS_FALLBACK = 1500;
 const DEFAULT_ENGINEER_SALARY = 5000;
 const DEFAULT_MARKETING_SPEND = 500;
 const DEFAULT_RND_SPEND = 500;
-const MOCK_PUZZLE_TOTAL_PIECES = 6; // For the dashboard demo puzzle
 
 
 const getCurrencySymbol = (code?: string): string => {
@@ -79,17 +79,16 @@ const onboardingMissions: Mission[] = [
   },
 ];
 
-// Interface for earned badges, now part of DigitalTwinState
 export interface EarnedBadge {
-  questId: string; // To link to the completed quest
+  questId: string;
   name: string;
   description: string;
-  icon?: string; // Lucide icon name or path
-  dateEarned: string; // ISO date string
+  icon?: string;
+  dateEarned: string;
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype' | 'puzzleProgressForDemo'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -105,8 +104,8 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
   userMetrics: {
     activeUsers: 0,
     newUserAcquisitionRate: 0,
-    customerAcquisitionCost: 20, // Default initial CAC
-    churnRate: 0.05, // Default initial churn rate (5%)
+    customerAcquisitionCost: 20,
+    churnRate: 0.05,
     monthlyRecurringRevenue: 0,
   },
   product: {
@@ -130,17 +129,15 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
   startupScore: 10,
   isInitialized: false,
   initialGoals: [],
-  // selectedArchetype is omitted here, will be added in getInitialState if needed or handled by initialize
 };
 
 
 const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSnapshot[] } => ({
   ...initialBaseState,
-  selectedArchetype: undefined, // Initialize selectedArchetype
-  puzzleProgressForDemo: { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES }, // Initialize demo puzzle progress
+  selectedArchetype: undefined,
   keyEvents: [createStructuredEvent(0, "Simulation not yet initialized. Set up your venture to begin!", "System", "Neutral")],
   rewards: [],
-  earnedBadges: [], // Initialize earnedBadges
+  earnedBadges: [],
   suggestedChallenges: [],
   historicalRevenue: [],
   historicalUserGrowth: [],
@@ -150,7 +147,7 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
   historicalCAC: [],
   historicalChurnRate: [],
   historicalProductProgress: [],
-  missions: [...onboardingMissions], // Start with onboarding missions
+  missions: [...onboardingMissions],
   currentAiReasoning: "AI log awaiting initialization.",
   sandboxState: null,
   isSandboxing: false,
@@ -159,16 +156,16 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
 });
 
 interface SimulationActions {
-  initializeSimulation: (aiOutput: PromptStartupOutput, userStartupName: string, userTargetMarket: string, userBudget: string, userCurrencyCode: string, selectedArchetype?: FounderArchetype) => void; // Added selectedArchetype
+  initializeSimulation: (aiOutput: PromptStartupOutput, userStartupName: string, userTargetMarket: string, userBudget: string, userCurrencyCode: string, selectedArchetype?: FounderArchetype) => void;
   advanceMonth: () => Promise<void>;
   resetSimulation: () => void;
   setMarketingSpend: (amount: number) => void;
   setRndSpend: (amount: number) => void;
   setPricePerUser: (price: number) => void;
   adjustTeamMemberCount: (roleToAdjust: string, change: number, salaryPerMember?: number) => void;
-  setMissions: (generatedMissionsFromAI: GeneratedMission[]) => void; // For new missions
-  awardQuestBadge: (badgeName: string, badgeDescription: string, questId: string, icon?: string) => void; // New action for badges
-  // Sandbox actions
+  setMissions: (generatedMissionsFromAI: GeneratedMission[]) => void;
+  toggleMissionCompletion: (missionId: string) => void;
+  awardQuestBadge: (badgeName: string, badgeDescription: string, questId: string, icon?: string) => void;
   startSandboxExperiment: () => void;
   setSandboxMarketingSpend: (amount: number) => void;
   setSandboxRndSpend: (amount: number) => void;
@@ -177,12 +174,9 @@ interface SimulationActions {
   simulateMonthInSandbox: () => Promise<void>;
   discardSandboxExperiment: () => void;
   applySandboxDecisionsToMain: () => void;
-  // Snapshot actions
   saveCurrentSimulation: (name: string) => DigitalTwinState | null;
   loadSimulation: (snapshotId: string) => DigitalTwinState | null;
   deleteSavedSimulation: (snapshotId: string) => void;
-  // Demo Puzzle Action
-  completeTaskForDemoPuzzle: () => void;
 }
 
 const parseMonetaryValue = (value: string | number | undefined): number => {
@@ -212,8 +206,7 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     suggestedChallenges: state.suggestedChallenges,
     isInitialized: state.isInitialized,
     currentAiReasoning: state.currentAiReasoning,
-    selectedArchetype: state.selectedArchetype, // Include selectedArchetype
-    puzzleProgressForDemo: state.puzzleProgressForDemo, // Include puzzleProgressForDemo
+    selectedArchetype: state.selectedArchetype,
     historicalRevenue: state.historicalRevenue,
     historicalUserGrowth: state.historicalUserGrowth,
     historicalBurnRate: state.historicalBurnRate,
@@ -234,7 +227,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     (set, get) => ({
       ...getInitialState(),
 
-      initializeSimulation: (aiOutput, userStartupName, userTargetMarket, userBudget, userCurrencyCode, selectedArchetype) => { // Added selectedArchetype
+      initializeSimulation: (aiOutput, userStartupName, userTargetMarket, userBudget, userCurrencyCode, selectedArchetype) => {
         let parsedConditions: AIInitialConditions = {};
         try {
           if (!aiOutput || !aiOutput.initialConditions || typeof aiOutput.initialConditions !== 'string') {
@@ -359,8 +352,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         set(state => ({
           ...initialBaseState,
           companyName: parsedConditions.companyName || userStartupName || "AI Suggested Venture",
-          selectedArchetype: selectedArchetype, // Store selected archetype
-          puzzleProgressForDemo: { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES }, // Reset demo puzzle
+          selectedArchetype: selectedArchetype,
           market: {
             ...initialBaseState.market,
             targetMarketDescription: userTargetMarket || parsedConditions.market?.targetMarketDescription || "Not specified",
@@ -472,16 +464,27 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         return { ...state, missions: newMissions };
       }),
       
+      toggleMissionCompletion: (missionId: string) => {
+        set(state => {
+            const newMissions = state.missions.map(mission => {
+                if (mission.id === missionId) {
+                    return { ...mission, isCompleted: !mission.isCompleted };
+                }
+                return mission;
+            });
+            return { ...state, missions: newMissions };
+        });
+      },
+
       awardQuestBadge: (badgeName: string, badgeDescription: string, questId: string, icon?: string) => {
         set(state => {
           const newBadge: EarnedBadge = {
             questId,
             name: badgeName,
             description: badgeDescription,
-            icon: icon || 'Award', // Default icon if none provided
+            icon: icon || 'Award',
             dateEarned: new Date().toISOString(),
           };
-          // Prevent duplicate badges for the same quest
           if (state.earnedBadges.some(b => b.questId === questId)) {
             return state;
           }
@@ -545,17 +548,16 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         };
 
         try {
-          const aiOutput: SimulateMonthOutput = await simulateMonthFlow(simulateMonthInput);
+            const aiOutput: SimulateMonthOutput = await simulateMonthFlow(simulateMonthInput);
 
-          set(state => {
-            let newState: DigitalTwinState = JSON.parse(JSON.stringify(extractActiveSimState(state))); 
+            let newState: DigitalTwinState = JSON.parse(JSON.stringify(extractActiveSimState(currentState))); 
             const newKeyEvents: StructuredKeyEvent[] = [];
 
             newState.simulationMonth = aiOutput.simulatedMonthNumber;
             newState.financials.revenue = aiOutput.calculatedRevenue;
             newState.financials.expenses = aiOutput.calculatedExpenses;
             newState.financials.profit = newState.financials.revenue - newState.financials.expenses;
-            newState.financials.cashOnHand = state.financials.cashOnHand + newState.financials.profit; 
+            newState.financials.cashOnHand = currentState.financials.cashOnHand + newState.financials.profit; 
             const currentMonthBurnRate = Math.max(0, newState.financials.expenses - newState.financials.revenue);
             newState.financials.burnRate = currentMonthBurnRate;
 
@@ -563,11 +565,11 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newState.userMetrics.newUserAcquisitionRate = aiOutput.newUserAcquisition;
             newState.userMetrics.monthlyRecurringRevenue = aiOutput.updatedActiveUsers * newState.product.pricePerUser;
             
-            const currentMonthCAC = aiOutput.newUserAcquisition > 0 ? state.resources.marketingSpend / aiOutput.newUserAcquisition : state.userMetrics.customerAcquisitionCost;
+            const currentMonthCAC = aiOutput.newUserAcquisition > 0 ? currentState.resources.marketingSpend / aiOutput.newUserAcquisition : currentState.userMetrics.customerAcquisitionCost;
             newState.userMetrics.customerAcquisitionCost = currentMonthCAC; 
 
 
-            newState.product.developmentProgress = state.product.developmentProgress + aiOutput.productDevelopmentDelta; 
+            newState.product.developmentProgress = currentState.product.developmentProgress + aiOutput.productDevelopmentDelta; 
 
             if (aiOutput.newProductStage && aiOutput.newProductStage !== newState.product.stage) {
               newState.product.stage = aiOutput.newProductStage;
@@ -594,11 +596,11 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Month ${newState.simulationMonth} (AI Sim): Revenue ${newState.financials.currencySymbol}${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, Burn ${newState.financials.currencySymbol}${currentMonthBurnRate.toLocaleString()}, Profit ${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}`, "System", "Neutral"));
 
             newState.startupScore = Math.max(0, Math.min(100, newState.startupScore + aiOutput.startupScoreAdjustment));
-            if (newState.financials.cashOnHand <= 0 && state.financials.cashOnHand > 0) { 
+            if (newState.financials.cashOnHand <= 0 && currentState.financials.cashOnHand > 0) { 
                 newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Critical: Ran out of cash! Simulation unstable.`, "Financial", "Negative"));
             }
             
-            let currentRewards = [...state.rewards];
+            let currentRewards = [...currentState.rewards];
             if (aiOutput.rewardsGranted && aiOutput.rewardsGranted.length > 0) {
               const newRewardsFromAI: Reward[] = aiOutput.rewardsGranted.map(rewardBase => ({
                 ...rewardBase,
@@ -610,8 +612,22 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             }
             newState.rewards = currentRewards;
 
-
-            newState.keyEvents = [...state.keyEvents, ...newKeyEvents.filter(e => !state.keyEvents.find(se => se.id === e.id))];
+            // Generate new missions for the upcoming month
+            const missionInput: GenerateDynamicMissionsInput = {
+              simulationStateJSON: JSON.stringify(newState),
+              recentEvents: newKeyEvents.slice(-3).map(e => e.description),
+              currentGoals: newState.initialGoals,
+            };
+            const missionResult = await generateDynamicMissions(missionInput);
+            const newMissions: Mission[] = missionResult.generatedMissions.map(genMission => ({
+              ...genMission,
+              id: `mission-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              isCompleted: false,
+            }));
+            newState.missions = newMissions;
+            newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `EVE has assigned new monthly objectives. Check the Todo List.`, "System", "Neutral"));
+            
+            newState.keyEvents = [...currentState.keyEvents, ...newKeyEvents.filter(e => !currentState.keyEvents.find(se => se.id === e.id))];
 
 
             const monthLabel = `M${newState.simulationMonth}`;
@@ -623,7 +639,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newState.historicalChurnRate.push({ month: monthLabel, value: newState.userMetrics.churnRate * 100, desktop: newState.userMetrics.churnRate * 100 });
             newState.historicalProductProgress.push({ month: monthLabel, value: newState.product.developmentProgress, desktop: newState.product.developmentProgress });
 
-
             if (newState.historicalRevenue.length > 12) newState.historicalRevenue.shift();
             if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
             if (newState.historicalBurnRate.length > 12) newState.historicalBurnRate.shift();
@@ -631,7 +646,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             if (newState.historicalCAC.length > 12) newState.historicalCAC.shift();
             if (newState.historicalChurnRate.length > 12) newState.historicalChurnRate.shift();
             if (newState.historicalProductProgress.length > 12) newState.historicalProductProgress.shift();
-
 
             if (aiOutput.expenseBreakdown) {
                 const newExpenseBreakdownData: ExpenseBreakdownDataPoint = { month: monthLabel, ...aiOutput.expenseBreakdown };
@@ -641,20 +655,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
                 console.warn("AI did not provide expense breakdown for month " + newState.simulationMonth + ". This should not happen.");
             }
             
-            newState.keyEvents = [...state.keyEvents, ...newKeyEvents.filter(e => !state.keyEvents.find(se => se.id === e.id))]; 
-
-
             newState.currentAiReasoning = aiOutput.aiReasoning || "AI completed simulation. Reasoning not explicitly provided.";
             
-            // Reset puzzle progress for the new month
-            if (newState.puzzleProgressForDemo) {
-              newState.puzzleProgressForDemo.piecesUnlocked = 0;
-            } else {
-              // This case should ideally not happen if initialized correctly, but as a fallback:
-              newState.puzzleProgressForDemo = { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES };
-            }
-
-            // EVE's Monthly Debrief
             const { addMessage } = useAiMentorStore.getState();
             let debriefMessage = `EVE: Month ${newState.simulationMonth} concluded.\nCash is now ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, and active users are at ${newState.userMetrics.activeUsers.toLocaleString()}.\n`;
             debriefMessage += `This month's net profit/loss: ${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}.\n`;
@@ -664,18 +666,13 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
               debriefMessage += `A notable event was: "${firstEvent.description.substring(0, 80)}${firstEvent.description.length > 80 ? '...' : ''}" (${firstEvent.impact}).\n`;
             }
             
-            // Simple strategic question logic
-            let strategicQuestion = "What is our primary focus for the upcoming month, Founder?";
+            let strategicQuestion = "I have assigned new objectives for the upcoming month, Founder. You can view them on your Todo List.";
             if (newState.financials.cashOnHand < newState.financials.burnRate * 2 && newState.financials.burnRate > 0) {
-                strategicQuestion = "Our cash reserves are getting low. Should we prioritize aggressive cost-cutting, seeking funding, or a risky growth push next month?";
+                strategicQuestion = "Our cash reserves are getting low. Consider this while tackling your new objectives.";
             } else if (aiOutput.keyEventsGenerated.some(e => e.category === "Competitor" && e.impact === "Negative")) {
-                strategicQuestion = "A competitor made a significant move. What's our counter-strategy or do we stay the course?";
-            } else if (newState.product.developmentProgress > 75 && newState.product.stage !== 'mature') {
-                strategicQuestion = `Our product '${newState.product.name}' is nearing the next stage. Should we allocate more resources to R&D to accelerate this, or focus on marketing its current capabilities?`;
+                strategicQuestion = "A competitor made a significant move. Your new objectives may reflect a need to respond.";
             }
-
             debriefMessage += `\n${strategicQuestion}`;
-
             addMessage({
               id: `eve-debrief-${newState.simulationMonth}-${Date.now()}`,
               role: "assistant",
@@ -683,9 +680,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
               timestamp: new Date(),
               agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
             });
-            
-            return { ...state, ...newState };
-          });
+
+            set(newState);
 
         } catch (error) {
           console.error("Error during AI month simulation:", error);
@@ -723,8 +719,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
       resetSimulation: () => {
         set(state => ({
-            ...getInitialState(), 
-            puzzleProgressForDemo: { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES }, // Reset demo puzzle
+            ...getInitialState(),
             keyEvents: [createStructuredEvent(0, "Simulation reset. Please initialize a new venture.", "System", "Neutral")],
             currentAiReasoning: "Simulation reset. AI log cleared.",
             sandboxState: null,
@@ -1009,8 +1004,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           resources: updatedMainState.resources,
           market: updatedMainState.market,
           startupScore: updatedMainState.startupScore,
-          selectedArchetype: updatedMainState.selectedArchetype, // Preserve archetype
-          puzzleProgressForDemo: updatedMainState.puzzleProgressForDemo, // Preserve demo puzzle progress
+          selectedArchetype: updatedMainState.selectedArchetype,
           keyEvents: updatedMainState.keyEvents,
           rewards: updatedMainState.rewards,
           earnedBadges: updatedMainState.earnedBadges, 
@@ -1079,8 +1073,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           currentAiReasoning: `Simulation state loaded from snapshot: "${snapshotToLoad.name}". Main simulation month is now ${loadedSimState.simulationMonth}.`,
           missions: Array.isArray(loadedSimState.missions) && loadedSimState.missions.length > 0 ? loadedSimState.missions : [...onboardingMissions],
           earnedBadges: Array.isArray(loadedSimState.earnedBadges) ? loadedSimState.earnedBadges : [], 
-          selectedArchetype: loadedSimState.selectedArchetype || undefined, // Load archetype
-          puzzleProgressForDemo: loadedSimState.puzzleProgressForDemo || { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES }, // Load or default demo puzzle progress
+          selectedArchetype: loadedSimState.selectedArchetype || undefined,
         };
         
         set(newStateFromSnapshot);
@@ -1093,22 +1086,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           savedSimulations: state.savedSimulations.filter(s => s.id !== snapshotId),
         }));
       },
-
-      completeTaskForDemoPuzzle: () => {
-        set(state => {
-          if (state.puzzleProgressForDemo.piecesUnlocked < state.puzzleProgressForDemo.totalPieces) {
-            return {
-              ...state,
-              puzzleProgressForDemo: {
-                ...state.puzzleProgressForDemo,
-                piecesUnlocked: state.puzzleProgressForDemo.piecesUnlocked + 1,
-              }
-            };
-          }
-          return state; // No change if all pieces already unlocked
-        });
-      },
-
     }),
     {
       name: 'inceptico-simulation-storage',
@@ -1147,8 +1124,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
                                 ? mergedState.missions 
                                 : [...onboardingMissions];
         
-        mergedState.selectedArchetype = mergedState.selectedArchetype || undefined; // Ensure selectedArchetype is handled
-        mergedState.puzzleProgressForDemo = mergedState.puzzleProgressForDemo || { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES };
+        mergedState.selectedArchetype = mergedState.selectedArchetype || undefined;
 
 
         if (!mergedState.financials || !mergedState.financials.currencyCode) {
@@ -1230,3 +1206,4 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
   )
 );
 
+    
