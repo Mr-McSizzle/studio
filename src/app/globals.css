@@ -3,100 +3,98 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 225 30% 15%; /* Dark Blue-Gray Text */
-    --card: 0 0% 100%;
-    --card-foreground: 225 30% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 225 30% 15%;
-    
-    --primary: 220 70% 55%; /* Vibrant Deep Blue */
-    --primary-foreground: 210 40% 98%; /* Bright Silver/White */
-    
-    --secondary: 220 50% 90%; /* Light Bluish Gray */
-    --secondary-foreground: 225 50% 30%; /* Darker Blue */
-    
-    --muted: 220 50% 95%; /* Very Light Bluish Gray */
-    --muted-foreground: 220 30% 45%; /* Medium Blue-Gray */
-    
-    --accent: 210 30% 75%; /* Bright Silver */
-    --accent-foreground: 225 50% 15%; /* Very Dark Blue for contrast on Silver */
-    
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    
-    --border: 220 40% 80%; /* Light Blue-Gray Border */
-    --input: 220 40% 90%; /* Light Blue-Gray Input BG */
-    --ring: 220 70% 55%; /* Vibrant Deep Blue Ring */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 225 30% 15%; /* Dark Blue-Gray Text */
+  --card: 0 0% 100%;
+  --card-foreground: 225 30% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 225 30% 15%;
+  
+  --primary: 220 70% 55%; /* Vibrant Deep Blue */
+  --primary-foreground: 210 40% 98%; /* Bright Silver/White */
+  
+  --secondary: 220 50% 90%; /* Light Bluish Gray */
+  --secondary-foreground: 225 50% 30%; /* Darker Blue */
+  
+  --muted: 220 50% 95%; /* Very Light Bluish Gray */
+  --muted-foreground: 220 30% 45%; /* Medium Blue-Gray */
+  
+  --accent: 210 30% 75%; /* Bright Silver */
+  --accent-foreground: 225 50% 15%; /* Very Dark Blue for contrast on Silver */
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --border: 220 40% 80%; /* Light Blue-Gray Border */
+  --input: 220 40% 90%; /* Light Blue-Gray Input BG */
+  --ring: 220 70% 55%; /* Vibrant Deep Blue Ring */
 
-    --chart-1: 220 70% 50%; /* Blue */
-    --chart-2: 200 60% 45%; /* Teal-Blue */
-    --chart-3: 240 50% 60%; /* Indigo */
-    --chart-4: 210 15% 55%; /* Medium Silver/Gray */
-    --chart-5: 225 80% 70%; /* Brighter Blue */
-    --radius: 0.5rem;
-  }
+  --chart-1: 220 70% 50%; /* Blue */
+  --chart-2: 200 60% 45%; /* Teal-Blue */
+  --chart-3: 240 50% 60%; /* Indigo */
+  --chart-4: 210 15% 55%; /* Medium Silver/Gray */
+  --chart-5: 225 80% 70%; /* Brighter Blue */
+  --radius: 0.5rem;
+}
 
-  .dark {
-    --background: 225 30% 5%; /* Very Dark Blue, almost Black */
-    --foreground: 210 30% 95%; /* Light Silver/Off-White */
+.dark {
+  --background: 225 30% 5%; /* Very Dark Blue, almost Black */
+  --foreground: 210 30% 95%; /* Light Silver/Off-White */
 
-    --card: 225 30% 8%; /* Dark Blue-Gray Card BG */
-    --card-foreground: 210 30% 90%; /* Lighter Silver Text */
+  --card: 225 30% 8%; /* Dark Blue-Gray Card BG */
+  --card-foreground: 210 30% 90%; /* Lighter Silver Text */
 
-    --popover: 225 30% 7%; /* Darker Popover BG */
-    --popover-foreground: 210 30% 95%;
+  --popover: 225 30% 7%; /* Darker Popover BG */
+  --popover-foreground: 210 30% 95%;
 
-    /* Deep Blue & Silver Theme */
-    --primary: 220 70% 55%; /* Vibrant Deep Blue */
-    --primary-foreground: 210 40% 98%; /* Bright Silver/White */
+  /* Deep Blue & Silver Theme */
+  --primary: 220 70% 55%; /* Vibrant Deep Blue */
+  --primary-foreground: 210 40% 98%; /* Bright Silver/White */
 
-    --secondary: 225 30% 12%; /* Darker Shade of Blue-Gray */
-    --secondary-foreground: 210 25% 85%; /* Medium Silver */
+  --secondary: 225 30% 12%; /* Darker Shade of Blue-Gray */
+  --secondary-foreground: 210 25% 85%; /* Medium Silver */
 
-    --muted: 225 20% 20%; /* Muted Dark Blue */
-    --muted-foreground: 210 20% 55%; /* Muted Silver/Gray */
+  --muted: 225 20% 20%; /* Muted Dark Blue */
+  --muted-foreground: 210 20% 55%; /* Muted Silver/Gray */
 
-    --accent: 210 30% 75%; /* Bright Silver */
-    --accent-foreground: 225 50% 15%; /* Very Dark Blue for contrast on Silver */
+  --accent: 210 30% 75%; /* Bright Silver */
+  --accent-foreground: 225 50% 15%; /* Very Dark Blue for contrast on Silver */
 
-    --destructive: 0 60% 45%; /* Muted Red for destructive actions */
-    --destructive-foreground: 0 0% 98%;
+  --destructive: 0 60% 45%; /* Muted Red for destructive actions */
+  --destructive-foreground: 0 0% 98%;
 
-    --border: 225 20% 15%; /* Dark Blue-Gray Border */
-    --input: 225 25% 10%; /* Slightly Lighter Dark Blue for Input BG */
-    --ring: 210 40% 70%; /* Silver for focus rings */
+  --border: 225 20% 15%; /* Dark Blue-Gray Border */
+  --input: 225 25% 10%; /* Slightly Lighter Dark Blue for Input BG */
+  --ring: 210 40% 70%; /* Silver for focus rings */
 
-    --chart-1: 220 70% 60%;  /* Bright Blue */
-    --chart-2: 200 80% 50%; /* Cyan-Blue */
-    --chart-3: 210 20% 60%;  /* Light Silver/Gray */
-    --chart-4: 240 60% 70%;    /* Indigo/Purple-Blue */
-    --chart-5: 225 50% 45%; /* Deeper Blue */
+  --chart-1: 220 70% 60%;  /* Bright Blue */
+  --chart-2: 200 80% 50%; /* Cyan-Blue */
+  --chart-3: 210 20% 60%;  /* Light Silver/Gray */
+  --chart-4: 240 60% 70%;    /* Indigo/Purple-Blue */
+  --chart-5: 225 50% 45%; /* Deeper Blue */
 
-    --radius: 0.5rem;
+  --radius: 0.5rem;
 
-    /* Sidebar Theme */
-    --sidebar-background: 225 35% 7%; /* Very Dark Blue for Sidebar */
-    --sidebar-foreground: 210 25% 80%; /* Medium Silver for Sidebar Text */
-    --sidebar-primary: 220 70% 55%; /* Vibrant Deep Blue for Sidebar Primary */
-    --sidebar-primary-foreground: 210 40% 98%; /* Bright Silver for Sidebar Primary Text */
-    --sidebar-accent: 210 30% 75%; /* Bright Silver for Sidebar Accent */
-    --sidebar-accent-foreground: 225 50% 15%; /* Very Dark Blue for Sidebar Accent Text */
-    --sidebar-border: 225 25% 12%; /* Darker Blue-Gray for Sidebar Border */
-    --sidebar-ring: 210 40% 70%; /* Silver for Sidebar Ring */
+  /* Sidebar Theme */
+  --sidebar-background: 225 35% 7%; /* Very Dark Blue for Sidebar */
+  --sidebar-foreground: 210 25% 80%; /* Medium Silver for Sidebar Text */
+  --sidebar-primary: 220 70% 55%; /* Vibrant Deep Blue for Sidebar Primary */
+  --sidebar-primary-foreground: 210 40% 98%; /* Bright Silver for Sidebar Primary Text */
+  --sidebar-accent: 210 30% 75%; /* Bright Silver for Sidebar Accent */
+  --sidebar-accent-foreground: 225 50% 15%; /* Very Dark Blue for Sidebar Accent Text */
+  --sidebar-border: 225 25% 12%; /* Darker Blue-Gray for Sidebar Border */
+  --sidebar-ring: 210 40% 70%; /* Silver for Sidebar Ring */
 
-    /* Phase Colors */
-    --sky: 200 80% 50%; 
-    --amber: 40 90% 50%; 
-    --emerald: 150 70% 40%; 
-    --purple: 270 70% 55%; 
-    
-    /* Nectar fill for completed phase cards */
-    --nectar-from: hsl(var(--accent) / 0.2);
-    --nectar-to: hsl(var(--accent) / 0.6);
-  }
+  /* Phase Colors */
+  --sky: 200 80% 50%; 
+  --amber: 40 90% 50%; 
+  --emerald: 150 70% 40%; 
+  --purple: 270 70% 55%; 
+  
+  /* Nectar fill for completed phase cards */
+  --nectar-from: hsla(var(--accent), 0.2);
+  --nectar-to: hsla(var(--accent), 0.6);
 }
 
 @layer base {
@@ -135,10 +133,10 @@
 @keyframes glow { /* More subtle silver glow */
   0%,
   100% {
-    box-shadow: 0 0 15px hsl(var(--accent) / 0.2), 0 0 30px hsl(var(--primary) / 0.15);
+    box-shadow: 0 0 15px hsla(var(--accent), 0.2), 0 0 30px hsla(var(--primary), 0.15);
   }
   50% {
-    box-shadow: 0 0 25px hsl(var(--accent) / 0.4), 0 0 50px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 25px hsla(var(--accent), 0.4), 0 0 50px hsla(var(--primary), 0.3);
   }
 }
 
@@ -194,18 +192,18 @@
 /* Animation for active phase card border */
 @keyframes pulse-glow-border {
   0%, 100% {
-    box-shadow: 0 0 0px 0px var(--glow-color, hsl(var(--accent)/0.4)), inset 0 0 0px 0px var(--glow-color, hsl(var(--accent)/0.2));
-    border-color: var(--border-color, hsl(var(--accent)/0.7));
+    box-shadow: 0 0 0px 0px var(--glow-color, hsla(var(--accent),0.4)), inset 0 0 0px 0px var(--glow-color, hsla(var(--accent),0.2));
+    border-color: var(--border-color, hsla(var(--accent),0.7));
   }
   50% {
-    box-shadow: 0 0 15px 3px var(--glow-color, hsl(var(--accent)/0.4)), inset 0 0 5px 1px var(--glow-color, hsl(var(--accent)/0.2));
+    box-shadow: 0 0 15px 3px var(--glow-color, hsla(var(--accent),0.4)), inset 0 0 5px 1px var(--glow-color, hsla(var(--accent),0.2));
     border-color: var(--border-color-active, hsl(var(--accent)));
   }
 }
 /* Animation for EVE's avatar on dashboard */
 @keyframes float-pulse {
-  0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 12px hsl(var(--accent)/0.5));}
-  50% { transform: translateY(-5px) scale(1.02); filter: drop-shadow(0 0 18px hsl(var(--accent)/0.65));}
+  0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 12px hsla(var(--accent),0.5));}
+  50% { transform: translateY(-5px) scale(1.02); filter: drop-shadow(0 0 18px hsla(var(--accent),0.65));}
 }
 /* Animation for the subtle grid background on dashboard */
 @keyframes subtle-grid-pan-faster {
@@ -225,13 +223,13 @@
 }
 /* Animation for title underlines */
 @keyframes title-underline-glow {
-  0%, 100% { width: 40%; filter: blur(0.5px) brightness(0.9); opacity: 0.8; background-color: hsl(var(--accent) / 0.7); }
+  0%, 100% { width: 40%; filter: blur(0.5px) brightness(0.9); opacity: 0.8; background-color: hsla(var(--accent), 0.7); }
   50% { width: 66.66%; filter: blur(1px) brightness(1.2); opacity: 1; background-color: hsl(var(--accent)); }
 }
 /* Animation for prominent buttons like "Next Month" */
 @keyframes subtle-button-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 5px hsl(var(--accent)/0.3); }
-  50% { transform: scale(1.02); box-shadow: 0 0 10px hsl(var(--accent)/0.45); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 5px hsla(var(--accent),0.3); }
+  50% { transform: scale(1.02); box-shadow: 0 0 10px hsla(var(--accent),0.45); }
 }
 
 
@@ -249,7 +247,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, var(--nectar-color-from, hsl(var(--accent)/0.1)), var(--nectar-color-to, hsl(var(--accent)/0.5)));
+  background: linear-gradient(135deg, var(--nectar-color-from, hsla(var(--accent),0.1)), var(--nectar-color-to, hsla(var(--accent),0.5)));
   animation: digital-nectar-sweep 2s ease-in-out forwards;
   opacity: 0;
   z-index: 0;
@@ -261,7 +259,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(100deg, transparent 20%, hsl(var(--accent)/0.15) 50%, transparent 80%);
+  background: linear-gradient(100deg, transparent 20%, hsla(var(--accent),0.15) 50%, transparent 80%);
   transition: left 0.6s ease-in-out;
   opacity: 0;
   pointer-events: none;
@@ -282,7 +280,7 @@
 }
 .particle {
   position: absolute;
-  background-color: hsl(var(--accent) / 0.3); /* Silver particles */
+  background-color: hsla(var(--accent), 0.3); /* Silver particles */
   border-radius: 50%;
   width: var(--size);
   height: var(--size);
@@ -294,8 +292,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(hsl(var(--border) / 0.1) 1px, transparent 1px),
-    linear-gradient(to right, hsl(var(--border) / 0.1) 1px, transparent 1px);
+    linear-gradient(hsla(var(--border), 0.1) 1px, transparent 1px),
+    linear-gradient(to right, hsla(var(--border), 0.1) 1px, transparent 1px);
   background-size: 30px 30px; /* Smaller grid */
   animation: subtle-grid-pan-faster 120s linear infinite; /* Faster pan */
   opacity: 0.5;
@@ -303,7 +301,7 @@
 .enhanced-orbit {
   position: absolute;
   border-radius: 50%;
-  border: 1px solid hsl(var(--primary) / var(--orbit-opacity));
+  border: 1px solid hsla(var(--primary), var(--orbit-opacity));
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%) rotate(0deg);
@@ -329,44 +327,46 @@
 /* Enhanced Scrollbar with Blue/Silver Theme */
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: hsl(var(--secondary) / 0.3); border-radius: 5px; }
-::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, hsl(var(--accent)), hsl(var(--accent) / 0.7), hsl(var(--primary))); border-radius: 5px; border: 1px solid hsl(var(--border) / 0.2); }
-::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, hsl(var(--accent) / 0.9), hsl(var(--accent) / 0.6), hsl(var(--primary) / 0.9)); }
+::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, hsl(var(--accent)), hsla(var(--accent), 0.7), hsl(var(--primary))); border-radius: 5px; border: 1px solid hsla(var(--border), 0.2); }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, hsla(var(--accent), 0.9), hsla(var(--accent), 0.6), hsla(var(--primary), 0.9)); }
 
 /* Smooth scrolling */
 html { scroll-behavior: smooth; }
 
 /* Selection styling with silver */
-::selection { background: hsl(var(--accent) / 0.3); color: hsl(var(--foreground)); }
+::selection { background: hsla(var(--accent), 0.3); color: hsl(var(--foreground)); }
 
 /* Focus styles with silver */
-button:focus, a:focus { outline: 2px solid hsl(var(--accent) / 0.5); outline-offset: 2px; }
+button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-offset: 2px; }
 
 /* Glass morphism effect with blue tint */
-.glass { background: hsl(var(--primary) / 0.05); backdrop-filter: blur(10px); border: 1px solid hsl(var(--accent) / 0.1); }
+.glass { background: hsla(var(--primary), 0.05); backdrop-filter: blur(10px); border: 1px solid hsla(var(--accent), 0.1); }
 
 /* Neon text effect with silver */
 .neon-text { text-shadow: 0 0 5px hsl(var(--accent)), 0 0 10px hsl(var(--accent)), 0 0 15px hsl(var(--accent)), 0 0 20px hsl(var(--accent)); }
 
 /* Holographic effect with blue/silver */
-.holographic { background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--accent) / 0.7), hsl(var(--primary))); background-size: 400% 400%; animation: holographic-bg 4s ease-in-out infinite; }
+.holographic { background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)), hsla(var(--accent), 0.7), hsl(var(--primary))); background-size: 400% 400%; animation: holographic-bg 4s ease-in-out infinite; }
 @keyframes holographic-bg { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
 /* Metallic silver gradient */
-.metallic-silver { background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent) / 0.8) 25%, hsl(var(--accent)) 50%, hsl(var(--accent) / 0.6) 75%, hsl(var(--accent)) 100%); background-size: 200% 200%; animation: metallic-shimmer 3s ease-in-out infinite; }
+.metallic-silver { background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsla(var(--accent), 0.8) 25%, hsl(var(--accent)) 50%, hsla(var(--accent), 0.6) 75%, hsl(var(--accent)) 100%); background-size: 200% 200%; animation: metallic-shimmer 3s ease-in-out infinite; }
 
 /* Deep blue gradient */
-.deep-blue { background: linear-gradient(135deg, hsl(var(--primary) / 0.8) 0%, hsl(var(--primary) / 0.6) 25%, hsl(var(--primary)) 50%, hsl(var(--primary) / 0.6) 75%, hsl(var(--primary) / 0.8) 100%); }
+.deep-blue { background: linear-gradient(135deg, hsla(var(--primary), 0.8) 0%, hsla(var(--primary), 0.6) 25%, hsl(var(--primary)) 50%, hsla(var(--primary), 0.6) 75%, hsla(var(--primary), 0.8) 100%); }
 
 
-.text-glow-accent { text-shadow: 0 0 8px hsl(var(--accent) / 0.6), 0 0 12px hsl(var(--accent) / 0.4), 0 0 18px hsl(var(--accent) / 0.2); }
-.text-glow-primary { text-shadow: 0 0 8px hsl(var(--primary) / 0.7), 0 0 12px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3); }
-.shadow-accent-glow-sm { box-shadow: 0 0 10px 1px hsl(var(--accent) / 0.6); }
-.shadow-primary-glow-sm { box-shadow: 0 0 10px 1px hsl(var(--primary) / 0.6); }
+.text-glow-accent { text-shadow: 0 0 8px hsla(var(--accent), 0.6), 0 0 12px hsla(var(--accent), 0.4), 0 0 18px hsla(var(--accent), 0.2); }
+.text-glow-primary { text-shadow: 0 0 8px hsla(var(--primary), 0.7), 0 0 12px hsla(var(--primary), 0.5), 0 0 20px hsla(var(--primary), 0.3); }
+.shadow-accent-glow-sm { box-shadow: 0 0 10px 1px hsla(var(--accent), 0.6); }
+.shadow-accent-glow-md { box-shadow: 0 0 20px 3px hsla(var(--accent), 0.7); }
+.shadow-primary-glow-sm { box-shadow: 0 0 10px 1px hsla(var(--primary), 0.6); }
+.shadow-primary-glow-md { box-shadow: 0 0 20px 3px hsla(var(--primary), 0.7); }
 
 .card-glow-hover-accent { @apply transition-all duration-300 ease-in-out; }
-.card-glow-hover-accent:hover { box-shadow: 0 0 12px 0px hsl(var(--accent) / 0.4), 0 0 20px 0px hsl(var(--accent) / 0.3), 0 4px 15px -3px hsl(var(--accent) / 0.2); transform: translateY(-2px) scale(1.01); border-color: hsl(var(--accent) / 0.7); }
+.card-glow-hover-accent:hover { box-shadow: 0 0 12px 0px hsla(var(--accent), 0.4), 0 0 20px 0px hsla(var(--accent), 0.3), 0 4px 15px -3px hsla(var(--accent), 0.2); transform: translateY(-2px) scale(1.01); border-color: hsla(var(--accent), 0.7); }
 .card-glow-hover-primary { @apply transition-all duration-300 ease-in-out; }
-.card-glow-hover-primary:hover { box-shadow: 0 0 12px 0px hsl(var(--primary) / 0.5), 0 0 20px 0px hsl(var(--primary) / 0.4), 0 4px 15px -3px hsl(var(--primary) / 0.2); transform: translateY(-2px) scale(1.01); border-color: hsl(var(--primary) / 0.6); }
+.card-glow-hover-primary:hover { box-shadow: 0 0 12px 0px hsla(var(--primary), 0.5), 0 0 20px 0px hsla(var(--primary), 0.4), 0 4px 15px -3px hsla(var(--primary), 0.2); transform: translateY(-2px) scale(1.01); border-color: hsla(var(--primary), 0.6); }
 
 .nexus-bg-animations { @apply fixed inset-0 z-0 pointer-events-none; }
 .nexus-bg-animations > div { @apply absolute; }
@@ -379,15 +379,15 @@ button:focus, a:focus { outline: 2px solid hsl(var(--accent) / 0.5); outline-off
     --glow-color: hsl(var(--accent)); /* Default glow color */
     --border-color: hsl(var(--border));
     --border-color-active: hsl(var(--accent));
-    --nectar-from: hsl(var(--accent) / 0.2);
-    --nectar-to: hsl(var(--accent) / 0.6);
+    --nectar-from: hsla(var(--accent), 0.2);
+    --nectar-to: hsla(var(--accent), 0.6);
 }
 .dark {
     --glow-color: hsl(var(--accent));
     --border-color: hsl(var(--border));
     --border-color-active: hsl(var(--accent));
-    --nectar-from: hsl(var(--accent) / 0.2);
-    --nectar-to: hsl(var(--accent) / 0.6);
+    --nectar-from: hsla(var(--accent), 0.2);
+    --nectar-to: hsla(var(--accent), 0.6);
 }
     
 /* Tooltip animation */
@@ -410,8 +410,8 @@ button:focus, a:focus { outline: 2px solid hsl(var(--accent) / 0.5); outline-off
 
 /* Keyframes for Stage Unlock Animation */
 @keyframes honeycomb-ripple-scale-fade {
-  '0%': { transform: scale(0.5), opacity: 0.8 },
-  '100%': { transform: scale(16), opacity: 0 }
+  '0%': { transform: 'scale(0.5)', opacity: 0.8 },
+  '100%': { transform: 'scale(16)', opacity: 0 }
 }
 @keyframes particle-burst-rise-fade {
   '0%': { transform: 'translateY(0) scale(0.5)', opacity: 0.9 },
@@ -426,8 +426,8 @@ button:focus, a:focus { outline: 2px solid hsl(var(--accent) / 0.5); outline-off
    '100%': { opacity: 1, transform: 'scale(1)' }
 }
 @keyframes orb-pulse {
-  '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px hsl(var(--accent)/0.6))' },
-  '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 25px hsl(var(--accent)/0.8))' }
+  '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px hsla(var(--accent),0.6))' },
+  '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 25px hsla(var(--accent),0.8))' }
 }
 @keyframes ring-rotate-scale {
   '0%': { transform: 'rotate(0deg) scale(0.8)', opacity: 0.7 },
@@ -443,23 +443,28 @@ button:focus, a:focus { outline: 2px solid hsl(var(--accent) / 0.5); outline-off
 /* Guidance System Highlight */
 .guidance-highlight-active {
   @apply ring-2 ring-accent ring-offset-2 ring-offset-background shadow-accent-glow-sm;
-  outline: 2px solid hsl(var(--accent) / 0.8);
+  outline: 2px solid hsla(var(--accent), 0.8);
   transition: all 0.3s ease-in-out;
   animation: guidance-pulse 1.5s infinite ease-in-out;
 }
 @keyframes guidance-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0.7), 0 0 10px 1px hsl(var(--accent) / 0.6); }
-  50% { box-shadow: 0 0 0 5px hsl(var(--accent) / 0), 0 0 20px 3px hsl(var(--accent) / 0.7); }
+  0%, 100% { box-shadow: 0 0 0 0 hsla(var(--accent), 0.7), 0 0 10px 1px hsla(var(--accent), 0.6); }
+  50% { box-shadow: 0 0 0 5px hsla(var(--accent), 0), 0 0 20px 3px hsla(var(--accent), 0.7); }
 }
+
 /* Cosmetic Theme for Guidance Tips */
 .theme-founders-choice {
-  @apply bg-gradient-to-br from-primary/20 to-accent/20 border-primary;
+  background-image: linear-gradient(to bottom right, hsl(var(--primary) / 0.2), hsl(var(--accent) / 0.2));
+  border-width: 1px;
+  border-style: solid;
+  border-color: hsl(var(--primary));
 }
-.theme-founders-choice .prose { 
-  @apply text-primary-foreground/90;
+.theme-founders-choice .prose {
+  color: hsl(var(--primary-foreground));
+  opacity: 0.9;
 }
-.theme-founders-choice .lucide-lightbulb { 
-  @apply text-primary; 
+.theme-founders-choice .lucide-lightbulb {
+  color: hsl(var(--primary));
 }
 
 /* General Fade In Animations */
@@ -492,6 +497,7 @@ button:focus, a:focus { outline: 2px solid hsl(var(--accent) / 0.5); outline-off
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
 .animate-spin-slowest { animation: spin-slow 120s linear infinite; }
 
-.shadow-inner-soft-gold { box-shadow: inset 0 2px 4px 0 hsl(var(--accent) / 0.1), inset 0 -1px 2px 0 hsl(var(--background) / 0.3); }
-.shadow-inner-soft-dim { box-shadow: inset 0 1px 3px 0 hsl(var(--background) / 0.5), inset 0 -1px 2px 0 hsl(var(--foreground) / 0.05); }
+.shadow-inner-soft-gold { box-shadow: inset 0 2px 4px 0 hsla(var(--accent), 0.1), inset 0 -1px 2px 0 hsla(var(--background), 0.3); }
+.shadow-inner-soft-dim { box-shadow: inset 0 1px 3px 0 hsla(var(--background), 0.5), inset 0 -1px 2px 0 hsla(var(--foreground), 0.05); }
 
+    

@@ -9,7 +9,6 @@ import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
   DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap
@@ -78,15 +77,14 @@ const PhaseCard = ({ phase, currentSimMonth, index }: { phase: SimulationPhase; 
   let cardClasses = "hex-card relative flex flex-col justify-between p-4 md:p-5 min-h-[220px] sm:min-h-[250px] md:min-h-[280px] w-[200px] sm:w-[230px] md:w-[260px] aspect-[1/0.866] transition-all duration-300 ease-in-out group ";
   let IconComponent = phase.icon;
 
-  // Removed "transform" from cardClasses to let Framer Motion handle it.
-  cardClasses += " hover:shadow-2xl"; // Keep CSS shadow hover
+  cardClasses += " hover:shadow-2xl"; 
 
   if (isLocked) {
     cardClasses += "bg-card/20 backdrop-blur-xs opacity-60 cursor-not-allowed shadow-inner-soft-dim border-border/30";
     IconComponent = LockIcon;
   } else if (isActive) {
     cardClasses += `${phase.bgColor} ${phase.ringColor} shadow-lg ${phase.shadowColor} animate-pulse-glow-border-alt`;
-  } else { // Completed
+  } else { 
     cardClasses += `bg-card/50 border-green-600/50 opacity-80 shadow-md ${isCompleted ? 'animate-digital-nectar-fill' : ''}`;
     IconComponent = CheckCircle;
   }
@@ -107,9 +105,8 @@ const PhaseCard = ({ phase, currentSimMonth, index }: { phase: SimulationPhase; 
       initial="initial"
       animate="animate"
       whileHover="hover"
-      custom={index} // For staggered animation
+      custom={index} 
     >
-      {/* Inner div for 3D tilt on hover, driven by parent's group hover state */}
       <div className="transform-style-preserve-3d group-hover:rotate-y-2 group-hover:rotate-x-1 transition-transform duration-300 text-center px-2 pt-3 pb-1">
         <div className="flex flex-col items-center justify-center mb-2">
           <IconComponent className={cn("h-6 w-6 sm:h-7 sm:w-7", isLocked ? "text-muted-foreground/60" : phase.themeColor)} />
@@ -158,7 +155,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const {
     companyName, simulationMonth, financials, userMetrics, product,
-    market: storeMarket, // Renamed to avoid conflict
+    market: storeMarket, 
     startupScore,
     keyEvents, isInitialized, currentAiReasoning, historicalRevenue, historicalUserGrowth,
     historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
@@ -228,7 +225,7 @@ export default function DashboardPage() {
         if (product.developmentProgress > 85 && product.stage !== 'mature') {
             baseMessages.push(`EVE: Opportunity Alert: Product '${product.name}' development at ${product.developmentProgress}%. Next stage breakthrough is imminent. Consider resource allocation.`);
         }
-        if (userMetrics.churnRate > 0.15) { // Example: Churn > 15%
+        if (userMetrics.churnRate > 0.15) { 
             baseMessages.push(`EVE: User Retention Alert: Churn rate at ${(userMetrics.churnRate * 100).toFixed(1)}%. Zara, our Focus Group Lead, suggests investigating user feedback.`);
         }
         if (keyEvents.length > 0) {
@@ -242,10 +239,12 @@ export default function DashboardPage() {
     }
 
     const interval = setInterval(() => {
-      setEveTooltipMessage(baseMessages[Math.floor(Math.random() * baseMessages.length)]);
-    }, 10000);
+      setEveTooltipMessage(currentAiReasoning || baseMessages[Math.floor(Math.random() * baseMessages.length)]);
+    }, 10000); // Update EVE's message every 10 seconds
+    setEveTooltipMessage(currentAiReasoning || baseMessages[0]); // Set initial message
+
     return () => clearInterval(interval);
-  }, [isInitialized, simulationMonth, financials, userMetrics, product, storeMarket, currencySymbol, keyEvents]); // Added keyEvents
+  }, [isInitialized, simulationMonth, financials, userMetrics, product, storeMarket, currencySymbol, keyEvents, currentAiReasoning]);
 
 
   if (typeof simulationMonth === 'number' && simulationMonth === 0 && !isInitialized) {
@@ -551,3 +550,7 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
+
+    
+
+    
