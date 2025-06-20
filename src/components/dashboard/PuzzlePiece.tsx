@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState }  from 'react'; // Added useEffect, useState
+import React, { useEffect, useState }  from 'react';
 import { motion } from 'framer-motion';
 import type { LucideProps } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -130,3 +130,4 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }
     </TooltipProvider>
   );
 };
+
