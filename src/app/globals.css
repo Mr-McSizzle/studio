@@ -36,6 +36,17 @@
   --chart-4: 210 15% 55%; /* Medium Silver/Gray */
   --chart-5: 225 80% 70%; /* Brighter Blue */
   --radius: 0.5rem;
+
+  /* Phase and dynamic effect variables for light mode (can be same as dark or adjusted) */
+  --sky: 200 80% 50%; 
+  --amber: 40 90% 50%; 
+  --emerald: 150 70% 40%; 
+  --purple: 270 70% 55%; 
+  --glow-color: hsl(var(--accent));
+  --border-color: hsl(var(--border));
+  --border-color-active: hsl(var(--accent));
+  --nectar-from: hsla(var(--accent), 0.2);
+  --nectar-to: hsla(var(--accent), 0.6);
 }
 
 .dark {
@@ -95,6 +106,11 @@
   /* Nectar fill for completed phase cards */
   --nectar-from: hsla(var(--accent), 0.2);
   --nectar-to: hsla(var(--accent), 0.6);
+
+  /* Default dynamic effect variables for dark mode */
+  --glow-color: hsl(var(--accent));
+  --border-color: hsl(var(--border));
+  --border-color-active: hsl(var(--accent));
 }
 
 @layer base {
@@ -117,6 +133,7 @@
 }
 
 /* Custom Animations with Blue/Silver Theme */
+/*
 @keyframes float {
   0%,
   100% {
@@ -130,7 +147,7 @@
   }
 }
 
-@keyframes glow { /* More subtle silver glow */
+@keyframes glow { 
   0%,
   100% {
     box-shadow: 0 0 15px hsla(var(--accent), 0.2), 0 0 30px hsla(var(--primary), 0.15);
@@ -152,7 +169,7 @@
   }
 }
 
-@keyframes metallic-shimmer { /* Adjusted for silver */
+@keyframes metallic-shimmer { 
   0% {
     background-position: 200% 0;
   }
@@ -162,7 +179,7 @@
 }
 
 
-@keyframes deep-blue-pulse { /* Changed from maroon-pulse */
+@keyframes deep-blue-pulse { 
   0%,
   100% {
     background-color: hsla(var(--primary), 0.1);
@@ -172,7 +189,7 @@
   }
 }
 
-@keyframes silver-sparkle { /* Changed from gold-sparkle */
+@keyframes silver-sparkle { 
   0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
   50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
 }
@@ -182,55 +199,75 @@
   50% { opacity: 1; transform: scale(1.1); }
 }
 
-/* Animation for dashboard particle field */
+@keyframes float-pulse { 
+  0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 12px hsla(var(--accent),0.5));}
+  50% { transform: translateY(-5px) scale(1.02); filter: drop-shadow(0 0 18px hsla(var(--accent),0.65));}
+}
+
+@keyframes subtle-grid-pan-faster {
+  0% { background-position: 0 0; }
+  100% { background-position: 60px 60px; } 
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-20deg); }
+  100% { transform: translateX(200%) skewX(-20deg); }
+}
+
+@keyframes digital-nectar-sweep {
+  0% { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
+  50% { opacity: 0.7; transform: scaleY(1); transform-origin: bottom; }
+  100% { opacity: 0.5; transform: scaleY(1); transform-origin: bottom; }
+}
+
+@keyframes title-underline-glow {
+  0%, 100% { width: 40%; filter: blur(0.5px) brightness(0.9); opacity: 0.8; background-color: hsla(var(--accent), 0.7); }
+  50% { width: 66.66%; filter: blur(1px) brightness(1.2); opacity: 1; background-color: hsl(var(--accent)); }
+}
+
+@keyframes subtle-button-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 5px hsla(var(--accent),0.3); }
+  50% { transform: scale(1.02); box-shadow: 0 0 10px hsla(var(--accent),0.45); }
+}
+
 @keyframes drift {
   0% { transform: translate(var(--x-start), var(--y-start)); opacity: 0; }
   25% { opacity: 0.7; }
   75% { opacity: 0.7; }
   100% { transform: translate(var(--x-end), var(--y-end)); opacity: 0;}
 }
-/* Animation for active phase card border */
-@keyframes pulse-glow-border {
-  0%, 100% {
-    box-shadow: 0 0 0px 0px var(--glow-color, hsla(var(--accent),0.4)), inset 0 0 0px 0px var(--glow-color, hsla(var(--accent),0.2));
-    border-color: var(--border-color, hsla(var(--accent),0.7));
-  }
-  50% {
-    box-shadow: 0 0 15px 3px var(--glow-color, hsla(var(--accent),0.4)), inset 0 0 5px 1px var(--glow-color, hsla(var(--accent),0.2));
-    border-color: var(--border-color-active, hsl(var(--accent)));
-  }
+
+@keyframes honeycomb-ripple-scale-fade {
+  '0%': { transform: 'scale(0.5)', opacity: 0.8 };
+  '100%': { transform: 'scale(16)', opacity: 0 };
 }
-/* Animation for EVE's avatar on dashboard */
-@keyframes float-pulse {
-  0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 12px hsla(var(--accent),0.5));}
-  50% { transform: translateY(-5px) scale(1.02); filter: drop-shadow(0 0 18px hsla(var(--accent),0.65));}
+@keyframes particle-burst-rise-fade {
+  '0%': { transform: 'translateY(0) scale(0.5)', opacity: 0.9 };
+  '100%': { transform: 'translateY(-250px) scale(0.3)', opacity: 0 };
 }
-/* Animation for the subtle grid background on dashboard */
-@keyframes subtle-grid-pan-faster {
-  0% { background-position: 0 0; }
-  100% { background-position: 60px 60px; } /* Example: 2x grid size */
+@keyframes avatar-glide-in {
+  '0%': { opacity: 0, transform: 'translateY(50px) scale(0.5)' };
+  '100%': { opacity: 1, transform: 'translateY(0) scale(1)' };
 }
-/* Animation for hex card shimmer on hover */
-@keyframes shimmer {
-  0% { transform: translateX(-100%) skewX(-20deg); }
-  100% { transform: translateX(200%) skewX(-20deg); }
+@keyframes text-fade-in-scale-up {
+   '0%': { opacity: 0, transform: 'scale(0.9)' };
+   '100%': { opacity: 1, transform: 'scale(1)' };
 }
-/* Animation for completed phase card fill */
-@keyframes digital-nectar-sweep {
-  0% { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
-  50% { opacity: 0.7; transform: scaleY(1); transform-origin: bottom; }
-  100% { opacity: 0.5; transform: scaleY(1); transform-origin: bottom; }
+@keyframes orb-pulse {
+  '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px hsla(var(--accent),0.6))' };
+  '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 25px hsla(var(--accent),0.8))' };
 }
-/* Animation for title underlines */
-@keyframes title-underline-glow {
-  0%, 100% { width: 40%; filter: blur(0.5px) brightness(0.9); opacity: 0.8; background-color: hsla(var(--accent), 0.7); }
-  50% { width: 66.66%; filter: blur(1px) brightness(1.2); opacity: 1; background-color: hsl(var(--accent)); }
+@keyframes ring-rotate-scale {
+  '0%': { transform: 'rotate(0deg) scale(0.8)', opacity: 0.7 };
+  '50%': { transform: 'rotate(180deg) scale(1)', opacity: 0.3 };
+  '100%': { transform: 'rotate(360deg) scale(0.8)', opacity: 0.7 };
 }
-/* Animation for prominent buttons like "Next Month" */
-@keyframes subtle-button-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 5px hsla(var(--accent),0.3); }
-  50% { transform: scale(1.02); box-shadow: 0 0 10px hsla(var(--accent),0.45); }
+@keyframes data-stream {
+  '0%': { transform: 'translateY(-100%)', opacity: '0' };
+  '20%, 80%': { opacity: '0.3' };
+  '100%': { transform: 'translateY(100%)', opacity: '0' };
 }
+*/
 
 
 .animate-float { animation: float 6s ease-in-out infinite; }
@@ -240,7 +277,6 @@
 .animate-deep-blue-pulse { animation: deep-blue-pulse 3s ease-in-out infinite; }
 .animate-silver-sparkle { animation: silver-sparkle 4s ease-in-out infinite; }
 .animate-neural-pulse { animation: neural-pulse 2s ease-in-out infinite; }
-.animate-pulse-glow-border-alt { animation: pulse-glow-border 2s infinite ease-in-out; }
 .animate-float-pulse { animation: float-pulse 4s infinite ease-in-out; }
 .animate-subtle-button-pulse { animation: subtle-button-pulse 2s infinite ease-in-out; }
 .animate-digital-nectar-fill::before {
@@ -251,7 +287,7 @@
   animation: digital-nectar-sweep 2s ease-in-out forwards;
   opacity: 0;
   z-index: 0;
-  clip-path: inherit; /* Ensure nectar fill respects parent's clip-path (hexagon) */
+  clip-path: inherit; 
 }
 .shimmer-effect {
   position: absolute;
@@ -268,9 +304,9 @@
   left: 100%;
   opacity: 1;
 }
-.hex-card > div { /* Content of hex card */
+.hex-card > div { 
   position: relative;
-  z-index: 1; /* Ensure content is above the nectar fill */
+  z-index: 1; 
 }
 .particle-field {
   position: absolute;
@@ -280,12 +316,12 @@
 }
 .particle {
   position: absolute;
-  background-color: hsla(var(--accent), 0.3); /* Silver particles */
+  background-color: hsla(var(--accent), 0.3); 
   border-radius: 50%;
   width: var(--size);
   height: var(--size);
   animation: drift var(--duration) var(--delay) linear infinite alternate;
-  opacity: 0; /* Start invisible, fade in via animation */
+  opacity: 0; 
   filter: blur(0.5px);
 }
 .enhanced-hive-grid {
@@ -294,8 +330,8 @@
   background-image:
     linear-gradient(hsla(var(--border), 0.1) 1px, transparent 1px),
     linear-gradient(to right, hsla(var(--border), 0.1) 1px, transparent 1px);
-  background-size: 30px 30px; /* Smaller grid */
-  animation: subtle-grid-pan-faster 120s linear infinite; /* Faster pan */
+  background-size: 30px 30px; 
+  animation: subtle-grid-pan-faster 120s linear infinite; 
   opacity: 0.5;
 }
 .enhanced-orbit {
@@ -370,25 +406,6 @@ button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-off
 
 .nexus-bg-animations { @apply fixed inset-0 z-0 pointer-events-none; }
 .nexus-bg-animations > div { @apply absolute; }
-
-:root {
-    --sky: 200 80% 50%; 
-    --amber: 40 90% 50%; 
-    --emerald: 150 70% 40%; 
-    --purple: 270 70% 55%; 
-    --glow-color: hsl(var(--accent)); /* Default glow color */
-    --border-color: hsl(var(--border));
-    --border-color-active: hsl(var(--accent));
-    --nectar-from: hsla(var(--accent), 0.2);
-    --nectar-to: hsla(var(--accent), 0.6);
-}
-.dark {
-    --glow-color: hsl(var(--accent));
-    --border-color: hsl(var(--border));
-    --border-color-active: hsl(var(--accent));
-    --nectar-from: hsla(var(--accent), 0.2);
-    --nectar-to: hsla(var(--accent), 0.6);
-}
     
 /* Tooltip animation */
 @keyframes tooltip-slide-in {
@@ -397,73 +414,40 @@ button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-off
 }
 .animate-tooltip-slide-in { animation: tooltip-slide-in 0.2s ease-out forwards; }
 
-/* CSS Starfield for Launchpad - no longer used by launchpad, kept if needed elsewhere */
-@keyframes animStar {
-  from { transform: translateY(0px); }
-  to { transform: translateY(-2000px); }
-}
-.stars-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; overflow: hidden; z-index: 0; background: transparent; }
-.stars-layer1, .stars-layer2, .stars-layer3 { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; }
-.stars-layer1 { width: 1px; height: 1px; background: transparent; box-shadow: 7vw 82vh 0px 0px #FFF, 83vw 82vh 1px 0px #FFF, 3vw 14vh 1px 1px #FFF, 50vw 200vh 0px 0px #FFF; animation: animStar 200s linear infinite; }
-.stars-layer2 { width: 2px; height: 2px; background: transparent; box-shadow: 18vw 79vh 0px 1px #FFF, 5vw 8vh 0px 1px #FFF, 25vw 200vh 1px 0px #FFF; animation: animStar 150s linear infinite; }
-.stars-layer3 { width: 3px; height: 3px; background: transparent; box-shadow: 89vw 16vh 1px 1px #FFF, 30vw 2vh 0px 0px #FFF, 75vw 200vh 0px 1px #FFF; animation: animStar 100s linear infinite; }
-
 /* Keyframes for Stage Unlock Animation */
-@keyframes honeycomb-ripple-scale-fade {
-  '0%': { transform: 'scale(0.5)', opacity: 0.8 },
-  '100%': { transform: 'scale(16)', opacity: 0 }
-}
-@keyframes particle-burst-rise-fade {
-  '0%': { transform: 'translateY(0) scale(0.5)', opacity: 0.9 },
-  '100%': { transform: 'translateY(-250px) scale(0.3)', opacity: 0 }
-}
-@keyframes avatar-glide-in {
-  '0%': { opacity: 0, transform: 'translateY(50px) scale(0.5)' },
-  '100%': { opacity: 1, transform: 'translateY(0) scale(1)' }
-}
-@keyframes text-fade-in-scale-up {
-   '0%': { opacity: 0, transform: 'scale(0.9)' },
-   '100%': { opacity: 1, transform: 'scale(1)' }
-}
-@keyframes orb-pulse {
-  '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px hsla(var(--accent),0.6))' },
-  '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 25px hsla(var(--accent),0.8))' }
-}
-@keyframes ring-rotate-scale {
-  '0%': { transform: 'rotate(0deg) scale(0.8)', opacity: 0.7 },
-  '50%': { transform: 'rotate(180deg) scale(1)', opacity: 0.3 },
-  '100%': { transform: 'rotate(360deg) scale(0.8)', opacity: 0.7 }
-}
-@keyframes data-stream {
-  '0%': { transform: 'translateY(-100%)', opacity: 0 },
-  '20%, 80%': { opacity: 0.3 },
-  '100%': { transform: 'translateY(100%)', opacity: 0 }
-}
+/* @keyframes honeycomb-ripple-scale-fade defined above if not commented out */
+/* @keyframes particle-burst-rise-fade defined above if not commented out */
+/* @keyframes avatar-glide-in defined above if not commented out */
+/* @keyframes text-fade-in-scale-up defined above if not commented out */
+/* @keyframes orb-pulse defined above if not commented out */
+/* @keyframes ring-rotate-scale defined above if not commented out */
+/* @keyframes data-stream defined above if not commented out */
 
-/* Guidance System Highlight */
+
+/* MINIMAL STYLES FOR GUIDANCE - For Debugging "Missed Semicolon" */
 .guidance-highlight-active {
-  /* outline: 2px solid hsl(var(--accent)); */ /* Ultra-simple for debugging */
-  border: 2px solid blue !important; /* Forcing a very basic style for debugging */
-  box-shadow: 0 0 10px 2px blue !important; /* Forcing a visible effect */
-}
-@keyframes guidance-pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+  border: 2px solid red; /* Simple border */
 }
 
-/* Cosmetic Theme for Guidance Tips */
+/* Minimal keyframes */
+@keyframes guidance-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Minimal theme class for testing */
 .theme-founders-choice {
-  background-color: lightblue; /* Ultra-simple for debugging */
-  border: 1px solid blue; /* Ultra-simple for debugging */
+  background-color: yellow; /* Simple background */
 }
-.theme-founders-choice .prose {
-  color: black; /* Ultra-simple for debugging */
-  opacity: 0.9;
+
+.theme-founders-choice .prose { /* Assuming .prose exists elsewhere or is Tailwind's default */
+  color: black; /* Simple color */
 }
-.theme-founders-choice .lucide-lightbulb {
-  color: darkblue; /* Ultra-simple for debugging */
+
+.theme-founders-choice .lucide-lightbulb{
+  color: orange; /* Simple color */
 }
+/* END MINIMAL GUIDANCE STYLES */
 
 /* General Fade In Animations */
 .animate-fadeInUp {
@@ -476,14 +460,9 @@ button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-off
   animation-duration: 0.5s;
   animation-fill-mode: forwards;
 }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* @keyframes fadeIn defined above if not commented out */
+/* @keyframes fadeInUp defined above if not commented out */
+
 
 @keyframes ping-slow {
   0%, 100% { transform: scale(1); opacity: 0.7; }
