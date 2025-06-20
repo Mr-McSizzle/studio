@@ -13,6 +13,7 @@ const MOCK_OTHER_OPERATIONAL_COSTS_FALLBACK = 1500; // Fallback only
 const DEFAULT_ENGINEER_SALARY = 5000;
 const DEFAULT_MARKETING_SPEND = 500;
 const DEFAULT_RND_SPEND = 500;
+const MOCK_PUZZLE_TOTAL_PIECES = 6; // For the dashboard demo puzzle
 
 
 const getCurrencySymbol = (code?: string): string => {
@@ -88,7 +89,7 @@ export interface EarnedBadge {
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype' | 'puzzleProgressForDemo'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -136,6 +137,7 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
 const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSnapshot[] } => ({
   ...initialBaseState,
   selectedArchetype: undefined, // Initialize selectedArchetype
+  puzzleProgressForDemo: { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES }, // Initialize demo puzzle progress
   keyEvents: [createStructuredEvent(0, "Simulation not yet initialized. Set up your venture to begin!", "System", "Neutral")],
   rewards: [],
   earnedBadges: [], // Initialize earnedBadges
@@ -179,6 +181,8 @@ interface SimulationActions {
   saveCurrentSimulation: (name: string) => DigitalTwinState | null;
   loadSimulation: (snapshotId: string) => DigitalTwinState | null;
   deleteSavedSimulation: (snapshotId: string) => void;
+  // Demo Puzzle Action
+  completeTaskForDemoPuzzle: () => void;
 }
 
 const parseMonetaryValue = (value: string | number | undefined): number => {
@@ -209,6 +213,7 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     isInitialized: state.isInitialized,
     currentAiReasoning: state.currentAiReasoning,
     selectedArchetype: state.selectedArchetype, // Include selectedArchetype
+    puzzleProgressForDemo: state.puzzleProgressForDemo, // Include puzzleProgressForDemo
     historicalRevenue: state.historicalRevenue,
     historicalUserGrowth: state.historicalUserGrowth,
     historicalBurnRate: state.historicalBurnRate,
@@ -355,6 +360,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           ...initialBaseState,
           companyName: parsedConditions.companyName || userStartupName || "AI Suggested Venture",
           selectedArchetype: selectedArchetype, // Store selected archetype
+          puzzleProgressForDemo: { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES }, // Reset demo puzzle
           market: {
             ...initialBaseState.market,
             targetMarketDescription: userTargetMarket || parsedConditions.market?.targetMarketDescription || "Not specified",
@@ -710,6 +716,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
       resetSimulation: () => {
         set(state => ({
             ...getInitialState(), 
+            puzzleProgressForDemo: { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES }, // Reset demo puzzle
             keyEvents: [createStructuredEvent(0, "Simulation reset. Please initialize a new venture.", "System", "Neutral")],
             currentAiReasoning: "Simulation reset. AI log cleared.",
             sandboxState: null,
@@ -995,6 +1002,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           market: updatedMainState.market,
           startupScore: updatedMainState.startupScore,
           selectedArchetype: updatedMainState.selectedArchetype, // Preserve archetype
+          puzzleProgressForDemo: updatedMainState.puzzleProgressForDemo, // Preserve demo puzzle progress
           keyEvents: updatedMainState.keyEvents,
           rewards: updatedMainState.rewards,
           earnedBadges: updatedMainState.earnedBadges, 
@@ -1064,6 +1072,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           missions: Array.isArray(loadedSimState.missions) && loadedSimState.missions.length > 0 ? loadedSimState.missions : [...onboardingMissions],
           earnedBadges: Array.isArray(loadedSimState.earnedBadges) ? loadedSimState.earnedBadges : [], 
           selectedArchetype: loadedSimState.selectedArchetype || undefined, // Load archetype
+          puzzleProgressForDemo: loadedSimState.puzzleProgressForDemo || { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES }, // Load or default demo puzzle progress
         };
         
         set(newStateFromSnapshot);
@@ -1075,6 +1084,21 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           ...state,
           savedSimulations: state.savedSimulations.filter(s => s.id !== snapshotId),
         }));
+      },
+
+      completeTaskForDemoPuzzle: () => {
+        set(state => {
+          if (state.puzzleProgressForDemo.piecesUnlocked < state.puzzleProgressForDemo.totalPieces) {
+            return {
+              ...state,
+              puzzleProgressForDemo: {
+                ...state.puzzleProgressForDemo,
+                piecesUnlocked: state.puzzleProgressForDemo.piecesUnlocked + 1,
+              }
+            };
+          }
+          return state; // No change if all pieces already unlocked
+        });
       },
 
     }),
@@ -1116,6 +1140,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
                                 : [...onboardingMissions];
         
         mergedState.selectedArchetype = mergedState.selectedArchetype || undefined; // Ensure selectedArchetype is handled
+        mergedState.puzzleProgressForDemo = mergedState.puzzleProgressForDemo || { piecesUnlocked: 0, totalPieces: MOCK_PUZZLE_TOTAL_PIECES };
 
 
         if (!mergedState.financials || !mergedState.financials.currencyCode) {
@@ -1196,6 +1221,4 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
     }
   )
 );
-
-
 

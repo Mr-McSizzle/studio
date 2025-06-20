@@ -210,6 +210,7 @@ export default function DashboardPage() {
     keyEvents, isInitialized, currentAiReasoning, historicalRevenue, historicalUserGrowth,
     historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
     historicalChurnRate, historicalProductProgress, advanceMonth, resetSimulation,
+    puzzleProgressForDemo, // Get demo puzzle progress from store
   } = useSimulationStore();
   const { userEmail } = useAuthStore(); // Get userId (email for this mock)
 
@@ -222,32 +223,84 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   const initialMockMilestones: DashboardMilestone[] = useMemo(() => [
-    { id: 'mock-ms-1', name: "Complete Genesis Forge", icon: Rocket, isUnlocked: false, description: "Successfully navigate the initial phase of your venture." },
-    { id: 'mock-ms-2', name: "Secure Seed Funding", icon: DollarSign, isUnlocked: false, description: "Convince investors and secure your first major funding round." },
-    { id: 'mock-ms-3', name: "Launch MVP", icon: Zap, isUnlocked: false, description: "Release your Minimum Viable Product to the public." },
-    { id: 'mock-ms-4', name: "Achieve 1000 Users", icon: Users, isUnlocked: false, description: "Grow your user base to the first significant milestone." },
-    { id: 'mock-ms-5', name: "First Profitable Month", icon: TrendingUp, isUnlocked: false, description: "Reach a point where monthly revenue exceeds expenses." },
-    { id: 'mock-ms-6', name: "Establish Brand Identity", icon: Megaphone, isUnlocked: false, description: "Develop a strong and recognizable brand in your market." },
+    { id: 'mock-ms-genesis-forge', name: "Complete Genesis Forge", icon: Rocket, isUnlocked: false, description: "Successfully navigate the initial phase of your venture." },
+    { id: 'mock-ms-seed-funding', name: "Secure Seed Funding", icon: DollarSign, isUnlocked: false, description: "Convince investors and secure your first major funding round." },
+    { id: 'mock-ms-mvp-launch', name: "Launch MVP", icon: Zap, isUnlocked: false, description: "Release your Minimum Viable Product to the public." },
+    { id: 'mock-ms-1000-users', name: "Achieve 1000 Users", icon: Users, isUnlocked: false, description: "Grow your user base to the first significant milestone." },
+    { id: 'mock-ms-profitable-month', name: "First Profitable Month", icon: TrendingUp, isUnlocked: false, description: "Reach a point where monthly revenue exceeds expenses." },
+    { id: 'mock-ms-brand-identity', name: "Establish Brand Identity", icon: Megaphone, isUnlocked: false, description: "Develop a strong and recognizable brand in your market." },
   ], []);
   const [mockMilestones, setMockMilestones] = useState<DashboardMilestone[]>(initialMockMilestones);
 
+  // This effect will "listen" to the store's puzzleProgressForDemo and update the mockMilestones
+  useEffect(() => {
+    if (!isInitialized) return;
+    // This is where a real Firestore listener would typically update the local state (mockMilestones).
+    // For now, we derive it from the store's demo progress.
+    // console.log("[Dashboard] puzzleProgressForDemo changed in store:", puzzleProgressForDemo);
+    setMockMilestones(prev =>
+      prev.map((ms, index) => ({
+        ...ms,
+        isUnlocked: index < puzzleProgressForDemo.piecesUnlocked,
+      }))
+    );
+  }, [puzzleProgressForDemo, isInitialized, initialMockMilestones]);
+
+
   const handleMockMilestonesChange = useCallback((updatedMilestones: DashboardMilestone[]) => {
+    // This function is primarily for the MilestonePuzzle component to update parent state if it were managing its own data loading.
+    // Since we are deriving from the global store, this might not be strictly necessary for this demo's flow.
     setMockMilestones(updatedMilestones);
   }, []);
 
   const toggleMockMilestone = useCallback((id: string) => {
+    // This function is for the *manual* demo controls on the dashboard page itself.
+    // It will update the local `mockMilestones` state.
+    // A real application might directly update Firestore here, and the listener would propagate the change.
     setMockMilestones(prev =>
-      prev.map(ms => ms.id === id ? { ...ms, isUnlocked: !ms.isUnlocked } : ms)
+      prev.map(ms => {
+        if (ms.id === id) {
+          const newUnlockedState = !ms.isUnlocked;
+          // Simulate the store update that would happen if a task was completed or undone
+          // This is a bit of a simplification for the demo.
+          const currentUnlockedInStore = useSimulationStore.getState().puzzleProgressForDemo.piecesUnlocked;
+          if (newUnlockedState && id === initialMockMilestones[currentUnlockedInStore]?.id) {
+            // Only allow unlocking if it's the "next" piece in sequence for this demo control
+             useSimulationStore.getState().completeTaskForDemoPuzzle();
+          } else if (!newUnlockedState && ms.isUnlocked) {
+             // If unchecking, we might conceptually want to decrement in store,
+             // but the current store logic is increment-only.
+             // For this demo, we'll just update local state.
+             console.warn("[Dashboard Demo] Unlocking a piece via demo controls. Actual puzzle piece unlock is driven by task completion via Todo page.");
+          }
+          return { ...ms, isUnlocked: newUnlockedState };
+        }
+        return ms;
+      })
     );
-  }, []);
+  }, [initialMockMilestones]);
 
   const unlockAllMockMilestones = useCallback(() => {
+    // This directly sets all mock milestones to unlocked for demo purposes
+    // And updates the store to reflect this for the demo puzzle.
     setMockMilestones(prev => prev.map(ms => ({ ...ms, isUnlocked: true })));
+    const total = useSimulationStore.getState().puzzleProgressForDemo.totalPieces;
+    for (let i = 0; i < total; i++) {
+      if (useSimulationStore.getState().puzzleProgressForDemo.piecesUnlocked < total) {
+         useSimulationStore.getState().completeTaskForDemoPuzzle();
+      }
+    }
   }, []);
 
   const resetAllMockMilestones = useCallback(() => {
     setMockMilestones(initialMockMilestones);
+    // Reset the store's demo puzzle progress
+    useSimulationStore.setState(state => ({
+      ...state,
+      puzzleProgressForDemo: { ...state.puzzleProgressForDemo, piecesUnlocked: 0 }
+    }));
   }, [initialMockMilestones]);
+
 
   const handleMockPuzzleComplete = useCallback((puzzleId: string) => {
     toast({
@@ -663,7 +716,23 @@ export default function DashboardPage() {
                 <Puzzle className="h-7 w-7" /> Milestone Puzzle Demo
               </CardTitle>
               <CardDescription>
-                Test the MilestonePuzzle component with mock data. This is separate from the main simulation phase milestones. User ID for demo: {userEmail || "mockUser"}
+                Test the MilestonePuzzle component. Completing tasks on the "Todo List" page will unlock pieces here. User ID for demo: {userEmail || "mockUser"}
+                 {/* Comment: A real Firestore listener would typically be set up here or in MilestonePuzzle.tsx to listen to changes in user's puzzleProgress and update the UI reactively.
+                  Example:
+                  useEffect(() => {
+                    if (userId && puzzleId && db) {
+                      const puzzleDocRef = doc(db, "users", userId, "puzzles", puzzleId);
+                      const unsubscribe = onSnapshot(puzzleDocRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                          const data = docSnap.data();
+                          // Update local state (e.g., mockMilestones) based on data.filledSlots
+                          // This would trigger UI updates for the puzzle pieces.
+                        }
+                      });
+                      return () => unsubscribe();
+                    }
+                  }, [userId, puzzleId]);
+                */}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -672,11 +741,11 @@ export default function DashboardPage() {
                 onMilestonesChange={handleMockMilestonesChange}
                 title="Demo Puzzle: Product Launch Readiness"
                 puzzleId="dashboardDemoPuzzle"
-                userId={userEmail || "mockUser"} // Use authenticated user's email or a mock
+                userId={userEmail || "mockUser"} 
                 onPuzzleComplete={handleMockPuzzleComplete}
               />
               <div className="mt-4 p-4 border-t border-border/50">
-                <h4 className="text-md font-semibold mb-3 text-muted-foreground">Demo Controls:</h4>
+                <h4 className="text-md font-semibold mb-3 text-muted-foreground">Demo Controls (Local Toggle):</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
                   {mockMilestones.map(ms => (
                     <Button
@@ -692,9 +761,12 @@ export default function DashboardPage() {
                   ))}
                 </div>
                 <div className="flex gap-3">
-                    <Button onClick={unlockAllMockMilestones} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Unlock All Demo</Button>
-                    <Button onClick={resetAllMockMilestones} size="sm" variant="destructive" className="bg-red-600 hover:bg-red-700">Reset Demo</Button>
+                    <Button onClick={unlockAllMockMilestones} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Unlock All Demo Milestones</Button>
+                    <Button onClick={resetAllMockMilestones} size="sm" variant="destructive" className="bg-red-600 hover:bg-red-700">Reset Demo Milestones</Button>
                 </div>
+                 <p className="text-xs text-muted-foreground mt-3">
+                  Note: These demo controls update the visual state locally and simulate store changes. True puzzle piece unlocks are triggered by completing tasks on the "Todo List" page.
+                </p>
               </div>
             </CardContent>
           </Card>

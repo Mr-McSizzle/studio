@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ListTodo, PlusCircle, Trash2, Star, ChevronsUpDown, Zap, ShieldAlert, Tag, GripVertical, MessageSquare, Bot } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { useSimulationStore } from "@/store/simulationStore"; // Import simulation store
 import { useRouter } from "next/navigation";
 import type { TodoItem, TaskDifficulty, TaskPriority } from "@/types/todo";
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +56,7 @@ export default function TodoPage() {
   const [isEveSheetOpen, setIsEveSheetOpen] = useState(false);
 
   const { isAuthenticated } = useAuthStore();
+  const completeTaskForDemoPuzzle = useSimulationStore(state => state.completeTaskForDemoPuzzle); // Get action from store
   const router = useRouter();
   const { toast } = useToast();
 
@@ -95,6 +97,7 @@ export default function TodoPage() {
           const updatedTodo = { ...todo, completed: !todo.completed, completedAt: !todo.completed ? new Date().toISOString() : undefined };
           if (updatedTodo.completed && !wasCompleted) { 
             setTotalXp((prevXp) => prevXp + updatedTodo.points);
+            completeTaskForDemoPuzzle(); // Call store action to increment demo puzzle piece
             toast({
               title: "Task Complete!",
               description: (
@@ -106,6 +109,8 @@ export default function TodoPage() {
             });
           } else if (!updatedTodo.completed && wasCompleted) { 
             setTotalXp((prevXp) => Math.max(0, prevXp - updatedTodo.points));
+            // Note: We don't currently "un-complete" a puzzle piece if a task is unchecked.
+            // The puzzle progress is a one-way increment in this demo.
           }
           return updatedTodo;
         }
