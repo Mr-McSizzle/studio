@@ -11,6 +11,16 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb, Puzzle, Check, X, Award
 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -23,8 +33,8 @@ import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece";
 import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
 import { PuzzleBoard } from "@/components/dashboard/PuzzleBoard";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthStore } from "@/store/authStore"; 
-import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from "@/store/aiMentorStore"; // EVE
+import { useAuthStore } from "@/store/authStore";
+import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from "@/store/aiMentorStore";
 
 const MAX_SIMULATION_MONTHS = 24;
 
@@ -213,7 +223,7 @@ export default function DashboardPage() {
     historicalChurnRate, historicalProductProgress, advanceMonth, resetSimulation,
     puzzleProgressForDemo,
   } = useSimulationStore();
-  const { userEmail } = useAuthStore(); 
+  const { userEmail } = useAuthStore();
   const { addMessage: addEveMessage } = useAiMentorStore();
 
   const currencySymbol = financials.currencySymbol || "$";
@@ -225,6 +235,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   const [isDemoMonthEffectivelyUnlocked, setIsDemoMonthEffectivelyUnlocked] = useState(false);
+  const [showProceedEarlyWarning, setShowProceedEarlyWarning] = useState(false);
 
 
   const initialMockMilestones: DashboardMilestone[] = useMemo(() => [
@@ -286,28 +297,24 @@ export default function DashboardPage() {
       ...state,
       puzzleProgressForDemo: { ...state.puzzleProgressForDemo, piecesUnlocked: 0 }
     }));
-    setIsDemoMonthEffectivelyUnlocked(false); // Also reset this conceptual unlock
+    setIsDemoMonthEffectivelyUnlocked(false);
   }, [initialMockMilestones]);
 
 
   const handleMockPuzzleComplete = useCallback((puzzleId: string) => {
     toast({
       title: "Demo Puzzle Complete!",
-      description: `Congratulations, you've unlocked all milestones for the "${puzzleId}" demo puzzle! Check out the new Hexagon!`,
+      description: `Congratulations, you've completed all milestones for the "${puzzleId}" demo puzzle! You can now proceed to the next month.`,
       duration: 5000,
     });
     setIsDemoMonthEffectivelyUnlocked(true);
-    // This is where you'd conceptually:
-    // 1. Update Firestore: `db.collection('users').doc(userId).update({ 'puzzleProgress.isMonthUnlocked': true, ... })`
-    // 2. Dispatch an EVE message:
     addEveMessage({
         id: `eve-demo-puzzle-complete-${Date.now()}`,
         role: "assistant",
-        content: `EVE: Excellent work, Founder! You've completed all objectives for the "${puzzleId}" demo set. A new strategic node has activated. This represents your progress for this simulated period.`,
+        content: `EVE: Excellent work, Founder! You've completed all objectives for the "${puzzleId}" demo set. The path to the next simulation period is now open.`,
         timestamp: new Date(),
         agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
     });
-
   }, [toast, addEveMessage]);
 
 
@@ -338,18 +345,28 @@ export default function DashboardPage() {
 
   const handleAnimationComplete = () => setUnlockedStageForAnimation(null);
 
-  const handleAdvanceMonth = async () => {
+  const actualAdvanceMonthAction = async () => {
+    setIsSimulating(true);
+    await advanceMonth();
+    setIsSimulating(false);
+    setIsDemoMonthEffectivelyUnlocked(false); // Reset lock for the new month
+  };
+
+  const handleAdvanceMonthClick = async () => {
     if (isInitialized && financials.cashOnHand > 0 && !isSimulating) {
-      setIsSimulating(true);
-      await advanceMonth();
-      setIsSimulating(false);
+      if (!isDemoMonthEffectivelyUnlocked) {
+        setShowProceedEarlyWarning(true); // Show warning dialog
+        return;
+      }
+      await actualAdvanceMonthAction();
     }
   };
-  const handleReset = () => { 
-    resetSimulation(); 
-    setIsDemoMonthEffectivelyUnlocked(false); // Reset demo state too
-    router.push('/app/setup'); 
+
+  const confirmProceedEarly = async () => {
+    setShowProceedEarlyWarning(false);
+    await actualAdvanceMonthAction();
   };
+
 
   useEffect(() => {
     let baseMessages = [
@@ -485,7 +502,7 @@ export default function DashboardPage() {
              <div className="flex items-center gap-2 sm:gap-3 mt-4 md:mt-0">
                 <ScoreDisplay score={isInitialized ? startupScore : 0} />
                 <Button
-                    onClick={handleAdvanceMonth}
+                    onClick={handleAdvanceMonthClick}
                     className={cn(
                         "bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-subtle-button-pulse",
                         "active:scale-95 active:shadow-inner-soft-gold",
@@ -493,10 +510,10 @@ export default function DashboardPage() {
                     )}
                     size="default"
                     disabled={!isInitialized || isGameOver || isSimulating || !!unlockedStageForAnimation}
-                    title="Simulate Next Month"
+                    title="Proceed to Next Simulation Month"
                 >
                     {isSimulating || (currentAiReasoning || "").includes("simulating month...") ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <ChevronsRight className="mr-1.5 h-4 w-4"/>}
-                    Next Month
+                    Proceed to Next Month
                 </Button>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -508,6 +525,27 @@ export default function DashboardPage() {
                 </Tooltip>
             </div>
         </div>
+        
+        <AlertDialog open={showProceedEarlyWarning} onOpenChange={setShowProceedEarlyWarning}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-3">
+                <Image src="/new-assets/custom_eve_avatar.png" alt="EVE AI Avatar" width={40} height={40} className="rounded-full border-2 border-accent/70" data-ai-hint="bee queen"/>
+                EVE: Proceed with Caution?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="py-3 text-base text-muted-foreground">
+                Objectives for the current simulation period (puzzle milestones) are not yet complete. Proceeding now might mean missing potential rewards or insights. Are you sure you wish to advance to the next month?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowProceedEarlyWarning(false)} className="text-sm">Stay This Month</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmProceedEarly} className="bg-primary hover:bg-primary/90 text-sm">
+                Yes, Proceed Early
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
 
         {isGameOver && (
           <Alert variant="destructive" className="mb-6 shadow-lg">
@@ -721,7 +759,7 @@ export default function DashboardPage() {
               </CardTitle>
               <CardDescription>
                 Test the MilestonePuzzle component. Completing tasks on the "Todo List" page will unlock pieces here. User ID for demo: {userEmail || "mockUser"}
-                 {/* 
+                 {/*
                   A real Firestore listener would typically be set up here or in MilestonePuzzle.tsx
                   to listen to changes in user's puzzleProgress and update the UI reactively.
                   Example:
@@ -747,7 +785,7 @@ export default function DashboardPage() {
                 onMilestonesChange={handleMockMilestonesChange}
                 title="Demo Puzzle: Product Launch Readiness"
                 puzzleId="dashboardDemoPuzzle"
-                userId={userEmail || "mockUser"} 
+                userId={userEmail || "mockUser"}
                 onPuzzleComplete={handleMockPuzzleComplete}
               />
               <div className="mt-4 p-4 border-t border-border/50">
@@ -777,9 +815,9 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </section>
-        
+
         {isDemoMonthEffectivelyUnlocked && (
-          <motion.section 
+          <motion.section
             className="relative z-20 mt-10 py-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -799,7 +837,7 @@ export default function DashboardPage() {
                     style={{ filter: 'blur(20px)'}}
                   />
                   {/* Hexagon shape */}
-                  <motion.div 
+                  <motion.div
                     className="relative w-full h-full bg-gradient-to-r from-accent to-yellow-400 flex items-center justify-center text-accent-foreground shadow-xl"
                     style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
                     initial={{ scale: 0.5, rotate: -45 }}
@@ -820,8 +858,8 @@ export default function DashboardPage() {
                 <p className="text-foreground mb-6 max-w-md mx-auto">
                   EVE confirms: "Your strategic acumen has unlocked new potentials. This represents a significant milestone achieved in your simulation. The path forward is now clearer."
                 </p>
-                <Button 
-                  onClick={() => setIsDemoMonthEffectivelyUnlocked(false)} 
+                <Button
+                  onClick={() => setIsDemoMonthEffectivelyUnlocked(false)}
                   variant="outline"
                   className="border-accent text-accent hover:bg-accent/10"
                 >
