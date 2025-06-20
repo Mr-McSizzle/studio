@@ -32,7 +32,7 @@ import {
 } from "lucide-react"
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
 import { MiniChartBars } from "@/components/landing/MiniChartBars";
-import { IncepticoLogo } from "@/components/icons/logo"; // Updated import
+import { IncepticoLogo } from "@/components/icons/logo";
 
 export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -150,25 +150,38 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative font-body">
-      <div className="fixed inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/40 to-background" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-primary/10" />
-        <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-background" />
+      {/* Video Background Layer */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-70"
+        src="/new-assets/homebg.mp4"
+      >
+        Your browser does not support the video tag.
+      </video>
+
+      {/* Overlay Effects Layer (on top of video) */}
+      <div className="fixed inset-0 z-[1]">
+        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-primary/10 to-background/50" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/2" />
+        <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-background/50" />
         <div
-          className="absolute inset-0 opacity-30 transition-opacity duration-300"
+          className="absolute inset-0 opacity-20 transition-opacity duration-300"
           style={{
-            background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, hsl(var(--accent) / 0.08), hsl(var(--accent) / 0.05) 40%, transparent 70%)`,
+            background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, hsl(var(--accent) / 0.05), hsl(var(--accent) / 0.03) 40%, transparent 70%)`,
           }}
         />
-        <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 opacity-10">
           <div
-            className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10"
+            className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5"
             style={{
               transform: `translateY(${scrollY * 0.5}px) rotate(${scrollY * 0.1}deg)`,
             }}
           />
         </div>
-        <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 opacity-3">
           <div
             className="absolute inset-0"
             style={{
@@ -184,11 +197,11 @@ export default function HomePage() {
         </div>
       </div>
       <FloatingParticles particleColors={["bg-sky-400", "bg-blue-500", "bg-slate-400", "bg-sky-600"]} />
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-[1]">
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="absolute opacity-8"
+            className="absolute opacity-5"
             style={{
               left: `${10 + i * 15}%`,
               top: `${20 + i * 10}%`,
@@ -197,7 +210,7 @@ export default function HomePage() {
             }}
           >
             <div
-              className={`w-12 h-12 border border-accent/20 ${i % 2 === 0 ? "rotate-45" : "rounded-full"}`}
+              className={`w-12 h-12 border border-accent/10 ${i % 2 === 0 ? "rotate-45" : "rounded-full"}`}
               style={{
                 transform: `rotate(${scrollY * 0.1 + i * 45}deg)`,
               }}
@@ -205,12 +218,14 @@ export default function HomePage() {
           </div>
         ))}
       </div>
-      <nav className="relative z-50 p-4 backdrop-blur-sm">
+
+      {/* Content Layer (on top of video and overlays) */}
+      <nav className="relative z-20 p-4 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary/25 group-hover:shadow-blue-400/40 transition-shadow">
-                <IncepticoLogo width={20} height={20} className="text-primary-foreground" /> {/* Updated usage */}
+                <IncepticoLogo width={20} height={20} className="text-primary-foreground" />
               </div>
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </div>
@@ -600,7 +615,7 @@ export default function HomePage() {
             <div className="flex items-center justify-center space-x-3">
               <div className="relative">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-primary/25">
-                  <IncepticoLogo width={24} height={24} className="text-primary-foreground" /> {/* Updated usage */}
+                  <IncepticoLogo width={24} height={24} className="text-primary-foreground" />
                 </div>
                 <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
               </div>
