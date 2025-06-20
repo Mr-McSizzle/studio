@@ -36,13 +36,14 @@ export default function LaunchpadPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden">
+    // Removed bg-slate-950 from here to allow video to show
+    <div className="min-h-screen text-white relative overflow-hidden">
       {/* Video Background */}
       <video
         autoPlay
         loop
         muted
-        playsInline
+        playsInline // Important for autoplay on some mobile browsers
         style={{
           position: 'fixed',
           top: '50%',
@@ -51,19 +52,21 @@ export default function LaunchpadPage() {
           minHeight: '100%',
           width: 'auto',
           height: 'auto',
-          zIndex: -1,
+          zIndex: -1, // Keep it behind other content
           transform: 'translate(-50%, -50%)',
-          objectFit: 'cover',
+          objectFit: 'cover', // Ensures the video covers the area without distortion
         }}
         src="/new-assets/launchpadbg.mp4"
-        className="opacity-70"
+        className="opacity-70" // You can adjust opacity here
       >
         Your browser does not support the video tag.
       </video>
 
+      {/* Gradient Overlays - These will sit on top of the video */}
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-indigo-950/30 z-10" />
       <div className="absolute inset-0 bg-gradient-to-r from-purple-950/20 via-transparent to-indigo-950/20 z-10" />
 
+      {/* Main content wrapper - This will sit on top of the overlays and video */}
       <div className="relative z-20 min-h-screen flex flex-col">
         <header className="p-6 pt-16">
           <div className="max-w-5xl mx-auto text-center">
@@ -188,9 +191,9 @@ export default function LaunchpadPage() {
         </footer>
       </div>
 
+      {/* Decorative Lines & Corners (z-index not explicitly set, default to 0 relative to their stacking context) */}
       <div className="absolute top-1/4 left-12 w-px h-16 bg-gradient-to-b from-transparent via-indigo-400/40 to-transparent animate-pulse" />
       <div className="absolute bottom-1/3 right-12 w-px h-12 bg-gradient-to-b from-transparent via-purple-400/40 to-transparent animate-pulse animation-delay-[1s]" />
-
       <div className="absolute top-8 right-8 w-8 h-8 border-t border-r border-white/10 backdrop-blur-sm" />
       <div className="absolute bottom-8 left-8 w-8 h-8 border-b border-l border-white/10 backdrop-blur-sm" />
     </div>
