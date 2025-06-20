@@ -163,7 +163,7 @@ export default function HomePage() {
       </video>
 
       {/* Overlay Effects Layer (on top of video) */}
-      <div className="fixed inset-0 z-[1]">
+      <div className="fixed inset-0 z-[-1]">
         <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-primary/10 to-background/50" />
         <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/2" />
         <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-background/50" />
