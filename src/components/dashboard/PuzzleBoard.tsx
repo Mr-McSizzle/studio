@@ -8,13 +8,14 @@ const PuzzleSlot: React.FC<{ className?: string }> = ({ className }) => {
   return (
     <div
       className={cn(
-        "aspect-[3/4] bg-muted/30 border-2 border-dashed border-border rounded-lg flex items-center justify-center shadow-inner",
-        "hover:border-primary/50 transition-colors duration-200",
+        "aspect-[3/4] bg-muted/20 border border-border/50 rounded-lg flex items-center justify-center shadow-inner",
+        "shadow-md shadow-primary/10", // Soft default glow
+        "hover:border-primary/60 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 ease-in-out transform hover:scale-105", // Enhanced hover
         className
       )}
       aria-hidden="true"
     >
-      {/* You can add a subtle icon or text here if needed later */}
+      {/* Placeholder for future puzzle piece content */}
     </div>
   );
 };
