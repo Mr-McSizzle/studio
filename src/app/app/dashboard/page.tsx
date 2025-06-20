@@ -315,7 +315,12 @@ export default function DashboardPage() {
         timestamp: new Date(),
         agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
     });
-  }, [toast, addEveMessage]);
+    // Conceptual Firestore update:
+    // You would update a field like `users/{userId}/simulationState/monthCompleteHex`
+    // with configuration for the hexagon's appearance for this month/phase.
+    // e.g., { month: simulationMonth, completed: true, hexColor: 'hsl(var(--accent))', rotationSpeed: 0.2 }
+    console.log(`[CONCEPTUAL] Puzzle for month ${simulationMonth} completed. Would save hex config to Firestore here.`);
+  }, [toast, addEveMessage, simulationMonth]);
 
 
   useEffect(() => {
@@ -840,21 +845,27 @@ export default function DashboardPage() {
                   <motion.div
                     className="absolute inset-0 bg-accent/50 rounded-full"
                     animate={{
-                      scale: [1, 1.3, 1],
-                      opacity: [0.5, 0.8, 0.5],
+                      scale: [1, 1.3, 1.05, 1.2, 1],
+                      opacity: [0.5, 0.9, 0.6, 0.8, 0.5],
+                      filter: ['blur(15px)', 'blur(25px)', 'blur(18px)', 'blur(22px)', 'blur(15px)'],
                     }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    style={{ filter: 'blur(20px)'}}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                   />
-                  {/* Hexagon shape */}
+                  {/* Hexagon shape with rotation and glow */}
                   <motion.div
                     className="relative w-full h-full bg-gradient-to-r from-accent to-yellow-400 flex items-center justify-center text-accent-foreground shadow-xl"
                     style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
                     initial={{ scale: 0.5, rotate: -45 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', stiffness: 150, damping: 15, delay: 0.2 }}
+                    animate={{
+                      scale: 1,
+                      rotate: 360, // Continuous rotation
+                      transition: {
+                        scale: { type: 'spring', stiffness: 150, damping: 15, delay: 0.2 },
+                        rotate: { duration: 20, repeat: Infinity, ease: "linear" } // Rotation animation
+                      }
+                    }}
                   >
-                    <Award className="h-12 w-12" />
+                    <Award className="h-12 w-12 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
                   </motion.div>
                 </div>
                 <CardTitle className="text-3xl font-headline text-glow-accent">
@@ -884,3 +895,6 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
+
+
+    
