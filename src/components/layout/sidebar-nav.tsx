@@ -38,7 +38,7 @@ const navItems = [
   { href: "/app/lab", label: "Innovation Lab", icon: Beaker },
   { href: "/app/gamification", label: "Milestones & Score", icon: Trophy },
   { href: "/app/todo", label: "Todo List", icon: ListTodo }, 
-  { href: "/app/profile", label: "Founder Profile", icon: UserIcon },
+  // { href: "/app/profile", label: "Founder Profile", icon: UserIcon }, // Removed this line
 ];
 
 export function SidebarNav() {
