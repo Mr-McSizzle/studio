@@ -70,7 +70,7 @@ export default function LaunchpadPage() {
             <div className="flex items-center justify-center mb-6">
               <div className="w-1 h-10 bg-gradient-to-b from-transparent via-indigo-400/60 to-transparent mr-6" />
               <h1 className="text-6xl md:text-7xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-white to-slate-200 tracking-[-0.03em] leading-[0.9]">
-              Inceptico Launchpad
+               Launchpad
               </h1>
               <div className="w-1 h-10 bg-gradient-to-b from-transparent via-purple-400/60 to-transparent ml-6" />
             </div>
