@@ -21,8 +21,9 @@ import type { StructuredKeyEvent, DashboardMilestone } from "@/types/simulation"
 import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
 import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece";
 import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
-import { PuzzleBoard } from "@/components/dashboard/PuzzleBoard"; // Import the new PuzzleBoard
+import { PuzzleBoard } from "@/components/dashboard/PuzzleBoard";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/store/authStore"; // Added for userId
 
 const MAX_SIMULATION_MONTHS = 24;
 
@@ -210,6 +211,7 @@ export default function DashboardPage() {
     historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
     historicalChurnRate, historicalProductProgress, advanceMonth, resetSimulation,
   } = useSimulationStore();
+  const { userEmail } = useAuthStore(); // Get userId (email for this mock)
 
   const currencySymbol = financials.currencySymbol || "$";
   const [prevSimulationMonth, setPrevSimulationMonth] = useState<number | null>(null);
@@ -219,16 +221,19 @@ export default function DashboardPage() {
   const [isSimulating, setIsSimulating] = useState(false);
   const { toast } = useToast();
 
-  // State for Mock Milestone Puzzle Demo
-  const initialMockMilestones: DashboardMilestone[] = [
+  const initialMockMilestones: DashboardMilestone[] = useMemo(() => [
     { id: 'mock-ms-1', name: "Prototype Design", icon: Lightbulb, isUnlocked: false, description: "Finalize the initial prototype design and user flow." },
     { id: 'mock-ms-2', name: "Core Feature Dev", icon: Settings2, isUnlocked: false, description: "Develop the core functionality of the product." },
     { id: 'mock-ms-3', name: "Alpha Testing", icon: Zap, isUnlocked: false, description: "Conduct internal alpha testing with a small group." },
     { id: 'mock-ms-4', name: "Gather Feedback", icon: Users, isUnlocked: false, description: "Collect and analyze feedback from alpha testers." },
     { id: 'mock-ms-5', name: "Refine MVP", icon: Layers, isUnlocked: false, description: "Iterate on the MVP based on alpha feedback." },
     { id: 'mock-ms-6', name: "Launch Plan Ready", icon: Rocket, isUnlocked: false, description: "Prepare the go-to-market and launch strategy." },
-  ];
+  ], []);
   const [mockMilestones, setMockMilestones] = useState<DashboardMilestone[]>(initialMockMilestones);
+
+  const handleMockMilestonesChange = useCallback((updatedMilestones: DashboardMilestone[]) => {
+    setMockMilestones(updatedMilestones);
+  }, []);
 
   const toggleMockMilestone = useCallback((id: string) => {
     setMockMilestones(prev =>
@@ -635,7 +640,6 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-        {/* New PuzzleBoard Section */}
         <section className="relative z-10 mt-8">
           <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
             <CardHeader>
@@ -652,7 +656,6 @@ export default function DashboardPage() {
           </Card>
         </section>
 
-        {/* Existing Milestone Puzzle Demo Section - Kept for reference */}
         <section className="relative z-10 mt-8">
           <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
             <CardHeader>
@@ -660,14 +663,16 @@ export default function DashboardPage() {
                 <Puzzle className="h-7 w-7" /> Milestone Puzzle Demo
               </CardTitle>
               <CardDescription>
-                Test the MilestonePuzzle component with mock data. This is separate from the main simulation phase milestones.
+                Test the MilestonePuzzle component with mock data. This is separate from the main simulation phase milestones. User ID for demo: {userEmail || "mockUser"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <MilestonePuzzle
                 milestones={mockMilestones}
+                onMilestonesChange={handleMockMilestonesChange}
                 title="Demo Puzzle: Product Launch Readiness"
-                puzzleId="demo-launch-puzzle"
+                puzzleId="dashboardDemoPuzzle"
+                userId={userEmail || "mockUser"} // Use authenticated user's email or a mock
                 onPuzzleComplete={handleMockPuzzleComplete}
               />
               <div className="mt-4 p-4 border-t border-border/50">
