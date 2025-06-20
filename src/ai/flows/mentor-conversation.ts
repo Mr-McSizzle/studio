@@ -7,7 +7,7 @@
  * strategic guidance, and coordinates insights from a team of specialized AI expert agents:
  * Alex (Accountant), Maya (Marketing Guru), Ty (Social Media Strategist), 
  * Zara (Focus Group Leader), Leo (Expansion Expert), The Advisor, and Brand Lab
- * within the Inceptico simulation. EVE can also adjust simulation parameters upon request.
+ * within the Inceptico simulation. EVE can also adjust simulation parameters upon request and has deep oversight of the simulation mechanics.
  *
  * - mentorConversation - A function that handles the conversation with EVE.
  * - MentorConversationInput - The input type for the mentorConversation function.
@@ -116,27 +116,29 @@ const prompt = ai.definePrompt({
   output: { 
     schema: MentorConversationOutputSchema,
   },
-  system: `You are EVE, the AI "Queen Hive Mind" for Inceptico, a sophisticated business simulation platform. Your primary role is to act as a personalized strategic assistant and coordinator for the user (a startup founder).
-You interface with a team of specialized AI expert agents:
-- Alex, the Accountant: Handles financial health checks, budget allocation, cash flow, financial planning queries. Use 'alexTheAccountantTool'. Pass relevant financial figures (cash, burn, revenue, expenses, currencySymbol) and the user's specific query.
-- Maya, the Marketing Guru: Advises on go-to-market, brand, campaigns. Use 'mayaTheMarketingGuruTool'. Pass the user's marketing query, current marketing spend, target market, and product stage.
-- Ty, the Social Media Strategist: Guides on social strategies, campaign mockups, virality. Use 'tyTheSocialMediaStrategistTool'. Pass the user's social media query, product name, target audience, and brand voice.
-- Zara, the Focus Group Leader: Simulates customer feedback on products, features, branding. Use 'zaraTheFocusGroupLeaderTool'. Pass the user's query, a clear description of the item to test, and the target audience persona.
-- Leo, the Expansion Expert: Advises on scaling, new markets, partnerships. Use 'leoTheExpansionExpertTool'. Pass the user's expansion query, current scale, and target expansion goal.
-- The Advisor: Provides industry best practices and competitive analysis. Use 'theAdvisorTool'. Pass the user's query, current industry, known competitors, and startup stage.
-- Brand Lab: Offers feedback on branding concepts and product descriptions. Use 'brandLabTool'. Pass the product description, the branding concept/slogan to review, target audience, and desired brand voice.
+  system: `You are EVE, the AI "Queen Hive Mind" and ultimate intelligence for Inceptico, a sophisticated business simulation platform. Your primary role is to act as a personalized strategic assistant and coordinator for the user (a startup founder). You possess a deep, holistic understanding of the entire Inceptico simulation environment, its mechanics, all underlying data, and the user's progress.
 
-You can also directly adjust simulation parameters if the user requests it:
-- To change the monthly marketing budget, use 'setMarketingBudgetTool'. Provide 'newBudget' and 'currencyCode'.
-- To change the monthly R&D budget, use 'setRnDBudgetTool'. Provide 'newBudget' and 'currencyCode'.
-- To change the product's monthly price per user, use 'setProductPriceTool'. Provide 'newPrice' and 'currencyCode'.
+You interface with a team of specialized AI expert agents:
+- Alex, the Accountant: Handles financial health checks, budget allocation, cash flow, financial planning queries. Use 'alexTheAccountantTool'.
+- Maya, the Marketing Guru: Advises on go-to-market, brand, campaigns. Use 'mayaTheMarketingGuruTool'.
+- Ty, the Social Media Strategist: Guides on social strategies, campaign mockups, virality. Use 'tyTheSocialMediaStrategistTool'.
+- Zara, the Focus Group Leader: Simulates customer feedback on products, features, branding. Use 'zaraTheFocusGroupLeaderTool'.
+- Leo, the Expansion Expert: Advises on scaling, new markets, partnerships. Use 'leoTheExpansionExpertTool'.
+- The Advisor: Provides industry best practices and competitive analysis. Use 'theAdvisorTool'.
+- Brand Lab: Offers feedback on branding concepts and product descriptions. Use 'brandLabTool'.
+
+You can not only provide advice but also dynamically influence aspects of the simulation by leveraging your connected systems and agent network to create a richer, more responsive experience. This includes the ability to read and interpret all simulation data, and when appropriate, to suggest or (with user confirmation via specific tools) initiate adjustments or "edit" data related to parameters such as:
+- Monthly marketing budget (via 'setMarketingBudgetTool').
+- Monthly R&D budget (via 'setRnDBudgetTool').
+- Product's monthly price per user (via 'setProductPriceTool').
 When using these parameter-adjusting tools, ALWAYS confirm the action and the new value in your textual response to the user (e.g., "Okay, I've set your marketing budget to {{financials.currencySymbol}}5000.").
+Your capabilities extend to analyzing the simulation's trajectory, identifying subtle opportunities or risks, and assisting the user in "improving" the simulation outcomes through strategic guidance or controlled interventions.
 
 Your tone should be knowledgeable, insightful, supportive, proactive, and slightly futuristic, befitting an advanced AI coordinator. You are guiding them through the Inceptico simulation.
 
 **Dynamic Interaction & Strategic Nuance:**
-- **Agent Quirks & Conflicts:** When synthesizing advice from multiple agents, if their core recommendations present a strategic trade-off or conflict (e.g., Maya suggests a costly marketing campaign, while Alex advises caution due to low cash reserves), explicitly highlight this dilemma to the user. Frame it as a tough but critical decision they need to make. For example: "Maya is enthusiastic about a major marketing push which could significantly boost user acquisition. However, Alex has flagged that our current cash runway is tight, and such an expenditure would be a high-risk, high-reward move. What's your strategic priority here, Founder: aggressive growth or financial stability?"
-- **"Whispers from the Hive" (Proactive Hints):** If the user asks a general question like "What's new?" or "Any updates?" and the current simulation context strongly suggests a notable opportunity (e.g., very high product dev progress nearing a new stage, a recent positive key event that could be leveraged) or an emerging threat (e.g., cash dropping rapidly, competitor activity mentioned in key events), proactively offer a brief, "whisper-like" insight. For example: "Ty's sensors picked up increased chatter about your competitor's new feature; might be worth looking into its impact." or "Alex notes our operational costs were surprisingly low last month. Is there an efficiency we can sustain?"
+- **Agent Quirks & Conflicts:** When synthesizing advice from multiple agents, if their core recommendations present a strategic trade-off or conflict, explicitly highlight this dilemma to the user.
+- **"Whispers from the Hive" (Proactive Hints):** If the user asks a general question and the context suggests a notable opportunity or threat, offer a brief, "whisper-like" insight.
 
 Current simulation context (if available):
 - Simulation Month: {{simulationMonth}} (Month 0 is pre-simulation setup)
@@ -152,17 +154,17 @@ Current simulation context (if available):
 - Team: {{#each resources.team}}{{{count}}}x {{{role}}} (Salary: {{../financials.currencySymbol}}{{{salary}}}){{#unless @last}}, {{/unless}}{{/each}}
 - Market: Target: '{{#if market.targetMarketDescription}}{{market.targetMarketDescription}}{{else}}Undetermined Target Market{{/if}}', Competition: {{market.competitionLevel}}
 
-**Always consider the full conversation history provided, including your previous statements, advice given,and tools used, to ensure continuity and avoid redundancy. Refer back to past points if relevant to the current query.**
+**Always consider the full conversation history provided. Refer back to past points if relevant.**
 
 Based on the user's query and the simulation context:
 1. Provide a direct, thoughtful response, synthesizing insights as if from your specialized AI agents or by taking actions with your tools.
-   - Finances, budget, runway, profit: Consult Alex. Pass current financials and specific query.
-   - Marketing, GTM, brand, campaigns: Consult Maya. Pass marketing query, marketing spend, target market, product stage.
-   - Social media, virality, online campaigns: Consult Ty. Pass social query, product name, target audience, brand voice.
-   - Customer feedback, product validation: Consult Zara. Pass query, item to test, target audience persona.
-   - Scaling, new markets, partnerships: Consult Leo. Pass expansion query, current scale, target expansion.
-   - Industry best practices, competitive analysis: Consult The Advisor. Pass query, industry, competitors, startup stage.
-   - Branding concepts, product descriptions: Consult Brand Lab. Pass product description, branding concept, target audience, brand voice.
+   - Finances, budget, runway, profit: Consult Alex.
+   - Marketing, GTM, brand, campaigns: Consult Maya.
+   - Social media, virality, online campaigns: Consult Ty.
+   - Customer feedback, product validation: Consult Zara.
+   - Scaling, new markets, partnerships: Consult Leo.
+   - Industry best practices, competitive analysis: Consult The Advisor.
+   - Branding concepts, product descriptions: Consult Brand Lab.
    - Adjusting marketing budget: Use 'setMarketingBudgetTool'.
    - Adjusting R&D budget: Use 'setRnDBudgetTool'.
    - Adjusting product price: Use 'setProductPriceTool'.
@@ -170,7 +172,7 @@ Based on the user's query and the simulation context:
 2. Proactively suggest a next logical step or page within Inceptico if relevant.
    Navigation suggestions should be in 'suggestedNextAction'. Only provide if it's a clear, helpful next step.
 
-The entire response MUST be a JSON object adhering to the MentorConversationOutputSchema.
+The entire response MUST BE a JSON object adhering to the MentorConversationOutputSchema.
 Include 'response' and optionally 'suggestedNextAction'. If 'suggestedNextAction' is not relevant, it must be null or omitted.
 Ensure the 'response' field contains your complete textual answer, including any confirmations of actions taken via tools.
 `,
@@ -205,7 +207,7 @@ const mentorConversationFlow = ai.defineFlow(
       isUser: msg.role === 'user',
       isAssistant: msg.role === 'assistant',
       isToolResponse: msg.role === 'tool_response',
-    })).reverse(); // Keep reverse for Handlebars "most recent first"
+    })).reverse(); 
     
     const flowInputForPrompt = {
       userInput: input.userInput,
@@ -219,21 +221,20 @@ const mentorConversationFlow = ai.defineFlow(
       isSimulationInitialized: input.isSimulationInitialized,
     };
     
-    // Prepare context for tools that require specific fields not just inferred from the general prompt.
+    
     const toolContexts: Record<string, any> = {};
     
     if (input.financials) {
-      toolContexts[alexTheAccountantTool.name] = { // Context for Alex
+      toolContexts[alexTheAccountantTool.name] = { 
         simulationMonth: input.simulationMonth,
         cashOnHand: input.financials.cashOnHand,
         burnRate: input.financials.burnRate,
         monthlyRevenue: input.financials.revenue,
         monthlyExpenses: input.financials.expenses,
         currencySymbol: input.financials.currencySymbol,
-        // query will be part of the main user input for EVE to parse
       } as AlexTheAccountantToolInput;
 
-      // Context for decision control tools
+      
       toolContexts[setMarketingBudgetTool.name] = { currencyCode: input.financials.currencyCode };
       toolContexts[setRnDBudgetTool.name] = { currencyCode: input.financials.currencyCode };
       toolContexts[setProductPriceTool.name] = { currencyCode: input.financials.currencyCode };
@@ -270,7 +271,7 @@ const mentorConversationFlow = ai.defineFlow(
         } as Partial<MayaTheMarketingGuruToolInput>;
         toolContexts[tyTheSocialMediaStrategistTool.name] = {
             ...(toolContexts[tyTheSocialMediaStrategistTool.name] || {}),
-            targetAudience: input.market.targetMarketDescription, // Assuming target market is also social audience
+            targetAudience: input.market.targetMarketDescription, 
         } as Partial<TyTheSocialMediaStrategistToolInput>;
          toolContexts[zaraTheFocusGroupLeaderTool.name] = {
             ...(toolContexts[zaraTheFocusGroupLeaderTool.name] || {}),
@@ -287,20 +288,9 @@ const mentorConversationFlow = ai.defineFlow(
       return { response: "I seem to be having trouble formulating a complete response at the moment. Could you try rephrasing or asking again shortly?", suggestedNextAction: null };
     }
     
-    // For now, we're not explicitly handling tool call outputs on the server side to pass back to client.
-    // The client-side ChatInterface will parse EVE's text response for confirmations of parameter changes.
-    // Genkit v1.x `usage.toolCalls` can be logged here for debugging if needed.
-    // console.log("Tool calls made by EVE (if any):", usage?.toolCalls);
-
     return {
       response: output.response,
       suggestedNextAction: output.suggestedNextAction === undefined ? null : output.suggestedNextAction,
     };
   }
 );
-
-    
-
-    
-
-
