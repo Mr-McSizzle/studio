@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
-  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb // Added Lightbulb
+  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb, Puzzle, Check, X // Added Puzzle, Check, X
 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -20,6 +20,8 @@ import { cn } from "@/lib/utils";
 import type { StructuredKeyEvent, DashboardMilestone } from "@/types/simulation";
 import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
 import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece"; 
+import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle"; // Import MilestonePuzzle
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 const MAX_SIMULATION_MONTHS = 24;
 
@@ -214,6 +216,41 @@ export default function DashboardPage() {
   const [currentUnlockedStageName, setCurrentUnlockedStageName] = useState<string>("New Stage");
   const [eveTooltipMessage, setEveTooltipMessage] = useState("EVE: Monitoring all simulation parameters.");
   const [isSimulating, setIsSimulating] = useState(false);
+  const { toast } = useToast();
+
+  // State for Mock Milestone Puzzle Demo
+  const initialMockMilestones: DashboardMilestone[] = [
+    { id: 'mock-ms-1', name: "Prototype Design", icon: Lightbulb, isUnlocked: false, description: "Finalize the initial prototype design and user flow." },
+    { id: 'mock-ms-2', name: "Core Feature Dev", icon: Settings2, isUnlocked: false, description: "Develop the core functionality of the product." },
+    { id: 'mock-ms-3', name: "Alpha Testing", icon: Zap, isUnlocked: false, description: "Conduct internal alpha testing with a small group." },
+    { id: 'mock-ms-4', name: "Gather Feedback", icon: Users, isUnlocked: false, description: "Collect and analyze feedback from alpha testers." },
+    { id: 'mock-ms-5', name: "Refine MVP", icon: Layers, isUnlocked: false, description: "Iterate on the MVP based on alpha feedback." },
+    { id: 'mock-ms-6', name: "Launch Plan Ready", icon: Rocket, isUnlocked: false, description: "Prepare the go-to-market and launch strategy." },
+  ];
+  const [mockMilestones, setMockMilestones] = useState<DashboardMilestone[]>(initialMockMilestones);
+
+  const toggleMockMilestone = useCallback((id: string) => {
+    setMockMilestones(prev =>
+      prev.map(ms => ms.id === id ? { ...ms, isUnlocked: !ms.isUnlocked } : ms)
+    );
+  }, []);
+
+  const unlockAllMockMilestones = useCallback(() => {
+    setMockMilestones(prev => prev.map(ms => ({ ...ms, isUnlocked: true })));
+  }, []);
+
+  const resetAllMockMilestones = useCallback(() => {
+    setMockMilestones(initialMockMilestones);
+  }, [initialMockMilestones]);
+
+  const handleMockPuzzleComplete = useCallback((puzzleId: string) => {
+    toast({
+      title: "Demo Puzzle Complete!",
+      description: `Congratulations, you've unlocked all milestones for the "${puzzleId}" demo puzzle!`,
+      duration: 5000,
+    });
+  }, [toast]);
+
 
   useEffect(() => {
     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
@@ -597,6 +634,48 @@ export default function DashboardPage() {
             </Card>
           </div>
 
+        {/* Milestone Puzzle Demo Section */}
+        <section className="relative z-10 mt-8">
+          <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-xl text-purple-400">
+                <Puzzle className="h-7 w-7" /> Milestone Puzzle Demo
+              </CardTitle>
+              <CardDescription>
+                Test the MilestonePuzzle component with mock data. This is separate from the main simulation phase milestones.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <MilestonePuzzle
+                milestones={mockMilestones}
+                title="Demo Puzzle: Product Launch Readiness"
+                puzzleId="demo-launch-puzzle"
+                onPuzzleComplete={handleMockPuzzleComplete}
+              />
+              <div className="mt-4 p-4 border-t border-border/50">
+                <h4 className="text-md font-semibold mb-3 text-muted-foreground">Demo Controls:</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+                  {mockMilestones.map(ms => (
+                    <Button
+                      key={ms.id}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleMockMilestone(ms.id)}
+                      className={cn("text-xs justify-start", ms.isUnlocked ? "border-green-500 text-green-600" : "border-border")}
+                    >
+                      {ms.isUnlocked ? <Check className="mr-1.5 h-3 w-3"/> : <X className="mr-1.5 h-3 w-3"/>}
+                      {ms.name}
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                    <Button onClick={unlockAllMockMilestones} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Unlock All Demo</Button>
+                    <Button onClick={resetAllMockMilestones} size="sm" variant="destructive" className="bg-red-600 hover:bg-red-700">Reset Demo</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </TooltipProvider>
   );
