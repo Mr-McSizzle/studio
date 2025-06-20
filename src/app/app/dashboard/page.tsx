@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion"; // Added framer-motion
+import { motion } from "framer-motion";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,8 +17,9 @@ import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import type { StructuredKeyEvent } from "@/types/simulation";
+import type { StructuredKeyEvent, DashboardMilestone } from "@/types/simulation";
 import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
+import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece"; // Import PuzzlePiece
 
 const MAX_SIMULATION_MONTHS = 24;
 
@@ -29,21 +30,49 @@ interface SimulationPhase {
   description: string;
   unlockMonth: number;
   totalMonthsInPhase: number;
-  milestones: string[];
+  milestones: DashboardMilestone[]; // Changed to use DashboardMilestone type
   themeColor: string;
   ringColor: string;
   shadowColor: string;
   bgColor: string;
   glowColorVar: string;
-  hexPath: string; // For clip-path
+  hexPath: string;
 }
 
-const simulationPhases: SimulationPhase[] = [
-  { id: "genesis", title: "Genesis Forge", icon: Rocket, description: "Foundation & Vision. Secure resources, define your core offering, and prepare for initial market entry.", unlockMonth: 0, totalMonthsInPhase: 3, milestones: ["Initial Setup", "First User", "Prototype Ready"], themeColor: "text-sky-400", ringColor: "border-sky-500", shadowColor: "shadow-sky-500/60", bgColor: "bg-sky-900/40", glowColorVar: "--sky", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
-  { id: "aegis_protocol", title: "Aegis Protocol", icon: Shield, description: "Risk Navigation. Stabilize operations, refine product-market fit, and build resilience.", unlockMonth: 3, totalMonthsInPhase: 4, milestones: ["MVP Status", "Seed Funding", "Positive Cash Flow"], themeColor: "text-amber-400", ringColor: "border-amber-500", shadowColor: "shadow-amber-500/60", bgColor: "bg-amber-900/40", glowColorVar: "--amber", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
-  { id: "vanguard_expansion", title: "Vanguard Expansion", icon: Megaphone, description: "Market Penetration. Scale user acquisition, optimize channels, and expand your team.", unlockMonth: 7, totalMonthsInPhase: 6, milestones: ["1k Users", "Key Partnership", "Int'l Sale"], themeColor: "text-emerald-400", ringColor: "border-emerald-500", shadowColor: "shadow-emerald-500/60", bgColor: "bg-emerald-900/40", glowColorVar: "--emerald", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
-  { id: "sovereign_dominion", title: "Sovereign Dominion", icon: Layers, description: "Market Leadership. Innovate new offerings, explore new ventures, and solidify your industry legacy.", unlockMonth: 13, totalMonthsInPhase: MAX_SIMULATION_MONTHS - 13, milestones: ["Market Leader", "Product Diversification", "Acquisition Target"], themeColor: "text-purple-400", ringColor: "border-purple-500", shadowColor: "shadow-purple-500/60", bgColor: "bg-purple-900/40", glowColorVar: "--purple", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
-];
+// Placeholder milestones - these should be dynamically populated or defined based on game logic
+const getPhaseMilestones = (phaseId: string, currentSimMonth: number, startupScore: number): DashboardMilestone[] => {
+  // Example: In a real scenario, you might fetch these from a config or calculate dynamically
+  if (phaseId === "genesis") {
+    return [
+      { id: "ms-genesis-1", name: "First Idea", icon: Lightbulb, isUnlocked: currentSimMonth >= 0, description: "Conceptualize your venture." },
+      { id: "ms-genesis-2", name: "Prototype", icon: Settings2, isUnlocked: currentSimMonth >= 1 && startupScore > 10, description: "Build a basic version." },
+      { id: "ms-genesis-3", name: "Early Feedback", icon: Users, isUnlocked: currentSimMonth >= 2 && startupScore > 15, description: "Get initial user input." },
+    ];
+  }
+  if (phaseId === "aegis_protocol") {
+    return [
+      { id: "ms-aegis-1", name: "MVP Launch", icon: Rocket, isUnlocked: currentSimMonth >= 3 && startupScore > 20, description: "Launch your Minimum Viable Product." },
+      { id: "ms-aegis-2", name: "First Revenue", icon: DollarSign, isUnlocked: currentSimMonth >= 4 && startupScore > 25, description: "Achieve your first sale." },
+      { id: "ms-aegis-3", name: "Product-Market Fit", icon: Zap, isUnlocked: currentSimMonth >= 6 && startupScore > 35, description: "Validate product-market fit." },
+    ];
+  }
+   if (phaseId === "vanguard_expansion") {
+    return [
+      { id: "ms-vanguard-1", name: "Scale Marketing", icon: Megaphone, isUnlocked: currentSimMonth >= 7 && startupScore > 40, description: "Expand marketing efforts." },
+      { id: "ms-vanguard-2", name: "Team Growth", icon: Users, isUnlocked: currentSimMonth >= 9 && startupScore > 50, description: "Grow your core team." },
+      { id: "ms-vanguard-3", name: "New Feature Set", icon: Layers, isUnlocked: currentSimMonth >= 12 && startupScore > 60, description: "Launch major new features." },
+    ];
+  }
+  if (phaseId === "sovereign_dominion") {
+    return [
+      { id: "ms-sovereign-1", name: "Profitability", icon: TrendingUp, isUnlocked: currentSimMonth >= 13 && startupScore > 70, description: "Achieve consistent profitability." },
+      { id: "ms-sovereign-2", name: "Market Leadership", icon: BarChartBig, isUnlocked: currentSimMonth >= 18 && startupScore > 80, description: "Become a leader in your niche." },
+      { id: "ms-sovereign-3", name: "Legacy", icon: Brain, isUnlocked: currentSimMonth >= MAX_SIMULATION_MONTHS && startupScore > 90, description: "Build a lasting legacy." },
+    ];
+  }
+  return [];
+};
+
 
 const STAGE_UNLOCK_THRESHOLDS: Record<number, {id: string, name: string}> = {
     3: {id: "aegis_protocol_unlocked", name: "Aegis Protocol"},
@@ -74,7 +103,7 @@ const PhaseCard = ({ phase, currentSimMonth, index }: { phase: SimulationPhase; 
   const currentMonthInPhase = isLocked ? 0 : Math.min(phase.totalMonthsInPhase, Math.max(0, currentSimMonth - phase.unlockMonth));
   const progressPercentage = phase.totalMonthsInPhase > 0 ? (currentMonthInPhase / phase.totalMonthsInPhase) * 100 : (isCompleted ? 100 : 0);
 
-  let cardClasses = "hex-card relative flex flex-col justify-between p-4 md:p-5 min-h-[220px] sm:min-h-[250px] md:min-h-[280px] w-[200px] sm:w-[230px] md:w-[260px] aspect-[1/0.866] transition-all duration-300 ease-in-out group ";
+  let cardClasses = "hex-card relative flex flex-col justify-between p-4 md:p-5 min-h-[220px] sm:min-h-[250px] md:min-h-[300px] w-[200px] sm:w-[230px] md:w-[280px] aspect-[1/0.866] transition-all duration-300 ease-in-out group ";
   let IconComponent = phase.icon;
 
   cardClasses += " hover:shadow-2xl"; 
@@ -107,18 +136,30 @@ const PhaseCard = ({ phase, currentSimMonth, index }: { phase: SimulationPhase; 
       whileHover="hover"
       custom={index} 
     >
-      <div className="transform-style-preserve-3d group-hover:rotate-y-2 group-hover:rotate-x-1 transition-transform duration-300 text-center px-2 pt-3 pb-1">
-        <div className="flex flex-col items-center justify-center mb-2">
-          <IconComponent className={cn("h-6 w-6 sm:h-7 sm:w-7", isLocked ? "text-muted-foreground/60" : phase.themeColor)} />
-          <h3 className={cn("text-base sm:text-lg font-headline leading-tight tracking-tight mt-1.5", isLocked ? "text-muted-foreground/80" : phase.themeColor)}>{phase.title}</h3>
+      <div className="transform-style-preserve-3d group-hover:rotate-y-2 group-hover:rotate-x-1 transition-transform duration-300 text-center px-2 pt-3 pb-1 flex flex-col flex-grow justify-between">
+        <div>
+          <div className="flex flex-col items-center justify-center mb-2">
+            <IconComponent className={cn("h-6 w-6 sm:h-7 sm:h-7", isLocked ? "text-muted-foreground/60" : phase.themeColor)} />
+            <h3 className={cn("text-base sm:text-lg font-headline leading-tight tracking-tight mt-1.5", isLocked ? "text-muted-foreground/80" : phase.themeColor)}>{phase.title}</h3>
+          </div>
+          <p className={cn("text-[10px] sm:text-xs mb-2 leading-snug min-h-[3em] sm:min-h-[2.5em]", isLocked ? "text-muted-foreground/60" : "text-muted-foreground")}>
+            {isLocked ? `Unlocks at M${phase.unlockMonth}. Hint: ${phase.milestones.length > 0 ? phase.milestones[0].name : 'Reach next phase.'}` : phase.description.substring(0, 50) + "..."}
+          </p>
         </div>
-        <p className={cn("text-[10px] sm:text-xs mb-2 leading-snug min-h-[3em] sm:min-h-[2.5em]", isLocked ? "text-muted-foreground/60" : "text-muted-foreground")}>
-          {isLocked ? `Unlocks at M${phase.unlockMonth}. Hints: ${phase.milestones[0]}, ...` : phase.description.substring(0, 50) + "..."}
-        </p>
         {!isLocked && (
           <div className="mt-auto space-y-1.5">
             <div className="text-[10px] sm:text-xs text-muted-foreground/80">Progress: {currentMonthInPhase} / {phase.totalMonthsInPhase}</div>
             <Progress value={progressPercentage} className="h-1 sm:h-1.5" indicatorClassName={cn(isActive ? phase.themeColor.replace('text-', 'bg-') : 'bg-green-500', 'shadow-sm')} />
+          </div>
+        )}
+         {!isLocked && phase.milestones.length > 0 && (
+          <div className="mt-2">
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 mb-1 text-left pl-1">Key Milestones:</p>
+            <div className="grid grid-cols-3 gap-1">
+              {phase.milestones.slice(0, 3).map(milestone => (
+                <PuzzlePiece key={milestone.id} milestone={milestone} className="w-full h-auto text-[8px] sm:text-[9px]" />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -240,8 +281,8 @@ export default function DashboardPage() {
 
     const interval = setInterval(() => {
       setEveTooltipMessage(currentAiReasoning || baseMessages[Math.floor(Math.random() * baseMessages.length)]);
-    }, 10000); // Update EVE's message every 10 seconds
-    setEveTooltipMessage(currentAiReasoning || baseMessages[0]); // Set initial message
+    }, 10000);
+    setEveTooltipMessage(currentAiReasoning || baseMessages[0]);
 
     return () => clearInterval(interval);
   }, [isInitialized, simulationMonth, financials, userMetrics, product, storeMarket, currencySymbol, keyEvents, currentAiReasoning]);
@@ -262,6 +303,11 @@ export default function DashboardPage() {
   const isLowCash = isInitialized && financials.cashOnHand > 0 && financials.burnRate > 0 && financials.cashOnHand < (2 * financials.burnRate);
   const isGameOver = financials.cashOnHand <= 0 && isInitialized;
   const overallProgress = Math.min(100, (simulationMonth / MAX_SIMULATION_MONTHS) * 100);
+
+  const dynamicSimulationPhases = useMemo(() => simulationPhases.map(phase => ({
+    ...phase,
+    milestones: getPhaseMilestones(phase.id, simulationMonth, startupScore),
+  })), [simulationMonth, startupScore]);
 
   return (
     <TooltipProvider>
@@ -371,7 +417,7 @@ export default function DashboardPage() {
         <section className="relative z-10">
           <h2 className="text-xl font-headline text-foreground mb-6 flex items-center gap-2"><Settings2 className="h-6 w-6 text-accent"/>Phase Matrix</h2>
           <div className="flex flex-wrap justify-center gap-x-2 gap-y-8 sm:gap-x-4 sm:gap-y-10 md:gap-x-5 md:gap-y-12 lg:gap-x-6 lg:gap-y-14 px-2">
-            {simulationPhases.map((phase, index) => (
+            {dynamicSimulationPhases.map((phase, index) => (
               <PhaseCard key={phase.id} phase={phase} currentSimMonth={simulationMonth} index={index} />
             ))}
           </div>
@@ -550,7 +596,3 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
-
-    
-
-    
