@@ -222,12 +222,12 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   const initialMockMilestones: DashboardMilestone[] = useMemo(() => [
-    { id: 'mock-ms-1', name: "Prototype Design", icon: Lightbulb, isUnlocked: false, description: "Finalize the initial prototype design and user flow." },
-    { id: 'mock-ms-2', name: "Core Feature Dev", icon: Settings2, isUnlocked: false, description: "Develop the core functionality of the product." },
-    { id: 'mock-ms-3', name: "Alpha Testing", icon: Zap, isUnlocked: false, description: "Conduct internal alpha testing with a small group." },
-    { id: 'mock-ms-4', name: "Gather Feedback", icon: Users, isUnlocked: false, description: "Collect and analyze feedback from alpha testers." },
-    { id: 'mock-ms-5', name: "Refine MVP", icon: Layers, isUnlocked: false, description: "Iterate on the MVP based on alpha feedback." },
-    { id: 'mock-ms-6', name: "Launch Plan Ready", icon: Rocket, isUnlocked: false, description: "Prepare the go-to-market and launch strategy." },
+    { id: 'mock-ms-1', name: "Complete Genesis Forge", icon: Rocket, isUnlocked: false, description: "Successfully navigate the initial phase of your venture." },
+    { id: 'mock-ms-2', name: "Secure Seed Funding", icon: DollarSign, isUnlocked: false, description: "Convince investors and secure your first major funding round." },
+    { id: 'mock-ms-3', name: "Launch MVP", icon: Zap, isUnlocked: false, description: "Release your Minimum Viable Product to the public." },
+    { id: 'mock-ms-4', name: "Achieve 1000 Users", icon: Users, isUnlocked: false, description: "Grow your user base to the first significant milestone." },
+    { id: 'mock-ms-5', name: "First Profitable Month", icon: TrendingUp, isUnlocked: false, description: "Reach a point where monthly revenue exceeds expenses." },
+    { id: 'mock-ms-6', name: "Establish Brand Identity", icon: Megaphone, isUnlocked: false, description: "Develop a strong and recognizable brand in your market." },
   ], []);
   const [mockMilestones, setMockMilestones] = useState<DashboardMilestone[]>(initialMockMilestones);
 
