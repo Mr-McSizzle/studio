@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -20,12 +19,12 @@ const Progress = React.forwardRef<
       "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
       className
     )}
-    {...props} // indicatorClassName is now destructured and not part of ...props
+    {...props} 
   >
     <ProgressPrimitive.Indicator
       className={cn(
         "h-full w-full flex-1 bg-primary transition-all",
-        indicatorClassName // Apply indicatorClassName here
+        indicatorClassName 
       )}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />

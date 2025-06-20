@@ -37,77 +37,72 @@
   --chart-5: 225 80% 70%; /* Brighter Blue */
   --radius: 0.5rem;
 
-  /* Phase and dynamic effect variables for light mode (can be same as dark or adjusted) */
+  /* Phase and dynamic effect variables */
   --sky: 200 80% 50%; 
   --amber: 40 90% 50%; 
   --emerald: 150 70% 40%; 
   --purple: 270 70% 55%; 
-  --glow-color: hsl(var(--accent));
-  --border-color: hsl(var(--border));
-  --border-color-active: hsl(var(--accent));
-  --nectar-from: hsla(var(--accent), 0.2);
-  --nectar-to: hsla(var(--accent), 0.6);
+  --glow-color: hsl(var(--accent)); 
+  --border-color: hsl(var(--border)); 
+  --border-color-active: hsl(var(--accent)); 
+  --nectar-from: hsla(var(--accent), 0.1);
+  --nectar-to: hsla(var(--accent), 0.5);
 }
 
 .dark {
-  --background: 225 30% 5%; /* Very Dark Blue, almost Black */
-  --foreground: 210 30% 95%; /* Light Silver/Off-White */
+  --background: 225 30% 5%; 
+  --foreground: 210 30% 95%; 
 
-  --card: 225 30% 8%; /* Dark Blue-Gray Card BG */
-  --card-foreground: 210 30% 90%; /* Lighter Silver Text */
+  --card: 225 30% 8%; 
+  --card-foreground: 210 30% 90%; 
 
-  --popover: 225 30% 7%; /* Darker Popover BG */
+  --popover: 225 30% 7%; 
   --popover-foreground: 210 30% 95%;
 
-  /* Deep Blue & Silver Theme */
-  --primary: 220 70% 55%; /* Vibrant Deep Blue */
-  --primary-foreground: 210 40% 98%; /* Bright Silver/White */
+  --primary: 220 70% 55%; 
+  --primary-foreground: 210 40% 98%; 
 
-  --secondary: 225 30% 12%; /* Darker Shade of Blue-Gray */
-  --secondary-foreground: 210 25% 85%; /* Medium Silver */
+  --secondary: 225 30% 12%; 
+  --secondary-foreground: 210 25% 85%; 
 
-  --muted: 225 20% 20%; /* Muted Dark Blue */
-  --muted-foreground: 210 20% 55%; /* Muted Silver/Gray */
+  --muted: 225 20% 20%; 
+  --muted-foreground: 210 20% 55%; 
 
-  --accent: 210 30% 75%; /* Bright Silver */
-  --accent-foreground: 225 50% 15%; /* Very Dark Blue for contrast on Silver */
+  --accent: 210 30% 75%; 
+  --accent-foreground: 225 50% 15%; 
 
-  --destructive: 0 60% 45%; /* Muted Red for destructive actions */
+  --destructive: 0 60% 45%; 
   --destructive-foreground: 0 0% 98%;
 
-  --border: 225 20% 15%; /* Dark Blue-Gray Border */
-  --input: 225 25% 10%; /* Slightly Lighter Dark Blue for Input BG */
-  --ring: 210 40% 70%; /* Silver for focus rings */
+  --border: 225 20% 15%; 
+  --input: 225 25% 10%; 
+  --ring: 210 40% 70%; 
 
-  --chart-1: 220 70% 60%;  /* Bright Blue */
-  --chart-2: 200 80% 50%; /* Cyan-Blue */
-  --chart-3: 210 20% 60%;  /* Light Silver/Gray */
-  --chart-4: 240 60% 70%;    /* Indigo/Purple-Blue */
-  --chart-5: 225 50% 45%; /* Deeper Blue */
+  --chart-1: 220 70% 60%;  
+  --chart-2: 200 80% 50%; 
+  --chart-3: 210 20% 60%;  
+  --chart-4: 240 60% 70%;    
+  --chart-5: 225 50% 45%; 
 
   --radius: 0.5rem;
 
-  /* Sidebar Theme */
-  --sidebar-background: 225 35% 7%; /* Very Dark Blue for Sidebar */
-  --sidebar-foreground: 210 25% 80%; /* Medium Silver for Sidebar Text */
-  --sidebar-primary: 220 70% 55%; /* Vibrant Deep Blue for Sidebar Primary */
-  --sidebar-primary-foreground: 210 40% 98%; /* Bright Silver for Sidebar Primary Text */
-  --sidebar-accent: 210 30% 75%; /* Bright Silver for Sidebar Accent */
-  --sidebar-accent-foreground: 225 50% 15%; /* Very Dark Blue for Sidebar Accent Text */
-  --sidebar-border: 225 25% 12%; /* Darker Blue-Gray for Sidebar Border */
-  --sidebar-ring: 210 40% 70%; /* Silver for Sidebar Ring */
+  --sidebar-background: 225 35% 7%; 
+  --sidebar-foreground: 210 25% 80%; 
+  --sidebar-primary: 220 70% 55%; 
+  --sidebar-primary-foreground: 210 40% 98%; 
+  --sidebar-accent: 210 30% 75%; 
+  --sidebar-accent-foreground: 225 50% 15%; 
+  --sidebar-border: 225 25% 12%; 
+  --sidebar-ring: 210 40% 70%; 
 
-  /* Phase Colors */
   --sky: 200 80% 50%; 
   --amber: 40 90% 50%; 
   --emerald: 150 70% 40%; 
   --purple: 270 70% 55%; 
   
-  /* Nectar fill for completed phase cards */
   --nectar-from: hsla(var(--accent), 0.2);
   --nectar-to: hsla(var(--accent), 0.6);
 
-  /* Default dynamic effect variables for dark mode */
   --glow-color: hsl(var(--accent));
   --border-color: hsl(var(--border));
   --border-color-active: hsl(var(--accent));
@@ -130,78 +125,91 @@
   .transform-gpu {
     transform: translateZ(0);
   }
-}
-
-/* Custom Animations with Blue/Silver Theme */
-/*
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
+  
+  .animate-digital-nectar-fill::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--nectar-from, hsla(var(--accent),0.1)), var(--nectar-to, hsla(var(--accent),0.5)));
+    animation: digital-nectar-sweep 2s ease-in-out forwards;
+    opacity: 0;
+    z-index: 0;
+    clip-path: inherit; 
   }
-  33% {
-    transform: translateY(-8px) rotate(1deg);
+  .shimmer-effect {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(100deg, transparent 20%, hsla(var(--accent),0.15) 50%, transparent 80%);
+    transition: left 0.6s ease-in-out;
+    opacity: 0;
+    pointer-events: none;
   }
-  66% {
-    transform: translateY(-4px) rotate(-1deg);
-  }
-}
-
-@keyframes glow { 
-  0%,
-  100% {
-    box-shadow: 0 0 15px hsla(var(--accent), 0.2), 0 0 30px hsla(var(--primary), 0.15);
-  }
-  50% {
-    box-shadow: 0 0 25px hsla(var(--accent), 0.4), 0 0 50px hsla(var(--primary), 0.3);
-  }
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
+  .hex-card:hover .shimmer-effect {
+    left: 100%;
     opacity: 1;
-    transform: scale(1);
   }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.03);
+  .hex-card > div { 
+    position: relative;
+    z-index: 1; 
   }
-}
+  .particle-field {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .particle {
+    position: absolute;
+    background-color: hsla(var(--accent), 0.3); 
+    border-radius: 50%;
+    width: var(--size);
+    height: var(--size);
+    animation: drift var(--duration) var(--delay) linear infinite alternate;
+    opacity: 0; 
+    filter: blur(0.5px);
+  }
+  .enhanced-hive-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(hsla(var(--border), 0.1) 1px, transparent 1px), 
+      linear-gradient(to right, hsla(var(--border), 0.1) 1px, transparent 1px); 
+    background-size: 30px 30px; 
+    animation: subtle-grid-pan-faster 120s linear infinite; 
+    opacity: 0.5;
+  }
+  .enhanced-orbit {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid hsla(var(--primary), var(--orbit-opacity)); 
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
+    animation: orbit var(--orbit-duration) linear infinite var(--orbit-delay); 
+    width: var(--orbit-size);
+    height: var(--orbit-size);
+    opacity: var(--orbit-opacity);
+  }
+  .glowing-title-underline {
+    @apply relative pb-1;
+  }
+  .glowing-title-underline::after {
+    @apply content-[''] absolute bottom-0 left-0 w-2/3 h-[2px] bg-gradient-to-r from-accent via-primary to-accent rounded-full;
+    animation: title-underline-glow 2.5s ease-in-out infinite alternate; 
+    filter: blur(1px);
+  }
 
-@keyframes metallic-shimmer { 
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-
-@keyframes deep-blue-pulse { 
-  0%,
-  100% {
-    background-color: hsla(var(--primary), 0.1);
-  }
-  50% {
-    background-color: hsla(var(--primary), 0.3);
-  }
-}
-
-@keyframes silver-sparkle { 
-  0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
-}
-
-@keyframes neural-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
+  .perspective-1000 { perspective: 1000px; }
+  .preserve-3d { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; }
 }
 
 @keyframes float-pulse { 
-  0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 12px hsla(var(--accent),0.5));}
-  50% { transform: translateY(-5px) scale(1.02); filter: drop-shadow(0 0 18px hsla(var(--accent),0.65));}
+  0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 12px hsl(var(--accent)/0.5));}
+  50% { transform: translateY(-5px) scale(1.02); filter: drop-shadow(0 0 18px hsl(var(--accent)/0.65));}
 }
 
 @keyframes subtle-grid-pan-faster {
@@ -225,11 +233,6 @@
   50% { width: 66.66%; filter: blur(1px) brightness(1.2); opacity: 1; background-color: hsl(var(--accent)); }
 }
 
-@keyframes subtle-button-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 5px hsla(var(--accent),0.3); }
-  50% { transform: scale(1.02); box-shadow: 0 0 10px hsla(var(--accent),0.45); }
-}
-
 @keyframes drift {
   0% { transform: translate(var(--x-start), var(--y-start)); opacity: 0; }
   25% { opacity: 0.7; }
@@ -237,160 +240,165 @@
   100% { transform: translate(var(--x-end), var(--y-end)); opacity: 0;}
 }
 
+@keyframes pulse-glow-border { 
+    0%, 100% { 
+      box-shadow: 0 0 0px 0px var(--glow-color, hsla(var(--accent), 0.4)), inset 0 0 0px 0px var(--glow-color, hsla(var(--accent), 0.2));
+      border-color: var(--border-color, hsla(var(--accent), 0.7));
+    }
+    50% { 
+      box-shadow: 0 0 15px 3px var(--glow-color, hsla(var(--accent), 0.4)), inset 0 0 5px 1px var(--glow-color, hsla(var(--accent), 0.2));
+      border-color: var(--border-color-active, hsl(var(--accent)));
+    }
+}
+@keyframes orbit {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Commented out potentially problematic keyframes - to be reviewed/re-added carefully if needed */
+/*
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+}
+@keyframes glow { 
+  0%,
+  100% {
+    box-shadow: 0 0 15px hsla(var(--accent), 0.2), 0 0 30px hsla(var(--primary), 0.15);
+  }
+  50% {
+    box-shadow: 0 0 25px hsla(var(--accent), 0.4), 0 0 50px hsla(var(--primary), 0.3);
+  }
+}
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.03);
+  }
+}
+@keyframes metallic-shimmer { 
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+@keyframes deep-blue-pulse { 
+  0%,
+  100% {
+    background-color: hsla(var(--primary), 0.1);
+  }
+  50% {
+    background-color: hsla(var(--primary), 0.3);
+  }
+}
+@keyframes silver-sparkle { 
+  0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+}
+@keyframes neural-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+@keyframes subtle-grid-pan {
+  0% { background-position: 0 0; }
+  100% { background-position: 80px 80px; } 
+}
+@keyframes subtle-button-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 5px hsl(var(--accent)/0.3); }
+  50% { transform: scale(1.02); box-shadow: 0 0 10px hsl(var(--accent)/0.45); }
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes spin-slowest { to { transform: rotate(360deg); } }
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+@keyframes background-pan { 
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes float-rotate-3d {
+  0% { transform: translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1); opacity: var(--start-opacity, 0.3); }
+  50% { transform: translateZ(calc(var(--start-z, 0px) + 20px)) rotateX(calc(var(--start-rotateX, 0deg) + 20deg)) rotateY(calc(var(--start-rotateY, 0deg) + 30deg)) translateY(-20px) scale(1.05); opacity: calc(var(--start-opacity, 0.3) + 0.2); }
+  100% { transform: translateZ(var(--start-z, 0px)) rotateX(var(--start-rotateX, 0deg)) rotateY(var(--start-rotateY, 0deg)) translateY(0px) scale(1); opacity: var(--start-opacity, 0.3); }
+}
+@keyframes sparkle {
+  0%, 100% { opacity: var(--start-opacity, 0.3); transform: scale(0.8); }
+  50% { opacity: calc(var(--start-opacity, 0.3) + 0.5); transform: scale(1.2); box-shadow: 0 0 10px 2px hsl(var(--accent)/0.8); }
+}
 @keyframes honeycomb-ripple-scale-fade {
-  '0%': { transform: 'scale(0.5)', opacity: 0.8 };
-  '100%': { transform: 'scale(16)', opacity: 0 };
+  0% { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(16); opacity: 0; }
 }
 @keyframes particle-burst-rise-fade {
-  '0%': { transform: 'translateY(0) scale(0.5)', opacity: 0.9 };
-  '100%': { transform: 'translateY(-250px) scale(0.3)', opacity: 0 };
+  0% { transform: translateY(0) scale(0.5); opacity: 0.9; }
+  100% { transform: translateY(-250px) scale(0.3); opacity: 0; }
 }
 @keyframes avatar-glide-in {
-  '0%': { opacity: 0, transform: 'translateY(50px) scale(0.5)' };
-  '100%': { opacity: 1, transform: 'translateY(0) scale(1)' };
+  0% { opacity: 0; transform: translateY(50px) scale(0.5); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes text-fade-in-scale-up {
-   '0%': { opacity: 0, transform: 'scale(0.9)' };
-   '100%': { opacity: 1, transform: 'scale(1)' };
+   0% { opacity: 0; transform: scale(0.9); }
+   100% { opacity: 1; transform: scale(1); }
 }
 @keyframes orb-pulse {
-  '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px hsla(var(--accent),0.6))' };
-  '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 25px hsla(var(--accent),0.8))' };
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px hsl(var(--accent)/0.6)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 25px hsl(var(--accent)/0.8)); }
 }
 @keyframes ring-rotate-scale {
-  '0%': { transform: 'rotate(0deg) scale(0.8)', opacity: 0.7 };
-  '50%': { transform: 'rotate(180deg) scale(1)', opacity: 0.3 };
-  '100%': { transform: 'rotate(360deg) scale(0.8)', opacity: 0.7 };
+  0% { transform: rotate(0deg) scale(0.8); opacity: 0.7; }
+  50% { transform: rotate(180deg) scale(1); opacity: 0.3; }
+  100% { transform: rotate(360deg) scale(0.8); opacity: 0.7; }
 }
 @keyframes data-stream {
-  '0%': { transform: 'translateY(-100%)', opacity: '0' };
-  '20%, 80%': { opacity: '0.3' };
-  '100%': { transform: 'translateY(100%)', opacity: '0' };
+  0% { transform: translateY(-100%); opacity: 0; }
+  20%, 80% { opacity: 0.3; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+@keyframes subtle-pulse-orb {
+  0%, 100% { filter: drop-shadow(0 0 10px hsl(var(--accent)/0.5)) brightness(1); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 18px hsl(var(--accent)/0.7)) brightness(1.1); transform: scale(1.03); }
 }
 */
 
-
-.animate-float { animation: float 6s ease-in-out infinite; }
-.animate-glow { animation: glow 3s ease-in-out infinite; }
-.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-.animate-metallic-shimmer { animation: metallic-shimmer 5s linear infinite; }
-.animate-deep-blue-pulse { animation: deep-blue-pulse 3s ease-in-out infinite; }
-.animate-silver-sparkle { animation: silver-sparkle 4s ease-in-out infinite; }
-.animate-neural-pulse { animation: neural-pulse 2s ease-in-out infinite; }
-.animate-float-pulse { animation: float-pulse 4s infinite ease-in-out; }
-.animate-subtle-button-pulse { animation: subtle-button-pulse 2s infinite ease-in-out; }
-.animate-digital-nectar-fill::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--nectar-color-from, hsla(var(--accent),0.1)), var(--nectar-color-to, hsla(var(--accent),0.5)));
-  animation: digital-nectar-sweep 2s ease-in-out forwards;
-  opacity: 0;
-  z-index: 0;
-  clip-path: inherit; 
-}
-.shimmer-effect {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(100deg, transparent 20%, hsla(var(--accent),0.15) 50%, transparent 80%);
-  transition: left 0.6s ease-in-out;
-  opacity: 0;
-  pointer-events: none;
-}
-.hex-card:hover .shimmer-effect {
-  left: 100%;
-  opacity: 1;
-}
-.hex-card > div { 
-  position: relative;
-  z-index: 1; 
-}
-.particle-field {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.particle {
-  position: absolute;
-  background-color: hsla(var(--accent), 0.3); 
-  border-radius: 50%;
-  width: var(--size);
-  height: var(--size);
-  animation: drift var(--duration) var(--delay) linear infinite alternate;
-  opacity: 0; 
-  filter: blur(0.5px);
-}
-.enhanced-hive-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(hsla(var(--border), 0.1) 1px, transparent 1px),
-    linear-gradient(to right, hsla(var(--border), 0.1) 1px, transparent 1px);
-  background-size: 30px 30px; 
-  animation: subtle-grid-pan-faster 120s linear infinite; 
-  opacity: 0.5;
-}
-.enhanced-orbit {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid hsla(var(--primary), var(--orbit-opacity));
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(0deg);
-  animation: orbit var(--orbit-duration) linear infinite var(--orbit-delay);
-  width: var(--orbit-size);
-  height: var(--orbit-size);
-  opacity: var(--orbit-opacity);
-}
-.glowing-title-underline {
-  @apply relative pb-1;
-}
-.glowing-title-underline::after {
-  @apply content-[''] absolute bottom-0 left-0 w-2/3 h-[2px] bg-gradient-to-r from-accent via-primary to-accent rounded-full;
-  animation: title-underline-glow 2.5s ease-in-out infinite alternate;
-  filter: blur(1px);
-}
-
-/* 3D Transform Utilities */
-.perspective-1000 { perspective: 1000px; }
-.preserve-3d { transform-style: preserve-3d; }
-.backface-hidden { backface-visibility: hidden; }
-
-/* Enhanced Scrollbar with Blue/Silver Theme */
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: hsl(var(--secondary) / 0.3); border-radius: 5px; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, hsl(var(--accent)), hsla(var(--accent), 0.7), hsl(var(--primary))); border-radius: 5px; border: 1px solid hsla(var(--border), 0.2); }
 ::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, hsla(var(--accent), 0.9), hsla(var(--accent), 0.6), hsla(var(--primary), 0.9)); }
-
-/* Smooth scrolling */
 html { scroll-behavior: smooth; }
-
-/* Selection styling with silver */
 ::selection { background: hsla(var(--accent), 0.3); color: hsl(var(--foreground)); }
-
-/* Focus styles with silver */
 button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-offset: 2px; }
-
-/* Glass morphism effect with blue tint */
 .glass { background: hsla(var(--primary), 0.05); backdrop-filter: blur(10px); border: 1px solid hsla(var(--accent), 0.1); }
-
-/* Neon text effect with silver */
 .neon-text { text-shadow: 0 0 5px hsl(var(--accent)), 0 0 10px hsl(var(--accent)), 0 0 15px hsl(var(--accent)), 0 0 20px hsl(var(--accent)); }
-
-/* Holographic effect with blue/silver */
 .holographic { background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)), hsla(var(--accent), 0.7), hsl(var(--primary))); background-size: 400% 400%; animation: holographic-bg 4s ease-in-out infinite; }
 @keyframes holographic-bg { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-
-/* Metallic silver gradient */
 .metallic-silver { background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsla(var(--accent), 0.8) 25%, hsl(var(--accent)) 50%, hsla(var(--accent), 0.6) 75%, hsl(var(--accent)) 100%); background-size: 200% 200%; animation: metallic-shimmer 3s ease-in-out infinite; }
-
-/* Deep blue gradient */
 .deep-blue { background: linear-gradient(135deg, hsla(var(--primary), 0.8) 0%, hsla(var(--primary), 0.6) 25%, hsl(var(--primary)) 50%, hsla(var(--primary), 0.6) 75%, hsla(var(--primary), 0.8) 100%); }
-
 
 .text-glow-accent { text-shadow: 0 0 8px hsla(var(--accent), 0.6), 0 0 12px hsla(var(--accent), 0.4), 0 0 18px hsla(var(--accent), 0.2); }
 .text-glow-primary { text-shadow: 0 0 8px hsla(var(--primary), 0.7), 0 0 12px hsla(var(--primary), 0.5), 0 0 20px hsla(var(--primary), 0.3); }
@@ -407,49 +415,12 @@ button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-off
 .nexus-bg-animations { @apply fixed inset-0 z-0 pointer-events-none; }
 .nexus-bg-animations > div { @apply absolute; }
     
-/* Tooltip animation */
 @keyframes tooltip-slide-in {
   from { opacity: 0; transform: translateY(4px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .animate-tooltip-slide-in { animation: tooltip-slide-in 0.2s ease-out forwards; }
 
-/* Keyframes for Stage Unlock Animation */
-/* @keyframes honeycomb-ripple-scale-fade defined above if not commented out */
-/* @keyframes particle-burst-rise-fade defined above if not commented out */
-/* @keyframes avatar-glide-in defined above if not commented out */
-/* @keyframes text-fade-in-scale-up defined above if not commented out */
-/* @keyframes orb-pulse defined above if not commented out */
-/* @keyframes ring-rotate-scale defined above if not commented out */
-/* @keyframes data-stream defined above if not commented out */
-
-
-/* MINIMAL STYLES FOR GUIDANCE - For Debugging "Missed Semicolon" */
-.guidance-highlight-active {
-  border: 2px solid red; /* Simple border */
-}
-
-/* Minimal keyframes */
-@keyframes guidance-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Minimal theme class for testing */
-.theme-founders-choice {
-  background-color: yellow; /* Simple background */
-}
-
-.theme-founders-choice .prose { /* Assuming .prose exists elsewhere or is Tailwind's default */
-  color: black; /* Simple color */
-}
-
-.theme-founders-choice .lucide-lightbulb{
-  color: orange; /* Simple color */
-}
-/* END MINIMAL GUIDANCE STYLES */
-
-/* General Fade In Animations */
 .animate-fadeInUp {
   animation-name: fadeInUp;
   animation-duration: 0.5s;
@@ -460,9 +431,6 @@ button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-off
   animation-duration: 0.5s;
   animation-fill-mode: forwards;
 }
-/* @keyframes fadeIn defined above if not commented out */
-/* @keyframes fadeInUp defined above if not commented out */
-
 
 @keyframes ping-slow {
   0%, 100% { transform: scale(1); opacity: 0.7; }
@@ -477,5 +445,29 @@ button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-off
 .shadow-inner-soft-gold { box-shadow: inset 0 2px 4px 0 hsla(var(--accent), 0.1), inset 0 -1px 2px 0 hsla(var(--background), 0.3); }
 .shadow-inner-soft-dim { box-shadow: inset 0 1px 3px 0 hsla(var(--background), 0.5), inset 0 -1px 2px 0 hsla(var(--foreground), 0.05); }
     
+/* Simplified styles for guidance - For Debugging "Missed Semicolon" */
+.guidance-highlight-active {
+  border: 2px solid red !important;
+  box-shadow: 0 0 15px 5px yellow !important;
+  animation: guidance-pulse 1s infinite;
+}
 
-    
+@keyframes guidance-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.theme-founders-choice {
+  background-color: khaki !important; /* Simplified */
+  color: #333333 !important; /* Simplified */
+  border: 1px solid darkgoldenrod !important; /* Simplified */
+}
+
+.theme-founders-choice .prose {
+  color: #333333 !important; /* Simplified */
+}
+
+.theme-founders-choice .lucide-lightbulb {
+  color: darkgoldenrod !important; /* Simplified */
+}
+/* END Simplified GUIDANCE STYLES */
