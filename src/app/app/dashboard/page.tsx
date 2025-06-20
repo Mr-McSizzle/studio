@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
-  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap
+  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb // Added Lightbulb
 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -19,7 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { StructuredKeyEvent, DashboardMilestone } from "@/types/simulation";
 import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
-import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece"; // Import PuzzlePiece
+import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece"; 
 
 const MAX_SIMULATION_MONTHS = 24;
 
@@ -30,7 +30,7 @@ interface SimulationPhase {
   description: string;
   unlockMonth: number;
   totalMonthsInPhase: number;
-  milestones: DashboardMilestone[]; // Changed to use DashboardMilestone type
+  milestones: DashboardMilestone[]; 
   themeColor: string;
   ringColor: string;
   shadowColor: string;
@@ -39,39 +39,44 @@ interface SimulationPhase {
   hexPath: string;
 }
 
-// Placeholder milestones - these should be dynamically populated or defined based on game logic
+
 const getPhaseMilestones = (phaseId: string, currentSimMonth: number, startupScore: number): DashboardMilestone[] => {
-  // Example: In a real scenario, you might fetch these from a config or calculate dynamically
-  if (phaseId === "genesis") {
-    return [
-      { id: "ms-genesis-1", name: "First Idea", icon: Lightbulb, isUnlocked: currentSimMonth >= 0, description: "Conceptualize your venture." },
-      { id: "ms-genesis-2", name: "Prototype", icon: Settings2, isUnlocked: currentSimMonth >= 1 && startupScore > 10, description: "Build a basic version." },
-      { id: "ms-genesis-3", name: "Early Feedback", icon: Users, isUnlocked: currentSimMonth >= 2 && startupScore > 15, description: "Get initial user input." },
-    ];
+  switch (phaseId) {
+    case "genesis":
+      return [
+        { id: "ms-genesis-1", name: "Conceptualize Venture", icon: Lightbulb, isUnlocked: currentSimMonth >= 0, description: "Define your startup idea and core value proposition." },
+        { id: "ms-genesis-2", name: "Build Prototype", icon: Settings2, isUnlocked: currentSimMonth >= 1 && startupScore >= 12, description: "Create a basic, functional version of your product." },
+        { id: "ms-genesis-3", name: "Initial User Feedback", icon: Users, isUnlocked: currentSimMonth >= 2 && startupScore >= 18, description: "Gather insights from your first set of test users." },
+      ];
+    case "aegis_protocol":
+      return [
+        { id: "ms-aegis-1", name: "MVP Launch", icon: Rocket, isUnlocked: currentSimMonth >= 3 && startupScore >= 25, description: "Release your Minimum Viable Product to the public." },
+        { id: "ms-aegis-2", name: "Achieve First Revenue", icon: DollarSign, isUnlocked: currentSimMonth >= 4 && startupScore >= 30, description: "Secure your first paying customer or sale." },
+        { id: "ms-aegis-3", name: "Validate Product-Market Fit", icon: Zap, isUnlocked: currentSimMonth >= 6 && startupScore >= 40, description: "Confirm strong demand and user satisfaction in your target market." },
+      ];
+    case "vanguard_expansion":
+      return [
+        { id: "ms-vanguard-1", name: "Scale Marketing Efforts", icon: Megaphone, isUnlocked: currentSimMonth >= 7 && startupScore >= 45, description: "Expand your marketing campaigns to reach a wider audience." },
+        { id: "ms-vanguard-2", name: "Grow Core Team", icon: Users, isUnlocked: currentSimMonth >= 9 && startupScore >= 55, description: "Hire key personnel to support your growing operations." },
+        { id: "ms-vanguard-3", name: "Launch Major Feature Set", icon: Layers, isUnlocked: currentSimMonth >= 12 && startupScore >= 65, description: "Introduce significant new functionality to your product." },
+      ];
+    case "sovereign_dominion":
+      return [
+        { id: "ms-sovereign-1", name: "Achieve Profitability", icon: TrendingUp, isUnlocked: currentSimMonth >= 13 && startupScore >= 70, description: "Reach a state where your monthly revenue consistently exceeds expenses." },
+        { id: "ms-sovereign-2", name: "Establish Market Leadership", icon: BarChartBig, isUnlocked: currentSimMonth >= 18 && startupScore >= 85, description: "Become a recognized leader in your specific market niche." },
+        { id: "ms-sovereign-3", name: "Build Lasting Legacy", icon: Brain, isUnlocked: currentSimMonth >= MAX_SIMULATION_MONTHS && startupScore >= 95, description: "Create a sustainable and impactful business with long-term value." },
+      ];
+    default:
+      return [];
   }
-  if (phaseId === "aegis_protocol") {
-    return [
-      { id: "ms-aegis-1", name: "MVP Launch", icon: Rocket, isUnlocked: currentSimMonth >= 3 && startupScore > 20, description: "Launch your Minimum Viable Product." },
-      { id: "ms-aegis-2", name: "First Revenue", icon: DollarSign, isUnlocked: currentSimMonth >= 4 && startupScore > 25, description: "Achieve your first sale." },
-      { id: "ms-aegis-3", name: "Product-Market Fit", icon: Zap, isUnlocked: currentSimMonth >= 6 && startupScore > 35, description: "Validate product-market fit." },
-    ];
-  }
-   if (phaseId === "vanguard_expansion") {
-    return [
-      { id: "ms-vanguard-1", name: "Scale Marketing", icon: Megaphone, isUnlocked: currentSimMonth >= 7 && startupScore > 40, description: "Expand marketing efforts." },
-      { id: "ms-vanguard-2", name: "Team Growth", icon: Users, isUnlocked: currentSimMonth >= 9 && startupScore > 50, description: "Grow your core team." },
-      { id: "ms-vanguard-3", name: "New Feature Set", icon: Layers, isUnlocked: currentSimMonth >= 12 && startupScore > 60, description: "Launch major new features." },
-    ];
-  }
-  if (phaseId === "sovereign_dominion") {
-    return [
-      { id: "ms-sovereign-1", name: "Profitability", icon: TrendingUp, isUnlocked: currentSimMonth >= 13 && startupScore > 70, description: "Achieve consistent profitability." },
-      { id: "ms-sovereign-2", name: "Market Leadership", icon: BarChartBig, isUnlocked: currentSimMonth >= 18 && startupScore > 80, description: "Become a leader in your niche." },
-      { id: "ms-sovereign-3", name: "Legacy", icon: Brain, isUnlocked: currentSimMonth >= MAX_SIMULATION_MONTHS && startupScore > 90, description: "Build a lasting legacy." },
-    ];
-  }
-  return [];
 };
+
+const simulationPhases: Omit<SimulationPhase, 'milestones'>[] = [
+  { id: "genesis", title: "Genesis Core", icon: Lightbulb, description: "Foundational phase: Idea, prototype, initial feedback.", unlockMonth: 0, totalMonthsInPhase: 3, themeColor: "text-sky-400", ringColor: "ring-sky-500/30", shadowColor: "shadow-sky-500/30", bgColor: "bg-sky-900/20", glowColorVar: "--sky", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
+  { id: "aegis_protocol", title: "Aegis Protocol", icon: Shield, description: "Validation phase: MVP, first revenue, product-market fit.", unlockMonth: 3, totalMonthsInPhase: 4, themeColor: "text-amber-400", ringColor: "ring-amber-500/30", shadowColor: "shadow-amber-500/30", bgColor: "bg-amber-900/20", glowColorVar: "--amber", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
+  { id: "vanguard_expansion", title: "Vanguard Expansion", icon: Rocket, description: "Growth phase: Scale marketing, team, major features.", unlockMonth: 7, totalMonthsInPhase: 6, themeColor: "text-emerald-400", ringColor: "ring-emerald-500/30", shadowColor: "shadow-emerald-500/30", bgColor: "bg-emerald-900/20", glowColorVar: "--emerald", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
+  { id: "sovereign_dominion", title: "Sovereign Dominion", icon: Brain, description: "Legacy phase: Profitability, market leadership, lasting impact.", unlockMonth: 13, totalMonthsInPhase: 11, themeColor: "text-purple-400", ringColor: "ring-purple-500/30", shadowColor: "shadow-purple-500/30", bgColor: "bg-purple-900/20", glowColorVar: "--purple", hexPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" },
+];
 
 
 const STAGE_UNLOCK_THRESHOLDS: Record<number, {id: string, name: string}> = {
