@@ -442,29 +442,27 @@ button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-off
 
 /* Guidance System Highlight */
 .guidance-highlight-active {
-  @apply ring-2 ring-accent ring-offset-2 ring-offset-background shadow-accent-glow-sm;
-  outline: 2px solid hsla(var(--accent), 0.8);
-  transition: all 0.3s ease-in-out;
-  animation: guidance-pulse 1.5s infinite ease-in-out;
+  /* outline: 2px solid hsl(var(--accent)); */ /* Ultra-simple for debugging */
+  border: 2px solid blue !important; /* Forcing a very basic style for debugging */
+  box-shadow: 0 0 10px 2px blue !important; /* Forcing a visible effect */
 }
 @keyframes guidance-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 hsla(var(--accent), 0.7), 0 0 10px 1px hsla(var(--accent), 0.6); }
-  50% { box-shadow: 0 0 0 5px hsla(var(--accent), 0), 0 0 20px 3px hsla(var(--accent), 0.7); }
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 /* Cosmetic Theme for Guidance Tips */
 .theme-founders-choice {
-  background-image: linear-gradient(to bottom right, hsl(var(--primary) / 0.2), hsl(var(--accent) / 0.2));
-  border-width: 1px;
-  border-style: solid;
-  border-color: hsl(var(--primary));
+  background-color: lightblue; /* Ultra-simple for debugging */
+  border: 1px solid blue; /* Ultra-simple for debugging */
 }
 .theme-founders-choice .prose {
-  color: hsl(var(--primary-foreground));
+  color: black; /* Ultra-simple for debugging */
   opacity: 0.9;
 }
 .theme-founders-choice .lucide-lightbulb {
-  color: hsl(var(--primary));
+  color: darkblue; /* Ultra-simple for debugging */
 }
 
 /* General Fade In Animations */
@@ -499,5 +497,6 @@ button:focus, a:focus { outline: 2px solid hsla(var(--accent), 0.5); outline-off
 
 .shadow-inner-soft-gold { box-shadow: inset 0 2px 4px 0 hsla(var(--accent), 0.1), inset 0 -1px 2px 0 hsla(var(--background), 0.3); }
 .shadow-inner-soft-dim { box-shadow: inset 0 1px 3px 0 hsla(var(--background), 0.5), inset 0 -1px 2px 0 hsla(var(--foreground), 0.05); }
+    
 
     
