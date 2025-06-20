@@ -26,6 +26,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from "@/store/aiMentorStore";
 
 const POINTS_MAP: Record<TaskDifficulty, number> = {
   easy: 5,
@@ -56,7 +57,11 @@ export default function TodoPage() {
   const [isEveSheetOpen, setIsEveSheetOpen] = useState(false);
 
   const { isAuthenticated } = useAuthStore();
-  const completeTaskForDemoPuzzle = useSimulationStore(state => state.completeTaskForDemoPuzzle); // Get action from store
+  const { completeTaskForDemoPuzzle, companyName: simCompanyName } = useSimulationStore(state => ({
+    completeTaskForDemoPuzzle: state.completeTaskForDemoPuzzle,
+    companyName: state.companyName,
+  }));
+  const addEveMessage = useAiMentorStore(state => state.addMessage);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -97,7 +102,7 @@ export default function TodoPage() {
           const updatedTodo = { ...todo, completed: !todo.completed, completedAt: !todo.completed ? new Date().toISOString() : undefined };
           if (updatedTodo.completed && !wasCompleted) { 
             setTotalXp((prevXp) => prevXp + updatedTodo.points);
-            completeTaskForDemoPuzzle(); // Call store action to increment demo puzzle piece
+            completeTaskForDemoPuzzle(); 
             toast({
               title: "Task Complete!",
               description: (
@@ -107,10 +112,16 @@ export default function TodoPage() {
                 </div>
               ),
             });
+            // EVE's motivational message
+            addEveMessage({
+              id: `eve-task-complete-${updatedTodo.id}-${Date.now()}`,
+              role: "assistant",
+              content: `EVE: Excellent work, Founder! Task "${updatedTodo.text}" completed. Your dedication to ${simCompanyName || 'your venture'} is moving us forward. Each completed objective strengthens our foundation.`,
+              timestamp: new Date(),
+              agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
+            });
           } else if (!updatedTodo.completed && wasCompleted) { 
             setTotalXp((prevXp) => Math.max(0, prevXp - updatedTodo.points));
-            // Note: We don't currently "un-complete" a puzzle piece if a task is unchecked.
-            // The puzzle progress is a one-way increment in this demo.
           }
           return updatedTodo;
         }
@@ -122,8 +133,6 @@ export default function TodoPage() {
   const deleteTodo = (id: string) => {
     const todoToDelete = todos.find(t => t.id === id);
     if (todoToDelete && todoToDelete.completed) {
-      // If you want to subtract XP when a completed task is deleted, uncomment below
-      // setTotalXp(prevXp => Math.max(0, prevXp - todoToDelete.points));
     }
     setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
     toast({
@@ -134,8 +143,6 @@ export default function TodoPage() {
   };
   
   if (!isAuthenticated) {
-    // This should ideally be caught by a layout or higher-order component redirecting
-    // For robustness, include a fallback.
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Redirecting to login...</p>
@@ -173,7 +180,6 @@ export default function TodoPage() {
               </SheetDescription>
             </SheetHeader>
             <div className="flex-grow overflow-y-hidden">
-              {/* Ensures ChatInterface fits and allows its own scroll */}
               <ChatInterface />
             </div>
              <div className="p-4 border-t">

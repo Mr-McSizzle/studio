@@ -239,7 +239,7 @@ export default function DashboardPage() {
 
 
   const initialMockMilestones: DashboardMilestone[] = useMemo(() => [
-    { id: 'mock-ms-genesis-forge', name: "Complete Genesis Forge", icon: Rocket, isUnlocked: false, description: "Successfully navigate the initial phase of your venture." },
+    { id: 'ms-genesis-forge', name: "Complete Genesis Forge", icon: Rocket, isUnlocked: false, description: "Successfully navigate the initial phase of your venture." },
     { id: 'mock-ms-seed-funding', name: "Secure Seed Funding", icon: DollarSign, isUnlocked: false, description: "Convince investors and secure your first major funding round." },
     { id: 'mock-ms-mvp-launch', name: "Launch MVP", icon: Zap, isUnlocked: false, description: "Release your Minimum Viable Product to the public." },
     { id: 'mock-ms-1000-users', name: "Achieve 1000 Users", icon: Users, isUnlocked: false, description: "Grow your user base to the first significant milestone." },
@@ -304,14 +304,14 @@ export default function DashboardPage() {
   const handleMockPuzzleComplete = useCallback((puzzleId: string) => {
     toast({
       title: "Demo Puzzle Complete!",
-      description: `Congratulations, you've completed all milestones for the "${puzzleId}" demo puzzle! You can now proceed to the next month.`,
-      duration: 5000,
+      description: `Objectives cleared for "${puzzleId}". New potentials unlocked! Check out the new Hexagon!`,
+      duration: 6000,
     });
     setIsDemoMonthEffectivelyUnlocked(true);
     addEveMessage({
         id: `eve-demo-puzzle-complete-${Date.now()}`,
         role: "assistant",
-        content: `EVE: Excellent work, Founder! You've completed all objectives for the "${puzzleId}" demo set. The path to the next simulation period is now open.`,
+        content: `EVE: Impressive work, Founder! All objectives for the "${puzzleId}" demo set are complete. This signifies readiness for the next strategic phase. I've activated the corresponding hexagonal matrix node.`,
         timestamp: new Date(),
         agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
     });
@@ -350,6 +350,16 @@ export default function DashboardPage() {
     await advanceMonth();
     setIsSimulating(false);
     setIsDemoMonthEffectivelyUnlocked(false); // Reset lock for the new month
+
+    // EVE's Monthly Greeting
+    const currentSimMonth = useSimulationStore.getState().simulationMonth;
+    addEveMessage({
+        id: `eve-monthly-greeting-${currentSimMonth}-${Date.now()}`,
+        role: "assistant",
+        content: `EVE: Welcome to Month ${currentSimMonth}, Founder! I've analyzed the recent simulation period. Your Quest Log on the Todo page may have new strategic objectives. Let's make this month count!`,
+        timestamp: new Date(),
+        agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
+    });
   };
 
   const handleAdvanceMonthClick = async () => {
@@ -517,7 +527,7 @@ export default function DashboardPage() {
                 </Button>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button onClick={handleReset} variant="outline" size="icon" title="Reset Simulation" disabled={!!unlockedStageForAnimation} className="border-primary/50 text-primary/80 hover:bg-primary/10 hover:text-primary shadow-sm hover:shadow-md active:scale-95">
+                        <Button onClick={() => resetSimulation()} variant="outline" size="icon" title="Reset Simulation" disabled={!!unlockedStageForAnimation} className="border-primary/50 text-primary/80 hover:bg-primary/10 hover:text-primary shadow-sm hover:shadow-md active:scale-95">
                             <RefreshCcw className="h-4 w-4"/>
                         </Button>
                     </TooltipTrigger>
