@@ -45,16 +45,13 @@ export default function LaunchpadPage() {
         muted
         playsInline // Important for autoplay on some mobile browsers
         style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          minWidth: '100%',
-          minHeight: '100%',
-          width: 'auto',
-          height: 'auto',
-          zIndex: -1, // Keep it behind other content
-          transform: 'translate(-50%, -50%)',
-          objectFit: 'cover', // Ensures the video covers the area without distortion
+          position: 'absolute', // Changed from 'fixed'
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%', // Will cover the parent's height
+          zIndex: 1, // Keep it behind overlays and content
+          objectFit: 'cover',
         }}
         src="/new-assets/launchpadbg.mp4"
         className="opacity-70" // You can adjust opacity here
