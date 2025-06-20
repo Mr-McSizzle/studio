@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import { PuzzlePiece } from './PuzzlePiece';
 import type { DashboardMilestone } from '@/types/simulation';
 import { Button } from '@/components/ui/button';
@@ -49,8 +50,8 @@ const particleVariants = {
     x: Math.random() * 200 - 100,
     y: Math.random() * 200 - 100,
     transition: {
-      duration: Math.random() * 1 + 0.8,
-      delay: Math.random() * 0.5 + 0.2,
+      duration: Math.random() * 1.5 + 1, // Slightly longer duration for particles
+      delay: Math.random() * 0.8,
       ease: "easeOut",
     },
   }),
@@ -112,6 +113,7 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
   const [showCelebration, setShowCelebration] = useState(false);
   const [hasCelebrated, setHasCelebrated] = useState(false);
   const [isLoadingProgress, setIsLoadingProgress] = useState(false);
+  const router = useRouter(); // Initialize router
 
   const unlockedCount = useMemo(() => milestones.filter(m => m.isUnlocked).length, [milestones]);
   const totalCount = milestones.length;
@@ -130,22 +132,41 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
     }
   }, [milestones, userId, puzzleId, convertMilestonesToBinaryArray]);
 
-  // Effect for celebration
+  // Effect for celebration and redirect
   useEffect(() => {
+    let redirectTimer: NodeJS.Timeout;
     if (allUnlocked && !hasCelebrated) {
       setShowCelebration(true);
       setHasCelebrated(true);
       if (onPuzzleComplete) {
         onPuzzleComplete(puzzleId);
       }
+      
+      // Redirect after 3 seconds
+      redirectTimer = setTimeout(() => {
+        router.push('/app/phase-unlocked'); // Ensure this page exists or is handled
+      }, 3000); 
     }
+    
+    // Cleanup timer on component unmount or if dependencies change before redirect
+    return () => {
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+    };
+  }, [allUnlocked, hasCelebrated, onPuzzleComplete, puzzleId, router]); // Added router to dependencies
+
+  useEffect(() => {
+    // Reset hasCelebrated if the puzzle becomes incomplete again
     if (!allUnlocked && hasCelebrated) {
       setHasCelebrated(false);
     }
-  }, [allUnlocked, hasCelebrated, onPuzzleComplete, puzzleId]);
+  }, [allUnlocked, hasCelebrated]);
 
   const handleCloseCelebration = () => {
     setShowCelebration(false);
+    // If redirect is not desired on auto-close or if user closes manually before auto-redirect:
+    // router.push('/app/next-destination-after-manual-close'); 
   };
 
   const handleLoadProgress = async () => {
@@ -171,7 +192,6 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
     <div className="p-4 border rounded-lg shadow-md bg-card">
       <div className="flex justify-between items-center mb-2">
         {title && <h3 className="text-lg font-semibold text-foreground">{title}</h3>}
-        {/* Placeholder for Load Button - you can style it better or place it elsewhere */}
         <Button onClick={handleLoadProgress} variant="outline" size="sm" disabled={isLoadingProgress || !userId || !puzzleId}>
           {isLoadingProgress ? <CloudDownload className="mr-2 h-4 w-4 animate-pulse" /> : <CloudDownload className="mr-2 h-4 w-4" />}
            Load Progress (Mock)
@@ -197,7 +217,7 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={handleCloseCelebration}
+            onClick={handleCloseCelebration} // Allow closing modal by clicking overlay
           >
             <motion.div
               className="relative p-6 md:p-8 bg-gradient-to-br from-primary to-blue-700 text-primary-foreground rounded-xl shadow-2xl w-full max-w-md mx-4 text-center overflow-hidden"
@@ -205,16 +225,16 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
               initial="hidden"
               animate="visible"
               exit="exit"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
             >
               <div className="absolute inset-0 pointer-events-none">
-                {Array.from({ length: 30 }).map((_, i) => (
+                {Array.from({ length: 50 }).map((_, i) => ( // Increased particle count
                   <motion.div
                     key={`sparkle-${i}`}
                     className="absolute bg-yellow-400 rounded-full"
                     style={{
-                        width: Math.random() * 8 + 4,
-                        height: Math.random() * 8 + 4,
+                        width: Math.random() * 10 + 5, // Larger particles
+                        height: Math.random() * 10 + 5,
                         left: '50%',
                         top: '50%',
                         transform: 'translate(-50%, -50%)',
@@ -238,17 +258,22 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
               </Button>
 
               <div className="relative z-10">
-                <CheckCircle className="h-16 w-16 text-green-300 mx-auto mb-4 animate-pulse" />
-                <h2 className="text-3xl font-bold mb-2 text-glow-accent">Puzzle Complete!</h2>
+                <Sparkles className="h-16 w-16 text-yellow-300 mx-auto mb-4 animate-pulse" />
+                <h2 className="text-3xl font-bold mb-2 text-glow-accent">
+                  {title ? `${title} Complete!` : "Milestone Set Achieved!"}
+                </h2>
                 <p className="text-lg mb-6 opacity-90">
-                  Congratulations on unlocking all milestones for "{title || 'this puzzle'}"!
+                  Phenomenal work, Founder! A new phase of your journey is unlocking...
                 </p>
+                {/* Button can be kept for manual interaction or removed if auto-redirect is preferred */}
+                {/* 
                 <Button
-                  onClick={handleCloseCelebration}
+                  onClick={handleCloseCelebration} // Or directly router.push('/app/phase-unlocked')
                   className="bg-accent text-accent-foreground hover:bg-accent/90 px-6 py-3 text-base font-semibold"
                 >
-                  Continue Journey
+                  Proceed to Next Phase
                 </Button>
+                */}
               </div>
             </motion.div>
           </motion.div>
