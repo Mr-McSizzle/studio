@@ -1,11 +1,10 @@
 
 "use client";
 
-import React from 'react'; // Removed Suspense as GalaxyCanvas is removed
+import React from 'react'; 
 import Link from 'next/link';
-// Removed dynamic import for GalaxyCanvasComponent
 import { User, Settings, Swords, Trophy, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // Keep Button if used, otherwise remove
+import { Button } from '@/components/ui/button'; 
 
 export default function LaunchpadPage() {
   const navigationItems = [
@@ -37,23 +36,30 @@ export default function LaunchpadPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 text-white relative overflow-hidden">
-      <iframe
+    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden">
+      {/* Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
+          top: '50%',
+          left: '50%',
+          minWidth: '100%',
+          minHeight: '100%',
+          width: 'auto',
+          height: 'auto',
           zIndex: -1,
-          width: '100vw',
-          height: '100vh',
-          border: 'none',
+          transform: 'translate(-50%, -50%)',
+          objectFit: 'cover',
         }}
-        src="https://embed.figma.com/design/l5G9ysj1NOhoYn8ucW1qaM/Untitled?node-id=1-2&embed-host=share"
-        allowFullScreen
-      ></iframe>
-
-      {/* Removed CSS Starfield Background and GalaxyCanvas */}
-      {/* The z-index: -1 on the iframe should place it behind the content below */}
+        src="/new-assets/launchpadbg.mp4"
+        className="opacity-70"
+      >
+        Your browser does not support the video tag.
+      </video>
 
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-indigo-950/30 z-10" />
       <div className="absolute inset-0 bg-gradient-to-r from-purple-950/20 via-transparent to-indigo-950/20 z-10" />
