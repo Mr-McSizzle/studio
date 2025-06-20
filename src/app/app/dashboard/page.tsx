@@ -754,44 +754,10 @@ export default function DashboardPage() {
           <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-xl text-purple-400">
-                <Puzzle className="h-7 w-7" /> Placeholder Puzzle Board
-              </CardTitle>
-              <CardDescription>
-                This is a static display of empty puzzle slots. Future iterations will make this dynamic.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PuzzleBoard />
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="relative z-10 mt-8">
-          <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl text-purple-400">
                 <Puzzle className="h-7 w-7" /> Milestone Puzzle Demo
               </CardTitle>
               <CardDescription>
-                Test the MilestonePuzzle component. Completing tasks on the "Todo List" page will unlock pieces here. User ID for demo: {userEmail || "mockUser"}
-                 {/*
-                  A real Firestore listener would typically be set up here or in MilestonePuzzle.tsx
-                  to listen to changes in user's puzzleProgress and update the UI reactively.
-                  Example:
-                  useEffect(() => {
-                    if (userId && puzzleId && db) { // Assuming db is your Firestore instance
-                      const puzzleDocRef = doc(db, "users", userId, "puzzles", puzzleId);
-                      const unsubscribe = onSnapshot(puzzleDocRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                          const data = docSnap.data();
-                          // Update local state (e.g., mockMilestones) based on data.filledSlots
-                          // This would trigger UI updates for the puzzle pieces.
-                        }
-                      });
-                      return () => unsubscribe();
-                    }
-                  }, [userId, puzzleId, db]);
-                */}
+                This is a demo showing how completing tasks on the "Todo List" page can unlock milestones. Your actual simulation progress is tracked by the Phase Matrix above.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -824,7 +790,7 @@ export default function DashboardPage() {
                     <Button onClick={resetAllMockMilestones} size="sm" variant="destructive" className="bg-red-600 hover:bg-red-700">Reset Demo Milestones</Button>
                 </div>
                  <p className="text-xs text-muted-foreground mt-3">
-                  Note: These demo controls update the visual state locally and simulate store changes. True puzzle piece unlocks are triggered by completing tasks on the "Todo List" page.
+                  Note: These demo controls update the visual state locally and simulate store changes. True puzzle piece unlock is driven by completing tasks on the "Todo List" page.
                 </p>
               </div>
             </CardContent>
@@ -895,6 +861,3 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
-
-
-    
