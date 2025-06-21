@@ -1,6 +1,6 @@
 
 "use client";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -11,27 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb, Puzzle, Check, X, Award
+  DollarSign, Users, TrendingUp, TrendingDown, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Brain, Loader2, Activity, Settings2, Info, LockIcon, CheckCircle, Rocket, Shield, Megaphone, Layers, Zap, Lightbulb, Puzzle, Check, X, Award, ListChecks
 } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import type { StructuredKeyEvent, DashboardMilestone } from "@/types/simulation";
+import type { StructuredKeyEvent, DashboardMilestone, Mission } from "@/types/simulation";
 import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
-import { PuzzlePiece } from "@/components/dashboard/PuzzlePiece";
-import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
-import { PuzzleBoard } from "@/components/dashboard/PuzzleBoard";
+import { HexPuzzleBoard } from "@/components/dashboard/HexPuzzleBoard";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/store/authStore";
 import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from "@/store/aiMentorStore";
@@ -172,16 +160,6 @@ const PhaseCard = ({ phase, currentSimMonth, index }: { phase: SimulationPhase; 
             <Progress value={progressPercentage} className="h-1 sm:h-1.5" indicatorClassName={cn(isActive ? phase.themeColor.replace('text-', 'bg-') : 'bg-green-500', 'shadow-sm')} />
           </div>
         )}
-         {!isLocked && phase.milestones.length > 0 && (
-          <div className="mt-2">
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 mb-1 text-left pl-1">Key Milestones:</p>
-            <div className="grid grid-cols-3 gap-1">
-              {phase.milestones.slice(0, 3).map(milestone => (
-                <PuzzlePiece key={milestone.id} milestone={milestone} className="w-full h-auto text-[8px] sm:text-[9px]" />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
       {isLocked && <div className="absolute inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center" style={{clipPath: phase.hexPath}}><LockIcon className="h-8 w-8 sm:h-10 sm:h-10 text-white/50"/></div>}
       {!isLocked && <div className="absolute inset-0 overflow-hidden"><div className="shimmer-effect"></div></div>}
@@ -216,14 +194,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const {
     companyName, simulationMonth, financials, userMetrics, product,
-    market: storeMarket,
-    startupScore,
-    keyEvents, isInitialized, currentAiReasoning, historicalRevenue, historicalUserGrowth,
-    historicalBurnRate, historicalNetProfitLoss, historicalExpenseBreakdown, historicalCAC,
-    historicalChurnRate, historicalProductProgress, advanceMonth, resetSimulation,
-    puzzleProgressForDemo,
+    startupScore, missions,
+    keyEvents, isInitialized, currentAiReasoning, advanceMonth, resetSimulation
   } = useSimulationStore();
-  const { userEmail } = useAuthStore();
   const { addMessage: addEveMessage } = useAiMentorStore();
 
   const currencySymbol = financials.currencySymbol || "$";
@@ -232,96 +205,8 @@ export default function DashboardPage() {
   const [currentUnlockedStageName, setCurrentUnlockedStageName] = useState<string>("New Stage");
   const [eveTooltipMessage, setEveTooltipMessage] = useState("EVE: Monitoring all simulation parameters.");
   const [isSimulating, setIsSimulating] = useState(false);
-  const { toast } = useToast();
 
-  const [isDemoMonthEffectivelyUnlocked, setIsDemoMonthEffectivelyUnlocked] = useState(false);
-  const [showProceedEarlyWarning, setShowProceedEarlyWarning] = useState(false);
-
-
-  const initialMockMilestones: DashboardMilestone[] = useMemo(() => [
-    { id: 'ms-genesis-forge', name: "Complete Genesis Forge", icon: Rocket, isUnlocked: false, description: "Successfully navigate the initial phase of your venture." },
-    { id: 'mock-ms-seed-funding', name: "Secure Seed Funding", icon: DollarSign, isUnlocked: false, description: "Convince investors and secure your first major funding round." },
-    { id: 'mock-ms-mvp-launch', name: "Launch MVP", icon: Zap, isUnlocked: false, description: "Release your Minimum Viable Product to the public." },
-    { id: 'mock-ms-1000-users', name: "Achieve 1000 Users", icon: Users, isUnlocked: false, description: "Grow your user base to the first significant milestone." },
-    { id: 'mock-ms-profitable-month', name: "First Profitable Month", icon: TrendingUp, isUnlocked: false, description: "Reach a point where monthly revenue exceeds expenses." },
-    { id: 'mock-ms-brand-identity', name: "Establish Brand Identity", icon: Megaphone, isUnlocked: false, description: "Develop a strong and recognizable brand in your market." },
-  ], []);
-  const [mockMilestones, setMockMilestones] = useState<DashboardMilestone[]>(initialMockMilestones);
-
-  useEffect(() => {
-    if (!isInitialized) return;
-    setMockMilestones(prev =>
-      prev.map((ms, index) => ({
-        ...ms,
-        isUnlocked: index < puzzleProgressForDemo.piecesUnlocked,
-      }))
-    );
-  }, [puzzleProgressForDemo, isInitialized, initialMockMilestones]);
-
-
-  const handleMockMilestonesChange = useCallback((updatedMilestones: DashboardMilestone[]) => {
-    setMockMilestones(updatedMilestones);
-  }, []);
-
-  const toggleMockMilestone = useCallback((id: string) => {
-    setMockMilestones(prev =>
-      prev.map(ms => {
-        if (ms.id === id) {
-          const newUnlockedState = !ms.isUnlocked;
-          const currentUnlockedInStore = useSimulationStore.getState().puzzleProgressForDemo.piecesUnlocked;
-          if (newUnlockedState && id === initialMockMilestones[currentUnlockedInStore]?.id) {
-             useSimulationStore.getState().completeTaskForDemoPuzzle();
-          } else if (!newUnlockedState && ms.isUnlocked) {
-             console.warn("[Dashboard Demo] Unlocking a piece via demo controls. Actual puzzle piece unlock is driven by task completion via Todo page.");
-          }
-          return { ...ms, isUnlocked: newUnlockedState };
-        }
-        return ms;
-      })
-    );
-  }, [initialMockMilestones]);
-
-  const unlockAllMockMilestones = useCallback(() => {
-    setMockMilestones(prev => prev.map(ms => ({ ...ms, isUnlocked: true })));
-    const total = useSimulationStore.getState().puzzleProgressForDemo.totalPieces;
-    for (let i = 0; i < total; i++) {
-      if (useSimulationStore.getState().puzzleProgressForDemo.piecesUnlocked < total) {
-         useSimulationStore.getState().completeTaskForDemoPuzzle();
-      }
-    }
-  }, []);
-
-  const resetAllMockMilestones = useCallback(() => {
-    setMockMilestones(initialMockMilestones);
-    useSimulationStore.setState(state => ({
-      ...state,
-      puzzleProgressForDemo: { ...state.puzzleProgressForDemo, piecesUnlocked: 0 }
-    }));
-    setIsDemoMonthEffectivelyUnlocked(false);
-  }, [initialMockMilestones]);
-
-
-  const handleMockPuzzleComplete = useCallback((puzzleId: string) => {
-    toast({
-      title: "Demo Puzzle Complete!",
-      description: `Objectives cleared for "${puzzleId}". New potentials unlocked! Check out the new Hexagon!`,
-      duration: 6000,
-    });
-    setIsDemoMonthEffectivelyUnlocked(true);
-    addEveMessage({
-        id: `eve-demo-puzzle-complete-${Date.now()}`,
-        role: "assistant",
-        content: `EVE: Impressive work, Founder! All objectives for the "${puzzleId}" demo set are complete. This signifies readiness for the next strategic phase. I've activated the corresponding hexagonal matrix node.`,
-        timestamp: new Date(),
-        agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
-    });
-    // Conceptual Firestore update:
-    // You would update a field like `users/{userId}/simulationState/monthCompleteHex`
-    // with configuration for the hexagon's appearance for this month/phase.
-    // e.g., { month: simulationMonth, completed: true, hexColor: 'hsl(var(--accent))', rotationSpeed: 0.2 }
-    console.log(`[CONCEPTUAL] Puzzle for month ${simulationMonth} completed. Would save hex config to Firestore here.`);
-  }, [toast, addEveMessage, simulationMonth]);
-
+  const areMissionsComplete = useMemo(() => missions.length > 0 && missions.every(m => m.isCompleted), [missions]);
 
   useEffect(() => {
     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
@@ -341,89 +226,43 @@ export default function DashboardPage() {
       if (newlyUnlockedStage) {
         setUnlockedStageForAnimation(newlyUnlockedStage.id);
         setCurrentUnlockedStageName(newlyUnlockedStage.name);
+        addEveMessage({
+          id: `eve-stage-unlocked-${newlyUnlockedStage.id}-${Date.now()}`,
+          role: "assistant",
+          content: `EVE: Congratulations, Founder. Your progress has unlocked the "${newlyUnlockedStage.name}" phase. New strategic possibilities are now available.`,
+          timestamp: new Date(),
+          agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
+        });
       }
     }
     if (isInitialized) {
       setPrevSimulationMonth(simulationMonth);
     }
-  }, [simulationMonth, isInitialized, prevSimulationMonth]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [simulationMonth, isInitialized]);
 
   const handleAnimationComplete = () => setUnlockedStageForAnimation(null);
 
-  const actualAdvanceMonthAction = async () => {
+  const handleAdvanceMonth = async () => {
+    if (isSimulating || !areMissionsComplete) return;
     setIsSimulating(true);
     await advanceMonth();
     setIsSimulating(false);
-    setIsDemoMonthEffectivelyUnlocked(false); // Reset lock for the new month
-
-    // EVE's Monthly Greeting
-    const currentSimMonth = useSimulationStore.getState().simulationMonth;
-    addEveMessage({
-        id: `eve-monthly-greeting-${currentSimMonth}-${Date.now()}`,
-        role: "assistant",
-        content: `EVE: Welcome to Month ${currentSimMonth}, Founder! I've analyzed the recent simulation period. Your Quest Log on the Todo page may have new strategic objectives. Let's make this month count!`,
-        timestamp: new Date(),
-        agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
-    });
   };
-
-  const handleAdvanceMonthClick = async () => {
-    if (isInitialized && financials.cashOnHand > 0 && !isSimulating) {
-      if (!isDemoMonthEffectivelyUnlocked) {
-        setShowProceedEarlyWarning(true); // Show warning dialog
-        return;
-      }
-      await actualAdvanceMonthAction();
-    }
-  };
-
-  const confirmProceedEarly = async () => {
-    setShowProceedEarlyWarning(false);
-    await actualAdvanceMonthAction();
-  };
-
 
   useEffect(() => {
     let baseMessages = [
-        "EVE: Strategic projections updated. Analyzing next optimal move.",
-        "EVE: All systems nominal. Ready for your command.",
+        "EVE: Monitoring all simulation parameters.",
+        "EVE: All systems nominal. Awaiting your command.",
     ];
-
-    if (isInitialized && financials && userMetrics && product && storeMarket && currencySymbol) {
-        baseMessages = [
-            `EVE: Current Sim Month: ${simulationMonth}. Financials stable at ${currencySymbol}${financials.cashOnHand.toLocaleString()} cash.`,
-            `EVE: User base: ${userMetrics.activeUsers.toLocaleString()}. Product '${product.name}' (${product.stage}) is ${product.developmentProgress}% towards next milestone.`,
-            "EVE: Strategic projections updated. Optimizing for founder's chosen archetype.",
-            "EVE: All hive agents are online and reporting. Awaiting your directives.",
-            `EVE: Monitoring target market: '${storeMarket.targetMarketDescription}'. Competition level: ${storeMarket.competitionLevel}.`,
-        ];
-        if (financials.cashOnHand < financials.burnRate * 2 && financials.cashOnHand > 0) {
-            baseMessages.push("EVE: Tactical Alert: Cash reserves are approaching critical threshold (<2 months runway). Recommend immediate strategic review of expenditures.");
-        }
-        if (product.developmentProgress > 85 && product.stage !== 'mature') {
-            baseMessages.push(`EVE: Opportunity Alert: Product '${product.name}' development at ${product.developmentProgress}%. Next stage breakthrough is imminent. Consider resource allocation.`);
-        }
-        if (userMetrics.churnRate > 0.15) {
-            baseMessages.push(`EVE: User Retention Alert: Churn rate at ${(userMetrics.churnRate * 100).toFixed(1)}%. Zara, our Focus Group Lead, suggests investigating user feedback.`);
-        }
-        if (keyEvents.length > 0) {
-            const lastEvent = keyEvents[keyEvents.length - 1];
-            if (lastEvent.impact === "Negative" && (lastEvent.category === "Market" || lastEvent.category === "Competitor")) {
-                 baseMessages.push(`EVE: Threat Analysis: Recent event "${lastEvent.description.substring(0,30)}..." requires attention. Consider consulting The Advisor.`);
-            } else if (lastEvent.impact === "Positive" && lastEvent.category === "Product") {
-                 baseMessages.push(`EVE: Momentum Detected: Positive product event "${lastEvent.description.substring(0,30)}...". Leverage this with Maya, our Marketing Guru.`);
-            }
-        }
-    }
-
+    // ... other message logic
     const interval = setInterval(() => {
       setEveTooltipMessage(currentAiReasoning || baseMessages[Math.floor(Math.random() * baseMessages.length)]);
     }, 10000);
     setEveTooltipMessage(currentAiReasoning || baseMessages[0]);
 
     return () => clearInterval(interval);
-  }, [isInitialized, simulationMonth, financials, userMetrics, product, storeMarket, currencySymbol, keyEvents, currentAiReasoning]);
-
+  }, [isInitialized, simulationMonth, financials, userMetrics, product, keyEvents, currentAiReasoning]);
 
   if (typeof simulationMonth === 'number' && simulationMonth === 0 && !isInitialized) {
     return (
@@ -477,7 +316,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-
         {!isInitialized && (
           <Alert variant="destructive" className="mb-6">
             <AlertTriangle className="h-4 w-4" />
@@ -516,20 +354,28 @@ export default function DashboardPage() {
             </div>
              <div className="flex items-center gap-2 sm:gap-3 mt-4 md:mt-0">
                 <ScoreDisplay score={isInitialized ? startupScore : 0} />
-                <Button
-                    onClick={handleAdvanceMonthClick}
-                    className={cn(
-                        "bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-subtle-button-pulse",
-                        "active:scale-95 active:shadow-inner-soft-gold",
-                        isSimulating && "opacity-70 cursor-not-allowed"
-                    )}
-                    size="default"
-                    disabled={!isInitialized || isGameOver || isSimulating || !!unlockedStageForAnimation}
-                    title="Proceed to Next Simulation Month"
-                >
-                    {isSimulating || (currentAiReasoning || "").includes("simulating month...") ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <ChevronsRight className="mr-1.5 h-4 w-4"/>}
-                    Proceed to Next Month
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                     <div className="relative">
+                        <Button
+                            onClick={handleAdvanceMonth}
+                            className={cn(
+                                "bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200",
+                                "active:scale-95 active:shadow-inner-soft-gold",
+                                (isSimulating || !areMissionsComplete) && "opacity-50 cursor-not-allowed hover:scale-100"
+                            )}
+                            size="default"
+                            disabled={!isInitialized || isGameOver || isSimulating || !!unlockedStageForAnimation || !areMissionsComplete}
+                        >
+                            {isSimulating ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <ChevronsRight className="mr-1.5 h-4 w-4"/>}
+                            Proceed to Next Month
+                        </Button>
+                      </div>
+                  </TooltipTrigger>
+                  {!areMissionsComplete && isInitialized && (
+                    <TooltipContent side="bottom"><p>Complete all monthly directives to proceed.</p></TooltipContent>
+                  )}
+                </Tooltip>
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button onClick={() => resetSimulation()} variant="outline" size="icon" title="Reset Simulation" disabled={!!unlockedStageForAnimation} className="border-primary/50 text-primary/80 hover:bg-primary/10 hover:text-primary shadow-sm hover:shadow-md active:scale-95">
@@ -541,27 +387,6 @@ export default function DashboardPage() {
             </div>
         </div>
         
-        <AlertDialog open={showProceedEarlyWarning} onOpenChange={setShowProceedEarlyWarning}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-3">
-                <Image src="/new-assets/custom_eve_avatar.png" alt="EVE AI Avatar" width={40} height={40} className="rounded-full border-2 border-accent/70" data-ai-hint="bee queen"/>
-                EVE: Proceed with Caution?
-              </AlertDialogTitle>
-              <AlertDialogDescription className="py-3 text-base text-muted-foreground">
-                Objectives for the current simulation period (puzzle milestones) are not yet complete. Proceeding now might mean missing potential rewards or insights. Are you sure you wish to advance to the next month?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowProceedEarlyWarning(false)} className="text-sm">Stay This Month</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmProceedEarly} className="bg-primary hover:bg-primary/90 text-sm">
-                Yes, Proceed Early
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-
         {isGameOver && (
           <Alert variant="destructive" className="mb-6 shadow-lg">
             <AlertTriangle className="h-6 w-6" />
@@ -579,6 +404,46 @@ export default function DashboardPage() {
               <PhaseCard key={phase.id} phase={phase} currentSimMonth={simulationMonth} index={index} />
             ))}
           </div>
+        </section>
+
+        <section className="relative z-10 grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-2">
+              <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-xl text-purple-400">
+                    <Puzzle className="h-7 w-7" /> Monthly Hive Construction
+                  </CardTitle>
+                  <CardDescription>
+                    Complete objectives from your Quest Log to construct this month's Hive.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <HexPuzzleBoard missions={missions} />
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-accent" /> EVE's Monthly Directives</CardTitle>
+                  <CardDescription>Key objectives for Month {simulationMonth}. Complete them on the Todo page.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   <ScrollArea className="h-48">
+                    <ul className="space-y-2">
+                      {missions.length > 0 ? missions.map((mission: Mission) => (
+                        <li key={mission.id} className="flex items-center gap-2 text-sm">
+                          {mission.isCompleted ? <CheckCircle className="h-4 w-4 text-green-500 shrink-0"/> : <Lightbulb className="h-4 w-4 text-amber-500 shrink-0"/>}
+                          <span className={cn(mission.isCompleted && "line-through text-muted-foreground")}>{mission.title}</span>
+                        </li>
+                      )) : (
+                        <p className="text-sm text-muted-foreground">No directives assigned for this month.</p>
+                      )}
+                    </ul>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
         </section>
 
         <section className="relative z-10">
@@ -674,7 +539,7 @@ export default function DashboardPage() {
                     <CardDescription>Monthly revenue trends.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <PerformanceChart dataKey="revenue" data={isInitialized ? historicalRevenue : []} />
+                    <PerformanceChart dataKey="revenue" data={isInitialized ? useSimulationStore.getState().historicalRevenue : []} />
                   </CardContent>
                 </Card>
                 <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
@@ -683,180 +548,11 @@ export default function DashboardPage() {
                     <CardDescription>Active user base evolution.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <PerformanceChart dataKey="users" data={isInitialized ? historicalUserGrowth : []} />
+                    <PerformanceChart dataKey="users" data={isInitialized ? useSimulationStore.getState().historicalUserGrowth : []} />
                   </CardContent>
                 </Card>
             </div>
         </div>
-
-        <div className="relative z-10 grid gap-6 md:grid-cols-1 lg:grid-cols-2 mt-6">
-            <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
-                <CardHeader>
-                    <CardTitle className="font-headline glowing-title-underline">Burn Rate ({currencySymbol})</CardTitle>
-                    <CardDescription>Cash consumed monthly over revenue.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PerformanceChart dataKey="value" data={isInitialized ? historicalBurnRate : []} />
-                </CardContent>
-            </Card>
-             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
-                <CardHeader>
-                    <CardTitle className="font-headline glowing-title-underline">Net Profit/Loss ({currencySymbol})</CardTitle>
-                    <CardDescription>Monthly financial result.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PerformanceChart dataKey="value" data={isInitialized ? historicalNetProfitLoss : []} />
-                </CardContent>
-            </Card>
-         </div>
-         <div className="relative z-10 grid gap-6 md:grid-cols-1 lg:grid-cols-3 mt-6">
-            <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
-                <CardHeader>
-                    <CardTitle className="font-headline glowing-title-underline">CAC ({currencySymbol})</CardTitle>
-                    <CardDescription>Avg. cost per new user.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PerformanceChart dataKey="value" data={isInitialized ? historicalCAC : []} />
-                </CardContent>
-            </Card>
-             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
-                <CardHeader>
-                    <CardTitle className="font-headline glowing-title-underline">Churn Rate (%)</CardTitle>
-                    <CardDescription>Users lost per month.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PerformanceChart dataKey="value" data={isInitialized ? historicalChurnRate : []} />
-                </CardContent>
-            </Card>
-             <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
-                <CardHeader>
-                    <CardTitle className="font-headline glowing-title-underline">{product.name} Dev. Progress</CardTitle>
-                    <CardDescription>Progress towards next product stage (0-100%).</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PerformanceChart dataKey="value" data={isInitialized ? historicalProductProgress : []} />
-                </CardContent>
-            </Card>
-          </div>
-          <div className="relative z-10 mt-6">
-            <Card className="shadow-md card-glow-hover-accent bg-card/70 backdrop-blur-sm border-transparent">
-                <CardHeader>
-                    <CardTitle className="font-headline glowing-title-underline">Monthly Expense Breakdown</CardTitle>
-                    <CardDescription>Visualizing how your cash is being spent each month in {currencySymbol}.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ExpenseBreakdownChart data={isInitialized ? historicalExpenseBreakdown : []} currencySymbol={currencySymbol} />
-                </CardContent>
-            </Card>
-          </div>
-
-        <section className="relative z-10 mt-8">
-          <Card className="shadow-xl border-purple-500/30 bg-card/70 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl text-purple-400">
-                <Puzzle className="h-7 w-7" /> Milestone Puzzle Demo
-              </CardTitle>
-              <CardDescription>
-                This is a demo showing how completing tasks on the "Todo List" page can unlock milestones. Your actual simulation progress is tracked by the Phase Matrix above.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <MilestonePuzzle
-                milestones={mockMilestones}
-                onMilestonesChange={handleMockMilestonesChange}
-                title="Demo Puzzle: Product Launch Readiness"
-                puzzleId="dashboardDemoPuzzle"
-                userId={userEmail || "mockUser"}
-                onPuzzleComplete={handleMockPuzzleComplete}
-              />
-              <div className="mt-4 p-4 border-t border-border/50">
-                <h4 className="text-md font-semibold mb-3 text-muted-foreground">Demo Controls (Local Toggle):</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-                  {mockMilestones.map(ms => (
-                    <Button
-                      key={ms.id}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleMockMilestone(ms.id)}
-                      className={cn("text-xs justify-start", ms.isUnlocked ? "border-green-500 text-green-600" : "border-border")}
-                    >
-                      {ms.isUnlocked ? <Check className="mr-1.5 h-3 w-3"/> : <X className="mr-1.5 h-3 w-3"/>}
-                      {ms.name}
-                    </Button>
-                  ))}
-                </div>
-                <div className="flex gap-3">
-                    <Button onClick={unlockAllMockMilestones} size="sm" className="bg-green-600 hover:bg-green-700 text-white">Unlock All Demo Milestones</Button>
-                    <Button onClick={resetAllMockMilestones} size="sm" variant="destructive" className="bg-red-600 hover:bg-red-700">Reset Demo Milestones</Button>
-                </div>
-                 <p className="text-xs text-muted-foreground mt-3">
-                  Note: These demo controls update the visual state locally and simulate store changes. True puzzle piece unlock is driven by completing tasks on the "Todo List" page.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        {isDemoMonthEffectivelyUnlocked && (
-          <motion.section
-            className="relative z-20 mt-10 py-10"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          >
-            <Card className="shadow-2xl border-accent/60 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 backdrop-blur-lg overflow-hidden">
-              <CardHeader className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 relative flex items-center justify-center">
-                  {/* Pulsing background for the hexagon */}
-                  <motion.div
-                    className="absolute inset-0 bg-accent/50 rounded-full"
-                    animate={{
-                      scale: [1, 1.3, 1.05, 1.2, 1],
-                      opacity: [0.5, 0.9, 0.6, 0.8, 0.5],
-                      filter: ['blur(15px)', 'blur(25px)', 'blur(18px)', 'blur(22px)', 'blur(15px)'],
-                    }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  {/* Hexagon shape with rotation and glow */}
-                  <motion.div
-                    className="relative w-full h-full bg-gradient-to-r from-accent to-yellow-400 flex items-center justify-center text-accent-foreground shadow-xl"
-                    style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
-                    initial={{ scale: 0.5, rotate: -45 }}
-                    animate={{
-                      scale: 1,
-                      rotate: 360, // Continuous rotation
-                      transition: {
-                        scale: { type: 'spring', stiffness: 150, damping: 15, delay: 0.2 },
-                        rotate: { duration: 20, repeat: Infinity, ease: "linear" } // Rotation animation
-                      }
-                    }}
-                  >
-                    <Award className="h-12 w-12 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
-                  </motion.div>
-                </div>
-                <CardTitle className="text-3xl font-headline text-glow-accent">
-                  Strategic Node Activated!
-                </CardTitle>
-                <CardDescription className="text-lg text-muted-foreground mt-1">
-                  All objectives for this simulated period are complete.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-foreground mb-6 max-w-md mx-auto">
-                  EVE confirms: "Your strategic acumen has unlocked new potentials. This represents a significant milestone achieved in your simulation. The path forward is now clearer."
-                </p>
-                <Button
-                  onClick={() => setIsDemoMonthEffectivelyUnlocked(false)}
-                  variant="outline"
-                  className="border-accent text-accent hover:bg-accent/10"
-                >
-                  Acknowledge & Continue
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.section>
-        )}
-
       </div>
     </TooltipProvider>
   );
