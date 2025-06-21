@@ -12,6 +12,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Zap } from 'lucide-react';
 
 export const SurpriseEventModal = () => {
@@ -26,10 +32,8 @@ export const SurpriseEventModal = () => {
     resolveSurpriseEvent(outcome);
   };
   
-  // Handle cases where the user closes the dialog via Escape key or overlay click
   const onOpenChange = (open: boolean) => {
     if (!open && activeSurpriseEvent) {
-      // Treat dismissing the dialog as rejecting the offer
       handleResolve('rejected');
     }
   };
@@ -51,23 +55,43 @@ export const SurpriseEventModal = () => {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-4">
-          <AlertDialogCancel asChild>
-            <Button
-              variant="outline"
-              onClick={() => handleResolve('rejected')}
-              className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              {activeSurpriseEvent?.options.reject.label || 'Reject'}
-            </Button>
-          </AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Button
-              onClick={() => handleResolve('accepted')}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {activeSurpriseEvent?.options.accept.label || 'Accept'}
-            </Button>
-          </AlertDialogAction>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialogCancel asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleResolve('rejected')}
+                    className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    {activeSurpriseEvent?.options.reject.label || 'Reject'}
+                  </Button>
+                </AlertDialogCancel>
+              </TooltipTrigger>
+              {activeSurpriseEvent?.options.reject.description && (
+                 <TooltipContent side="bottom">
+                  <p>{activeSurpriseEvent.options.reject.description}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialogAction asChild>
+                  <Button
+                    onClick={() => handleResolve('accepted')}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    {activeSurpriseEvent?.options.accept.label || 'Accept'}
+                  </Button>
+                </AlertDialogAction>
+              </TooltipTrigger>
+              {activeSurpriseEvent?.options.accept.description && (
+                <TooltipContent side="bottom">
+                  <p>{activeSurpriseEvent.options.accept.description}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
