@@ -86,18 +86,31 @@ export default function SimulationPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  // Selectors for specific state pieces and actions
-  const isInitialized = useSimulationStore(state => state.isInitialized);
-  const simulationMonth = useSimulationStore(state => state.simulationMonth);
-  const financials = useSimulationStore(state => state.financials);
-  const product = useSimulationStore(state => state.product);
-  const resources = useSimulationStore(state => state.resources); // For initial local state sync
-  const teamToDisplay = useSimulationStore(state => state.isInitialized ? state.resources.team : []);
+  // Use a single selector for all state and actions from the store
+  const {
+    isInitialized,
+    simulationMonth,
+    financials,
+    product,
+    resources,
+    setMarketingSpend,
+    setRndSpend,
+    setPricePerUser,
+    adjustTeamMemberCount,
+  } = useSimulationStore(state => ({
+    isInitialized: state.isInitialized,
+    simulationMonth: state.simulationMonth,
+    financials: state.financials,
+    product: state.product,
+    resources: state.resources,
+    setMarketingSpend: state.setMarketingSpend,
+    setRndSpend: state.setRndSpend,
+    setPricePerUser: state.setPricePerUser,
+    adjustTeamMemberCount: state.adjustTeamMemberCount,
+  }));
 
-  const setMarketingSpend = useSimulationStore(state => state.setMarketingSpend);
-  const setRndSpend = useSimulationStore(state => state.setRndSpend);
-  const setPricePerUser = useSimulationStore(state => state.setPricePerUser);
-  const adjustTeamMemberCount = useSimulationStore(state => state.adjustTeamMemberCount);
+  // Now, derive teamToDisplay from the destructured `resources`
+  const teamToDisplay = isInitialized ? resources.team : [];
 
   const currencySymbol = financials.currencySymbol || "$";
 
@@ -121,15 +134,15 @@ export default function SimulationPage() {
   useEffect(() => {
     if (isInitialized) {
       // Sync local state with store state if needed, e.g., when component mounts or isInitialized changes
-      setLocalMarketingSpend(useSimulationStore.getState().resources.marketingSpend);
-      setLocalRndSpend(useSimulationStore.getState().resources.rndSpend);
-      setLocalPricePerUser(useSimulationStore.getState().product.pricePerUser);
+      setLocalMarketingSpend(resources.marketingSpend);
+      setLocalRndSpend(resources.rndSpend);
+      setLocalPricePerUser(product.pricePerUser);
     } else {
       setLocalMarketingSpend(0);
       setLocalRndSpend(0);
       setLocalPricePerUser(0);
     }
-  }, [isInitialized]); // Removed direct resource dependencies to avoid loop with local state updates
+  }, [isInitialized, resources.marketingSpend, resources.rndSpend, product.pricePerUser]);
 
   const handleMarketingSpendChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
@@ -276,7 +289,7 @@ export default function SimulationPage() {
                     className="w-full"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? useSimulationStore.getState().resources.marketingSpend.toLocaleString() : "N/A"}</p>
+                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? resources.marketingSpend.toLocaleString() : "N/A"}</p>
               </div>
 
               <Separator />
@@ -295,7 +308,7 @@ export default function SimulationPage() {
                     className="w-full"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? useSimulationStore.getState().resources.rndSpend.toLocaleString() : "N/A"}</p>
+                <p className="text-xs text-muted-foreground">Current: {currencySymbol}{isInitialized ? resources.rndSpend.toLocaleString() : "N/A"}</p>
               </div>
 
               <Separator />
@@ -470,8 +483,3 @@ export default function SimulationPage() {
     </div>
   );
 }
-    
-
-    
-
-    
