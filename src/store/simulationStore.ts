@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission, FounderArchetype, ActiveSurpriseEvent, SurpriseEventHistoryItem, SurpriseEventOptionOutcome } from '@/types/simulation';
@@ -1140,20 +1141,41 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             timestamp: new Date().toISOString(),
         };
 
-        // Here you would apply the effects of the event.
-        // This is a placeholder for the logic that would modify the state based on `activeSurpriseEvent.effects`.
-        // For example:
-        // let updatedFinancials = { ...state.financials };
-        // if (outcome === 'accepted' && activeSurpriseEvent.effects?.accept.cashOnHand) {
-        //   updatedFinancials.cashOnHand += activeSurpriseEvent.effects.accept.cashOnHand;
-        // }
+        const effectsToApply = activeSurpriseEvent.effects?.[outcome];
+        let updatedFinancials = { ...state.financials };
+        let updatedStartupScore = state.startupScore;
+        let eventResolutionLog = `Resolved '${activeSurpriseEvent.title}' by choosing to '${outcome}'.`;
+        const effectSummaries: string[] = [];
+
+        if (effectsToApply) {
+          if (typeof effectsToApply.cashOnHand === 'number') {
+            updatedFinancials.cashOnHand += effectsToApply.cashOnHand;
+            effectSummaries.push(`Cash changed by ${updatedFinancials.currencySymbol}${effectsToApply.cashOnHand.toLocaleString()}.`);
+          }
+          if (typeof effectsToApply.startupScore === 'number') {
+            updatedStartupScore += effectsToApply.startupScore;
+            effectSummaries.push(`Startup score changed by ${effectsToApply.startupScore}.`);
+          }
+          if (effectsToApply.productDevelopmentModifier) {
+             effectSummaries.push(`Product development modifier of ${effectsToApply.productDevelopmentModifier} applied (conceptual effect).`);
+             // NOTE: Applying the actual 'productDevelopmentModifier' would require a more complex state
+             // system to track temporary modifiers. For now, this is just a logged effect.
+          }
+        }
+        
+        if (effectSummaries.length > 0) {
+          eventResolutionLog += ` Effects: ${effectSummaries.join(' ')}`;
+        }
+
+        const impactForLog = outcome === 'accepted' ? (activeSurpriseEvent.effects?.accept.startupScore ?? 0) >= 0 ? 'Positive' : 'Negative' : (activeSurpriseEvent.effects?.reject.startupScore ?? 0) >= 0 ? 'Neutral' : 'Negative';
 
         return {
             ...state,
+            financials: updatedFinancials,
+            startupScore: Math.max(0, Math.min(100, updatedStartupScore)),
             activeSurpriseEvent: null,
             surpriseEventHistory: [...state.surpriseEventHistory, historyItem],
-            keyEvents: [...state.keyEvents, createStructuredEvent(state.simulationMonth, `Resolved '${activeSurpriseEvent.title}' by choosing to '${outcome}'.`, 'General', outcome === 'accepted' ? 'Positive' : 'Negative')]
-            // financials: updatedFinancials, // Example of applying effects
+            keyEvents: [...state.keyEvents, createStructuredEvent(state.simulationMonth, eventResolutionLog, 'General', impactForLog)]
         };
       }),
     }),
