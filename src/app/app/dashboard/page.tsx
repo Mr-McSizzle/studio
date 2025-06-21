@@ -6,7 +6,7 @@ import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, TrendingUp, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Activity, Percent, Bot, ListChecks } from "lucide-react";
+import { DollarSign, Users, TrendingUp as TrendingUpIcon, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Activity, Percent, Bot, ListChecks, Target, BrainCircuit } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,7 +15,26 @@ import { Loader2 } from "lucide-react";
 import { HexPuzzleBoard } from "@/components/dashboard/HexPuzzleBoard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { Checkbox } from "@/components/ui/checkbox";
+import { ChallengeHex } from "@/components/dashboard/ChallengeHex";
+
+const challenges = [
+  {
+    icon: TrendingUpIcon,
+    title: "Market Growth",
+    description: "Focus on acquiring new users and increasing your market share."
+  },
+  {
+    icon: Target,
+    title: "Financial Stability",
+    description: "Manage burn rate and work towards profitability to ensure a long runway."
+  },
+  {
+    icon: BrainCircuit,
+    title: "Product Innovation",
+    description: "Invest in R&D to advance your product to the next stage and unlock new features."
+  }
+];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -27,7 +46,7 @@ export default function DashboardPage() {
     userMetrics,
     startupScore,
     missions,
-    toggleMissionCompletion, // Get the action from the store
+    toggleMissionCompletion,
     advanceMonth,
     resetSimulation,
     historicalRevenue,
@@ -168,6 +187,26 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{startupScore}/100</div>
               <p className="text-xs text-muted-foreground">Reflects overall health</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mb-8">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Current Strategic Focus</CardTitle>
+              <CardDescription>Key areas of focus derived from your current simulation state.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center justify-center gap-8 py-6">
+              {challenges.map((challenge, index) => (
+                <ChallengeHex
+                  key={challenge.title}
+                  icon={challenge.icon}
+                  title={challenge.title}
+                  description={challenge.description}
+                  delay={index}
+                />
+              ))}
             </CardContent>
           </Card>
         </div>
