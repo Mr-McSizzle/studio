@@ -1114,11 +1114,19 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
       },
 
       triggerSurpriseEvent: () => set(state => {
-        if (state.activeSurpriseEvent) return state; // Don't trigger if one is already active
+        if (state.activeSurpriseEvent) return state;
 
-        const eventIndex = Math.floor(Math.random() * predefinedSurpriseEvents.length);
+        const historicEventIds = new Set(state.surpriseEventHistory.map(h => h.eventId));
+        const availableEvents = predefinedSurpriseEvents.filter(event => !historicEventIds.has(event.id));
+
+        if (availableEvents.length === 0) {
+          console.log("No new surprise events available to trigger.");
+          return state;
+        }
+
+        const eventIndex = Math.floor(Math.random() * availableEvents.length);
         const selectedEvent = {
-            ...predefinedSurpriseEvents[eventIndex],
+            ...availableEvents[eventIndex],
             monthTriggered: state.simulationMonth,
         };
 
@@ -1158,8 +1166,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           }
           if (effectsToApply.productDevelopmentModifier) {
              effectSummaries.push(`Product development modifier of ${effectsToApply.productDevelopmentModifier} applied (conceptual effect).`);
-             // NOTE: Applying the actual 'productDevelopmentModifier' would require a more complex state
-             // system to track temporary modifiers. For now, this is just a logged effect.
           }
         }
         
