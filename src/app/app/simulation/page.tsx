@@ -86,7 +86,8 @@ export default function SimulationPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  // Use a single selector for all state and actions from the store
+  // Subscribing to the entire store state to ensure re-renders on any change.
+  const simState = useSimulationStore();
   const {
     isInitialized,
     simulationMonth,
@@ -97,21 +98,9 @@ export default function SimulationPage() {
     setRndSpend,
     setPricePerUser,
     adjustTeamMemberCount,
-  } = useSimulationStore(state => ({
-    isInitialized: state.isInitialized,
-    simulationMonth: state.simulationMonth,
-    financials: state.financials,
-    product: state.product,
-    resources: state.resources,
-    setMarketingSpend: state.setMarketingSpend,
-    setRndSpend: state.setRndSpend,
-    setPricePerUser: state.setPricePerUser,
-    adjustTeamMemberCount: state.adjustTeamMemberCount,
-  }));
+  } = simState;
 
-  // Now, derive teamToDisplay from the destructured `resources`
   const teamToDisplay = isInitialized ? resources.team : [];
-
   const currencySymbol = financials.currencySymbol || "$";
 
   const [localMarketingSpend, setLocalMarketingSpend] = useState(resources.marketingSpend);
@@ -133,7 +122,6 @@ export default function SimulationPage() {
 
   useEffect(() => {
     if (isInitialized) {
-      // Sync local state with store state if needed, e.g., when component mounts or isInitialized changes
       setLocalMarketingSpend(resources.marketingSpend);
       setLocalRndSpend(resources.rndSpend);
       setLocalPricePerUser(product.pricePerUser);
