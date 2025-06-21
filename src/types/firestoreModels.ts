@@ -17,10 +17,21 @@ export interface FirestoreTask {
  * puzzleProgressMap?: { [monthOrPuzzleId: string]: FirestorePuzzleData };
  */
 export interface FirestorePuzzleData {
-  month: number;          // The simulation month this puzzle progress pertains to
+  month: number;          // The simulation month this puzzle pertains to
   piecesUnlocked: number; // Number of puzzle pieces unlocked for this month's puzzle
   totalPieces: number;    // Total number of pieces for this month's puzzle
 }
+
+/**
+ * Defines the structure for an item in the surprise event history array.
+ */
+export interface SurpriseEventHistoryItem {
+  eventId: string;
+  monthOccurred: number;
+  outcome: 'accepted' | 'rejected' | 'expired'; // Example outcomes
+  timestamp: string; // ISO date string
+}
+
 
 /**
  * Defines the structure for a user's document in the 'users' collection in Firestore.
@@ -43,6 +54,15 @@ export interface FirestoreUserDocument {
   tasks?: {
     [taskId: string]: FirestoreTask;
   };
+
+  /**
+   * Manages surprise events for the user.
+   */
+  surpriseEvents?: {
+    active: string | null; // ID of the currently active surprise event, if any.
+    history: SurpriseEventHistoryItem[]; // Record of past events and their outcomes.
+  };
+
 
   // --- Optional additional user-specific fields ---
   // userId: string; // Typically the document ID, but can be stored explicitly if needed
