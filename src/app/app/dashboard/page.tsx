@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { HexPuzzleBoard } from "@/components/dashboard/HexPuzzleBoard";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -184,10 +185,10 @@ export default function DashboardPage() {
             <div className="lg:col-span-1 space-y-6">
                  <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle className="font-headline flex items-center gap-2"><Bot className="h-6 w-6 text-primary"/>EVE's Monthly Directives</CardTitle>
-                        <CardDescription>Complete these objectives to assemble the Hive's progress puzzle.</CardDescription>
+                        <CardTitle className="font-headline flex items-center gap-2"><Bot className="h-6 w-6 text-primary"/>EVE's Monthly Directives & Hive Puzzle</CardTitle>
+                        <CardDescription>Complete objectives to assemble the Hive's progress puzzle. Check the Todo List page for details.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
                         <ScrollArea className="h-48 pr-3">
                             <ul className="space-y-3">
                             {missions.map((mission) => (
@@ -203,16 +204,10 @@ export default function DashboardPage() {
                             ))}
                             </ul>
                         </ScrollArea>
-                    </CardContent>
-                </Card>
-
-                 <Card className="shadow-lg">
-                    <CardHeader>
-                        <CardTitle className="font-headline flex items-center gap-2"><ListChecks className="h-6 w-6 text-accent"/>Hive Puzzle Progress</CardTitle>
-                        <CardDescription>Visual representation of completed monthly objectives.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-center">
-                        <HexPuzzleBoard missions={missions} />
+                        <Separator />
+                        <div className="flex items-center justify-center pt-2">
+                           <HexPuzzleBoard missions={missions} />
+                        </div>
                     </CardContent>
                 </Card>
             </div>
