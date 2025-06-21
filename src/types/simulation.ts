@@ -148,6 +148,37 @@ export const FounderArchetypeEnum = z.enum(['innovator', 'scaler', 'community_bu
 export type FounderArchetype = z.infer<typeof FounderArchetypeEnum>;
 
 
+// --- Surprise Event System ---
+
+export interface SurpriseEventOptionOutcome {
+  label: string;
+  description: string;
+}
+
+export interface ActiveSurpriseEvent {
+  id: string;
+  type: 'angel_investor' | 'dev_rage_quit' | 'positive_pr' | 'viral_moment' | 'legal_issue'; // Example types
+  title: string;
+  description: string;
+  monthTriggered: number;
+  options: {
+    accept: SurpriseEventOptionOutcome;
+    reject: SurpriseEventOptionOutcome;
+  };
+  effects?: {
+    accept: Record<string, any>;
+    reject: Record<string, any>;
+  };
+}
+
+export interface SurpriseEventHistoryItem {
+  eventId: string;
+  eventType: ActiveSurpriseEvent['type'];
+  monthOccurred: number;
+  outcome: 'accepted' | 'rejected' | 'expired';
+  timestamp: string;
+}
+
 export interface DigitalTwinState {
   simulationMonth: number;
   companyName: string;
@@ -179,6 +210,10 @@ export interface DigitalTwinState {
   sandboxState: DigitalTwinState | null;
   isSandboxing: boolean;
   sandboxRelativeMonth: number;
+
+  // Surprise Event Fields
+  activeSurpriseEvent: ActiveSurpriseEvent | null;
+  surpriseEventHistory: SurpriseEventHistoryItem[];
 }
 
 export interface AIInitialConditions {
