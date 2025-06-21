@@ -23,6 +23,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/authStore"; 
 import { DynamicGuidanceSystem } from "@/components/guidance/DynamicGuidanceSystem";
+import { SurpriseEventModal } from "@/components/dashboard/SurpriseEventModal";
 
 function UserProfileDropdown() {
   const router = useRouter();
@@ -116,6 +117,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <div className="min-h-screen w-full bg-background">
         {children}
         <DynamicGuidanceSystem />
+        <SurpriseEventModal />
       </div>
     );
   }
@@ -185,6 +187,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <DynamicGuidanceSystem /> 
+        <SurpriseEventModal />
       </SidebarProvider>
     </TooltipProvider>
   );
