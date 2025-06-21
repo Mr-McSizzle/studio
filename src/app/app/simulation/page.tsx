@@ -9,13 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { SlidersHorizontal, Info, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle, Activity, Tag, Briefcase, Check, ChevronsUpDown, UserPlus } from "lucide-react";
+import { SlidersHorizontal, Info, Zap, PackageOpen, Users, DollarSign, Brain, MinusCircle, PlusCircle, AlertTriangle, Activity, Tag, Briefcase, Check, ChevronsUpDown, UserPlus, Lightbulb, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { analyzeCustomScenario, type AnalyzeCustomScenarioInput } from "@/ai/flows/analyze-custom-scenario-flow";
 
 
 const DEFAULT_SALARY_FALLBACK = 4000; 
@@ -86,7 +88,6 @@ export default function SimulationPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  // Subscribing to the entire store state to ensure re-renders on any change.
   const simState = useSimulationStore();
   const {
     isInitialized,
@@ -106,12 +107,15 @@ export default function SimulationPage() {
   const [localMarketingSpend, setLocalMarketingSpend] = useState(resources.marketingSpend);
   const [localRndSpend, setLocalRndSpend] = useState(resources.rndSpend);
   const [localPricePerUser, setLocalPricePerUser] = useState(product.pricePerUser);
-
   const [newMemberName, setNewMemberName] = useState(""); 
   const [roleInputValue, setRoleInputValue] = useState(""); 
   const [finalRoleValue, setFinalRoleValue] = useState<string>(""); 
   const [newMemberSalary, setNewMemberSalary] = useState("");
   const [roleComboboxOpen, setRoleComboboxOpen] = useState(false);
+
+  const [customScenario, setCustomScenario] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -184,6 +188,54 @@ export default function SimulationPage() {
     setNewMemberSalary("");
   };
 
+  const handleAnalyzeScenario = async () => {
+    if (!isInitialized || !customScenario.trim()) {
+      toast({
+        title: "Simulation and Scenario Required",
+        description: "Please ensure your simulation is initialized and you've entered a scenario to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+
+    const getSerializableSimulationState = () => {
+        return {
+            simulationMonth: simState.simulationMonth,
+            companyName: simState.companyName,
+            financials: simState.financials,
+            userMetrics: simState.userMetrics,
+            product: simState.product,
+            resources: simState.resources,
+            market: simState.market,
+            startupScore: simState.startupScore,
+            keyEvents: simState.keyEvents.slice(-5),
+            rewards: simState.rewards,
+            initialGoals: simState.initialGoals,
+            missions: simState.missions,
+            suggestedChallenges: simState.suggestedChallenges,
+            isInitialized: simState.isInitialized,
+        };
+    };
+
+    try {
+      const input: AnalyzeCustomScenarioInput = {
+        simulationStateJSON: JSON.stringify(getSerializableSimulationState()),
+        customScenarioDescription: customScenario,
+      };
+      const result = await analyzeCustomScenario(input);
+      setAnalysisResult(result.analysisText);
+      toast({ title: "Scenario Analyzed", description: "AI insights are available below." });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+      toast({ title: "Analysis Failed", description: errorMessage, variant: "destructive" });
+      console.error("Error analyzing scenario:", err);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
@@ -236,7 +288,7 @@ export default function SimulationPage() {
           </Card>
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-8">
           <Card className="shadow-lg">
             <CardHeader className="flex flex-row items-center gap-3 space-y-0">
               <SlidersHorizontal className="h-6 w-6 text-accent" />
@@ -464,6 +516,46 @@ export default function SimulationPage() {
                   Make your monthly strategic adjustments here. Then, go to the <strong>Dashboard</strong> and click "Simulate Next Month" to see their impact.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg">
+            <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+              <Lightbulb className="h-6 w-6 text-accent" />
+              <CardTitle className="font-headline">What-If Scenario Analysis</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Describe a hypothetical situation to get an instant AI analysis based on your current simulation state.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="custom-scenario">Your "What-If" Scenario:</Label>
+                <Textarea
+                  id="custom-scenario"
+                  value={customScenario}
+                  onChange={(e) => setCustomScenario(e.target.value)}
+                  placeholder="e.g., What if a key competitor raises $20M and starts an aggressive marketing campaign?"
+                  rows={3}
+                  disabled={!isInitialized || isAnalyzing || financials.cashOnHand <= 0}
+                />
+              </div>
+              <Button
+                onClick={handleAnalyzeScenario}
+                disabled={!isInitialized || isAnalyzing || !customScenario.trim() || financials.cashOnHand <= 0}
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...
+                  </>
+                ) : "Analyze Scenario with AI"}
+              </Button>
+              {analysisResult && (
+                <div className="mt-4 p-4 border rounded-md bg-muted/50">
+                  <h4 className="font-semibold mb-2 text-foreground">Analysis Result:</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{analysisResult}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
