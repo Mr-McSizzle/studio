@@ -197,4 +197,3 @@ export const StageUnlockAnimationOverlay: React.FC<StageUnlockAnimationOverlayPr
     </motion.div>
   );
 };
-    

@@ -204,5 +204,3 @@ export const CinematicSetupOverlay: React.FC<CinematicSetupOverlayProps> = ({
     </motion.div>
   );
 };
-
-    
