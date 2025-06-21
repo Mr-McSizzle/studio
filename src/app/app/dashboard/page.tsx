@@ -6,7 +6,7 @@ import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, TrendingUp, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Activity, Percent, Bot, ListChecks, CheckCircle } from "lucide-react";
+import { DollarSign, Users, TrendingUp, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Activity, Percent, Bot, ListChecks } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react";
 import { HexPuzzleBoard } from "@/components/dashboard/HexPuzzleBoard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function DashboardPage() {
     userMetrics,
     startupScore,
     missions,
+    toggleMissionCompletion, // Get the action from the store
     advanceMonth,
     resetSimulation,
     historicalRevenue,
@@ -93,7 +95,7 @@ export default function DashboardPage() {
               </TooltipTrigger>
               {!areMissionsComplete && isInitialized && !isGameOver && (
                 <TooltipContent>
-                  <p>Complete all monthly directives on the "Todo List" page to proceed.</p>
+                  <p>Complete all monthly directives to proceed.</p>
                 </TooltipContent>
               )}
             </Tooltip>
@@ -119,8 +121,8 @@ export default function DashboardPage() {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Action Required</AlertTitle>
             <AlertDescription>
-              You have pending objectives for this month. Go to the "Todo List" page to complete them before proceeding to the next month.
-               <Button onClick={() => router.push('/app/todo')} className="mt-2 ml-2" size="sm" variant="outline">View Todo List</Button>
+              You have pending objectives for this month. Complete them here or on the "Todo List" page before proceeding.
+               <Button onClick={() => router.push('/app/todo')} className="mt-2 ml-2" size="sm" variant="outline">View Full Todo List</Button>
             </AlertDescription>
           </Alert>
         )}
@@ -186,20 +188,26 @@ export default function DashboardPage() {
                  <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-2"><Bot className="h-6 w-6 text-primary"/>EVE's Monthly Directives & Hive Puzzle</CardTitle>
-                        <CardDescription>Complete objectives to assemble the Hive's progress puzzle. Check the Todo List page for details.</CardDescription>
+                        <CardDescription>Complete objectives to assemble the Hive's progress puzzle.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <ScrollArea className="h-48 pr-3">
                             <ul className="space-y-3">
                             {missions.map((mission) => (
-                                <li key={mission.id} className="flex items-start gap-3">
-                                <CheckCircle className={cn("mt-1 h-4 w-4 shrink-0", mission.isCompleted ? 'text-green-500' : 'text-muted-foreground/30')} />
-                                <div>
-                                    <p className={cn("text-sm font-medium", mission.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground')}>
-                                    {mission.title}
-                                    </p>
+                                <li key={mission.id} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted/50">
+                                  <Checkbox
+                                    id={`dash-mission-${mission.id}`}
+                                    checked={mission.isCompleted}
+                                    onCheckedChange={() => toggleMissionCompletion(mission.id)}
+                                    className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent"
+                                    aria-labelledby={`dash-mission-label-${mission.id}`}
+                                  />
+                                  <div>
+                                    <label htmlFor={`dash-mission-${mission.id}`} className={cn("text-sm font-medium cursor-pointer", mission.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground')}>
+                                      {mission.title}
+                                    </label>
                                     <p className="text-xs text-muted-foreground">{mission.difficulty ? `(${mission.difficulty})` : ''}</p>
-                                </div>
+                                  </div>
                                 </li>
                             ))}
                             </ul>
@@ -216,4 +224,3 @@ export default function DashboardPage() {
     </TooltipProvider>
   );
 }
-
