@@ -1,7 +1,6 @@
-
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission, FounderArchetype } from '@/types/simulation';
+import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission, FounderArchetype, ActiveSurpriseEvent, SurpriseEventHistoryItem, SurpriseEventOptionOutcome } from '@/types/simulation';
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
 import { generateDynamicMissions, type GenerateDynamicMissionsInput } from '@/ai/flows/generate-dynamic-missions-flow';
@@ -88,7 +87,7 @@ export interface EarnedBadge {
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -153,6 +152,8 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
   isSandboxing: false,
   sandboxRelativeMonth: 0,
   savedSimulations: [],
+  activeSurpriseEvent: null,
+  surpriseEventHistory: [],
 });
 
 interface SimulationActions {
@@ -177,6 +178,8 @@ interface SimulationActions {
   saveCurrentSimulation: (name: string) => DigitalTwinState | null;
   loadSimulation: (snapshotId: string) => DigitalTwinState | null;
   deleteSavedSimulation: (snapshotId: string) => void;
+  triggerSurpriseEvent: () => void;
+  resolveSurpriseEvent: (outcome: 'accepted' | 'rejected') => void;
 }
 
 const parseMonetaryValue = (value: string | number | undefined): number => {
@@ -218,8 +221,41 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     sandboxState: state.sandboxState,
     isSandboxing: state.isSandboxing,
     sandboxRelativeMonth: state.sandboxRelativeMonth,
+    activeSurpriseEvent: state.activeSurpriseEvent,
+    surpriseEventHistory: state.surpriseEventHistory,
   };
 };
+
+const predefinedSurpriseEvents: Omit<ActiveSurpriseEvent, 'monthTriggered'>[] = [
+  {
+    id: 'event_angel_investor',
+    type: 'angel_investor',
+    title: 'Unexpected Investor Interest!',
+    description: 'An angel investor, impressed by your recent progress, has offered a seed investment! This will provide a significant cash injection, but they will take a small percentage of equity.',
+    options: {
+      accept: { label: 'Accept Investment', description: 'Gain a large cash boost, but give up some equity.' },
+      reject: { label: 'Decline Offer', description: 'Maintain full ownership but forgo the extra capital.' },
+    },
+    effects: {
+      accept: { cashOnHand: 250000, startupScore: 10 },
+      reject: { startupScore: -2 },
+    },
+  },
+  {
+    id: 'event_dev_rage_quit',
+    type: 'dev_rage_quit',
+    title: 'Critical Developer Resigns!',
+    description: 'A key developer has abruptly quit after a disagreement over product direction! This will significantly slow your development progress for the next few months unless you can quickly hire a replacement.',
+    options: {
+      accept: { label: 'Acknowledge Setback', description: 'Your development progress will be halved for the next 2 months.' },
+      reject: { label: 'Offer Counter-Offer', description: 'Attempt to keep them by offering a large, immediate bonus, depleting cash.' },
+    },
+    effects: {
+      accept: { productDevelopmentModifier: -0.5, startupScore: -5 },
+      reject: { cashOnHand: -20000, startupScore: 2 },
+    },
+  },
+];
 
 
 export const useSimulationStore = create<DigitalTwinState & { savedSimulations: SimulationSnapshot[] } & SimulationActions>()(
@@ -350,7 +386,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
 
         set(state => ({
-          ...initialBaseState,
+          ...getInitialState(),
           companyName: parsedConditions.companyName || userStartupName || "AI Suggested Venture",
           selectedArchetype: selectedArchetype,
           market: {
@@ -386,24 +422,9 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           initialGoals: processedInitialGoals,
           suggestedChallenges: processedSuggestedChallenges,
           keyEvents: [createStructuredEvent(0, `Simulation initialized for ${parsedConditions.companyName || userStartupName} with budget ${finalCurrencySymbol}${initialBudgetNum.toLocaleString()}. Target: ${userTargetMarket || 'Not specified'}. Initial Burn: ${finalCurrencySymbol}${finalInitialBurnRate.toLocaleString()}/month. Archetype: ${selectedArchetype || 'Not Chosen'}`, "System", "Positive")],
-          rewards: [],
-          earnedBadges: [], 
-          missions: [...onboardingMissions], 
-          historicalRevenue: [{ month: "M0", revenue: 0, desktop: 0 }],
-          historicalUserGrowth: [{ month: "M0", users: 0, desktop: 0 }],
-          historicalBurnRate: [{ month: "M0", value: finalInitialBurnRate, desktop: finalInitialBurnRate }],
-          historicalNetProfitLoss: [{ month: "M0", value: (0 - finalInitialExpenses), desktop: (0 - finalInitialExpenses) }],
-          historicalExpenseBreakdown: [{ month: "M0", ...initialExpenseBreakdownM0 }],
-          historicalCAC: [{ month: "M0", value: initialBaseState.userMetrics.customerAcquisitionCost, desktop: initialBaseState.userMetrics.customerAcquisitionCost }],
-          historicalChurnRate: [{ month: "M0", value: initialBaseState.userMetrics.churnRate * 100, desktop: initialBaseState.userMetrics.churnRate * 100 }],
-          historicalProductProgress: [{ month: "M0", value: 0, desktop: 0 }],
           isInitialized: true,
           simulationMonth: 0,
           startupScore: 10,
-          currentAiReasoning: "Digital twin initialized. Ready for first simulation month.",
-          sandboxState: null,
-          isSandboxing: false,
-          sandboxRelativeMonth: 0,
           savedSimulations: state.savedSimulations, 
         }));
       },
@@ -682,6 +703,10 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             });
 
             set(newState);
+
+            if (Math.random() < 0.25) { // 25% chance to trigger a surprise event
+              get().triggerSurpriseEvent();
+            }
 
         } catch (error) {
           console.error("Error during AI month simulation:", error);
@@ -1086,6 +1111,51 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           savedSimulations: state.savedSimulations.filter(s => s.id !== snapshotId),
         }));
       },
+
+      triggerSurpriseEvent: () => set(state => {
+        if (state.activeSurpriseEvent) return state; // Don't trigger if one is already active
+
+        const eventIndex = Math.floor(Math.random() * predefinedSurpriseEvents.length);
+        const selectedEvent = {
+            ...predefinedSurpriseEvents[eventIndex],
+            monthTriggered: state.simulationMonth,
+        };
+
+        return {
+            ...state,
+            activeSurpriseEvent: selectedEvent,
+            keyEvents: [...state.keyEvents, createStructuredEvent(state.simulationMonth, `Surprise Event: ${selectedEvent.title}`, 'General', 'Neutral')]
+        };
+      }),
+
+      resolveSurpriseEvent: (outcome: 'accepted' | 'rejected') => set(state => {
+        const { activeSurpriseEvent } = state;
+        if (!activeSurpriseEvent) return state;
+
+        const historyItem: SurpriseEventHistoryItem = {
+            eventId: activeSurpriseEvent.id,
+            eventType: activeSurpriseEvent.type,
+            monthOccurred: activeSurpriseEvent.monthTriggered,
+            outcome: outcome,
+            timestamp: new Date().toISOString(),
+        };
+
+        // Here you would apply the effects of the event.
+        // This is a placeholder for the logic that would modify the state based on `activeSurpriseEvent.effects`.
+        // For example:
+        // let updatedFinancials = { ...state.financials };
+        // if (outcome === 'accepted' && activeSurpriseEvent.effects?.accept.cashOnHand) {
+        //   updatedFinancials.cashOnHand += activeSurpriseEvent.effects.accept.cashOnHand;
+        // }
+
+        return {
+            ...state,
+            activeSurpriseEvent: null,
+            surpriseEventHistory: [...state.surpriseEventHistory, historyItem],
+            keyEvents: [...state.keyEvents, createStructuredEvent(state.simulationMonth, `Resolved '${activeSurpriseEvent.title}' by choosing to '${outcome}'.`, 'General', outcome === 'accepted' ? 'Positive' : 'Negative')]
+            // financials: updatedFinancials, // Example of applying effects
+        };
+      }),
     }),
     {
       name: 'inceptico-simulation-storage',
@@ -1200,10 +1270,12 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             mergedState.sandboxState.earnedBadges = Array.isArray(mergedState.sandboxState.earnedBadges) ? mergedState.sandboxState.earnedBadges : []; 
         }
 
+        // Merge surprise event data
+        mergedState.activeSurpriseEvent = mergedState.activeSurpriseEvent || null;
+        mergedState.surpriseEventHistory = Array.isArray(mergedState.surpriseEventHistory) ? mergedState.surpriseEventHistory : [];
+
         return mergedState as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
       },
     }
   )
 );
-
-    
