@@ -3,79 +3,66 @@
 
 import React from 'react'; 
 import Link from 'next/link';
-import { User, Swords, Trophy, ChevronRight, Layers, TrendingUp } from 'lucide-react';
+import { ChevronRight, ClipboardList, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button'; 
 
-export default function LaunchpadPage() {
+export default function SimulationHubPage() {
   const navigationItems = [
     {
-      title: "Founder Profile",
-      description: "View and manage your profile",
-      icon: User,
-      href: "/app/profile",
+      title: "Pre-Launch Simulation",
+      description: "Where raw ideas are forged into startups. Define your venture and create its digital twin.",
+      icon: ClipboardList,
+      href: "/app/setup",
     },
     {
-      title: "Simulation Hub",
-      description: "Forge a new venture or manage an existing one.",
-      icon: Layers,
-      href: "/app/simulation-hub",
-    },
-    {
-      title: "Clash of Sims",
-      description: "Competitive scenarios (Coming Soon)",
-      icon: Swords,
+      title: "Post-Launch Simulation",
+      description: "Navigate growth, innovation, and survival after launch.",
+      icon: TrendingUp,
       href: "#",
       disabled: true,
-    },
-    {
-      title: "Milestones & Score",
-      description: "Track your progress and achievements",
-      icon: Trophy,
-      href: "/app/gamification",
     },
   ];
 
   return (
-    // Removed bg-slate-950 from here to allow video to show
     <div className="min-h-screen text-white relative overflow-hidden">
       {/* Video Background */}
       <video
         autoPlay
         loop
         muted
-        playsInline // Important for autoplay on some mobile browsers
+        playsInline
         style={{
-          position: 'absolute', // Changed from 'fixed'
+          position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
-          height: '100%', // Will cover the parent's height
-          zIndex: 1, // Keep it behind overlays and content
+          height: '100%',
+          zIndex: 1,
           objectFit: 'cover',
         }}
-        src="/new-assets/launchpadbg.mp4"
-        className="opacity-70" // You can adjust opacity here
+        src="/new-assets/launchpadbg.mp4" // Re-using launchpad background
+        className="opacity-70"
       >
         Your browser does not support the video tag.
       </video>
 
-      {/* Gradient Overlays - These will sit on top of the video */}
+      {/* Gradient Overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-indigo-950/30 z-10" />
       <div className="absolute inset-0 bg-gradient-to-r from-purple-950/20 via-transparent to-indigo-950/20 z-10" />
 
-      {/* Main content wrapper - This will sit on top of the overlays and video */}
+      {/* Main content wrapper */}
       <div className="relative z-20 min-h-screen flex flex-col">
         <header className="p-6 pt-16">
           <div className="max-w-5xl mx-auto text-center">
             <div className="flex items-center justify-center mb-6">
               <div className="w-1 h-10 bg-gradient-to-b from-transparent via-indigo-400/60 to-transparent mr-6" />
               <h1 className="font-jim-nightshade text-6xl md:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-white to-slate-200 tracking-[-0.03em] leading-[0.9]">
-               Launchpad
+               Simulation Hub
               </h1>
               <div className="w-1 h-10 bg-gradient-to-b from-transparent via-purple-400/60 to-transparent ml-6" />
             </div>
             <p className="text-lg md:text-xl text-slate-300/90 font-normal max-w-2xl mx-auto leading-relaxed tracking-[0.01em]">
-              Gateway to Your Business Simulation Universe
+              Choose your path. Forge a new destiny or continue an existing one.
             </p>
             <div className="flex items-center justify-center mt-8 space-x-3">
               <div className="w-1.5 h-1.5 bg-indigo-400/70 rounded-full animate-pulse" />
@@ -170,25 +157,9 @@ export default function LaunchpadPage() {
             </div>
           </div>
         </main>
-
-        <footer className="p-6 pb-12">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center space-x-8 text-slate-400/70 text-xs font-normal tracking-[0.08em] uppercase">
-              <div className="flex items-center space-x-2">
-                <div className="w-1.5 h-1.5 bg-emerald-400/80 rounded-full animate-pulse shadow-md shadow-emerald-400/30" />
-                <span>System Online</span>
-              </div>
-              <div className="w-px h-4 bg-slate-600/50" />
-              <div className="flex items-center space-x-2">
-                <div className="w-1.5 h-1.5 bg-indigo-400/80 rounded-full animate-pulse shadow-md shadow-indigo-400/30" />
-                <span>Ready</span>
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
 
-      {/* Decorative Lines & Corners (z-index not explicitly set, default to 0 relative to their stacking context) */}
+      {/* Decorative Lines & Corners */}
       <div className="absolute top-1/4 left-12 w-px h-16 bg-gradient-to-b from-transparent via-indigo-400/40 to-transparent animate-pulse" />
       <div className="absolute bottom-1/3 right-12 w-px h-12 bg-gradient-to-b from-transparent via-purple-400/40 to-transparent animate-pulse animation-delay-[1s]" />
       <div className="absolute top-8 right-8 w-8 h-8 border-t border-r border-white/10 backdrop-blur-sm" />
