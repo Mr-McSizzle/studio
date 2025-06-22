@@ -230,7 +230,7 @@ export default function HomePage() {
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </div>
             <div>
-              <span className="text-lg font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent group-hover:text-sky-200 transition-colors">
+              <span className="text-2xl font-jim-nightshade bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent group-hover:text-sky-200 transition-colors">
                 Inceptico
               </span>
               <div className="text-xs text-slate-500 font-mono">vXI.2.7</div>
@@ -349,7 +349,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
+                  <h2 className="text-5xl font-jim-nightshade bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
                     Dynamic Simulation Core
                   </h2>
                   <p className="text-slate-400 text-sm">Real-time business modeling engine</p>
@@ -516,7 +516,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
+                  <h2 className="text-5xl font-jim-nightshade bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
                     AI Hive Mind Guidance
                   </h2>
                   <p className="text-slate-400 text-sm">Neural network intelligence</p>
@@ -552,7 +552,7 @@ export default function HomePage() {
       <section className="relative z-10 py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-sky-300 via-blue-300 to-sky-400 bg-clip-text text-transparent">
+            <h2 className="text-6xl md:text-7xl font-jim-nightshade mb-6 bg-gradient-to-r from-sky-300 via-blue-300 to-sky-400 bg-clip-text text-transparent">
               Unlock Strategic Mastery
             </h2>
             <p className="text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed font-light">
@@ -620,7 +620,7 @@ export default function HomePage() {
                 <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
               </div>
               <div>
-                <span className="text-2xl font-black bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
+                <span className="text-4xl font-jim-nightshade bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
                   Inceptico Dynamics
                 </span>
                 <div className="text-xs text-slate-400 font-mono">Neural Architecture vXI.2.7</div>
