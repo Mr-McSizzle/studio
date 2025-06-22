@@ -1,4 +1,3 @@
-
 "use client"; 
 
 import type { ReactNode } from "react";
@@ -7,7 +6,7 @@ import { PanelLeft, LogOut, Settings, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; 
 
-import { IncepticoLogo } from "@/components/icons/logo"; // Updated import
+import { IncepticoLogo } from "@/components/icons/logo";
 import { SidebarNav, MobileSidebarNav, SidebarToggleButton } from "@/components/layout/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -192,4 +191,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </TooltipProvider>
   );
 }
-    
