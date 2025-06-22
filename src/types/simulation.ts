@@ -1,3 +1,4 @@
+
 import {z} from 'genkit';
 import type { LucideProps } from 'lucide-react';
 import type { ComponentType } from 'react';
@@ -138,7 +139,7 @@ export interface EarnedBadge {
   questId: string; // To link to the completed quest
   name: string;
   description: string;
-  icon?: string; // Lucide icon name or path
+  icon?: string; // Lucide icon name
   dateEarned: string; // ISO date string
 }
 
@@ -422,6 +423,7 @@ export const SimulateMonthInputSchema = z.object({
     targetMarketDescription: z.string(),
   }).describe("Current market conditions."),
   currentStartupScore: z.number().describe("The current startup score before this month's simulation."),
+  activeScenarios: z.array(z.string()).optional().describe("An array of active strategic scenarios that should modify the simulation's logic for this month (e.g., 'Freemium Launch')."),
 });
 export type SimulateMonthInput = z.infer<typeof SimulateMonthInputSchema>;
 
