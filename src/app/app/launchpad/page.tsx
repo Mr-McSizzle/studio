@@ -3,7 +3,7 @@
 
 import React from 'react'; 
 import Link from 'next/link';
-import { User, Settings, Swords, Trophy, ChevronRight } from 'lucide-react';
+import { User, Swords, Trophy, ChevronRight, ClipboardList, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button'; 
 
 export default function LaunchpadPage() {
@@ -15,10 +15,17 @@ export default function LaunchpadPage() {
       href: "/app/profile",
     },
     {
-      title: "Setup Simulation",
-      description: "Initialize or adjust your venture",
-      icon: Settings,
+      title: "Pre-Launch Simulation",
+      description: "Where raw ideas are forged into startups.",
+      icon: ClipboardList,
       href: "/app/setup",
+    },
+    {
+      title: "Post-Launch Simulation",
+      description: "Navigate growth, innovation, and survival after launch.",
+      icon: TrendingUp,
+      href: "#",
+      disabled: true,
     },
     {
       title: "Clash of Sims",
