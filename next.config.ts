@@ -1,4 +1,3 @@
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -19,9 +18,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    allowedDevOrigins: ['https://6000-firebase-studio-1749659292414.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev'],
-  },
+  // Remove Firebase Studio specific experimental config
   webpack: (config, { isServer }) => {
     // You can add custom webpack configurations here if needed in the future.
     return config;
