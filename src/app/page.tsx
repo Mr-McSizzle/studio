@@ -270,7 +270,7 @@ export default function HomePage() {
             </div>
 
             <div className="relative mb-6">
-              <h1 className="text-6xl md:text-8xl font-black leading-none tracking-tight">
+              <h1 className="text-6xl md:text-8xl font-jim-nightshade leading-none tracking-tight">
                 <div
                   className="block transform-gpu"
                   style={{

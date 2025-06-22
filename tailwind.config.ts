@@ -13,6 +13,7 @@ export default {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Inter', 'sans-serif'], // Using Inter for consistency
+        'jim-nightshade': ['"Jim Nightshade"', 'cursive'],
         code: ['monospace'],
       },
       colors: {
