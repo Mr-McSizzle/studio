@@ -116,7 +116,7 @@ export default function LaunchpadPage() {
                         </div>
                       </div>
                       <div className="text-center">
-                        <h3 className="text-xl md:text-2xl font-medium text-white/95 mb-3 group-hover:text-white transition-colors duration-500 tracking-[-0.01em]">
+                        <h3 className="text-4xl md:text-5xl font-jim-nightshade text-white/95 mb-3 group-hover:text-white transition-colors duration-500">
                           {item.title}
                         </h3>
                         <p className="text-slate-300/80 text-base mb-6 group-hover:text-slate-200/90 transition-colors duration-500 font-normal leading-relaxed tracking-[0.005em]">
