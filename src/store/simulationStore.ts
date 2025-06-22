@@ -88,7 +88,7 @@ export interface EarnedBadge {
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory' | 'activeScenarios'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -155,6 +155,7 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
   savedSimulations: [],
   activeSurpriseEvent: null,
   surpriseEventHistory: [],
+  activeScenarios: [],
 });
 
 interface SimulationActions {
@@ -181,6 +182,8 @@ interface SimulationActions {
   deleteSavedSimulation: (snapshotId: string) => void;
   triggerSurpriseEvent: () => void;
   resolveSurpriseEvent: (outcome: 'accepted' | 'rejected') => void;
+  addScenario: (scenario: string) => void;
+  removeScenario: (scenario: string) => void;
 }
 
 const parseMonetaryValue = (value: string | number | undefined): number => {
@@ -224,6 +227,7 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     sandboxRelativeMonth: state.sandboxRelativeMonth,
     activeSurpriseEvent: state.activeSurpriseEvent,
     surpriseEventHistory: state.surpriseEventHistory,
+    activeScenarios: state.activeScenarios,
   };
 };
 
@@ -426,6 +430,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           isInitialized: true,
           simulationMonth: 0,
           startupScore: 10,
+          activeScenarios: [],
           savedSimulations: state.savedSimulations, 
         }));
       },
@@ -753,6 +758,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             sandboxRelativeMonth: 0,
             savedSimulations: [], 
             earnedBadges: [], 
+            activeScenarios: [],
         }));
       },
 
@@ -774,6 +780,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         sandboxCopy.earnedBadges = []; 
         sandboxCopy.missions = []; 
         sandboxCopy.simulationMonth = state.simulationMonth; 
+        sandboxCopy.activeScenarios = [];
         
         return {
           ...state,
@@ -1100,6 +1107,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           missions: Array.isArray(loadedSimState.missions) && loadedSimState.missions.length > 0 ? loadedSimState.missions : [...onboardingMissions],
           earnedBadges: Array.isArray(loadedSimState.earnedBadges) ? loadedSimState.earnedBadges : [], 
           selectedArchetype: loadedSimState.selectedArchetype || undefined,
+          activeScenarios: loadedSimState.activeScenarios || [],
         };
         
         set(newStateFromSnapshot);
@@ -1184,6 +1192,17 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             keyEvents: [...state.keyEvents, createStructuredEvent(state.simulationMonth, eventResolutionLog, 'General', impactForLog)]
         };
       }),
+      
+      addScenario: (scenario) => set((state) => {
+        if (!state.activeScenarios.includes(scenario)) {
+          return { activeScenarios: [...state.activeScenarios, scenario] };
+        }
+        return state;
+      }),
+
+      removeScenario: (scenario) => set((state) => ({
+        activeScenarios: state.activeScenarios.filter(s => s !== scenario),
+      })),
     }),
     {
       name: 'inceptico-simulation-storage',
@@ -1301,6 +1320,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         // Merge surprise event data
         mergedState.activeSurpriseEvent = mergedState.activeSurpriseEvent || null;
         mergedState.surpriseEventHistory = Array.isArray(mergedState.surpriseEventHistory) ? mergedState.surpriseEventHistory : [];
+        mergedState.activeScenarios = Array.isArray(mergedState.activeScenarios) ? mergedState.activeScenarios : [];
 
         return mergedState as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
       },

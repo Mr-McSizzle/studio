@@ -213,6 +213,7 @@ export interface DigitalTwinState {
   // Surprise Event Fields
   activeSurpriseEvent: ActiveSurpriseEvent | null;
   surpriseEventHistory: SurpriseEventHistoryItem[];
+  activeScenarios: string[];
 }
 
 export interface AIInitialConditions {
