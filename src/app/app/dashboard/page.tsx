@@ -6,7 +6,7 @@ import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, TrendingUp as TrendingUpIcon, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Activity, Percent, Bot, ListChecks, Target, BrainCircuit } from "lucide-react";
+import { DollarSign, Users, TrendingUp as TrendingUpIcon, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Activity, Percent, Bot, ListChecks, Target, BrainCircuit, X } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -56,7 +56,9 @@ export default function DashboardPage() {
     historicalCAC,
     historicalChurnRate,
     historicalProductProgress,
-    historicalExpenseBreakdown
+    historicalExpenseBreakdown,
+    activeScenarios,
+    removeScenario,
   } = useSimulationStore();
   
   const [isSimulating, setIsSimulating] = useState(false);
@@ -224,6 +226,33 @@ export default function DashboardPage() {
             </div>
 
             <div className="lg:col-span-1 space-y-6">
+                 <Card className="shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="font-headline flex items-center gap-2">
+                        <BrainCircuit className="h-6 w-6 text-primary" />
+                        Active Scenarios
+                      </CardTitle>
+                      <CardDescription>
+                        These strategic scenarios are currently influencing your simulation's outcomes.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {activeScenarios.length > 0 ? (
+                        <ul className="space-y-2">
+                          {activeScenarios.map(scenario => (
+                            <li key={scenario} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                              <span className="text-sm font-medium">{scenario}</span>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeScenario(scenario)}>
+                                <X className="h-4 w-4 text-destructive"/>
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-2">No active scenarios.</p>
+                      )}
+                    </CardContent>
+                  </Card>
                  <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-2"><Bot className="h-6 w-6 text-primary"/>EVE's Monthly Directives & Hive Puzzle</CardTitle>
