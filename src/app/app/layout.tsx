@@ -81,11 +81,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userEmail === undefined) return; 
 
-    if (pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/signup') && pathname !== '/app/launchpad') {
+    const specialPages = ['/app/login', '/app/signup', '/app/launchpad', '/app/simulation-hub'];
+    if (pathname.startsWith('/app') && !specialPages.some(p => pathname === p)) {
       if (!isAuthenticated) {
         router.replace('/login');
       }
-    } else if (pathname === '/app/launchpad' && !isAuthenticated) {
+    } else if ((pathname === '/app/launchpad' || pathname === '/app/simulation-hub') && !isAuthenticated) {
       router.replace('/login');
     }
   }, [isAuthenticated, userEmail, router, pathname]);
@@ -111,8 +112,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Hide sidebar for the Launchpad page
-  if (pathname === '/app/launchpad') {
+  // Hide sidebar for the Launchpad and Simulation Hub pages
+  if (pathname === '/app/launchpad' || pathname === '/app/simulation-hub') {
     return (
       <div className="min-h-screen w-full bg-background">
         {children}
