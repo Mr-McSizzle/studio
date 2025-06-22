@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
@@ -101,7 +100,8 @@ export default function SimulationPage() {
     addScenario,
   } = simState;
 
-  const teamToDisplay = isInitialized ? resources.team : [];
+  // Use state to track the current team members
+  const [teamMembers, setTeamMembers] = useState(resources.team);
   const currencySymbol = financials.currencySymbol || "$";
 
   const [localMarketingSpend, setLocalMarketingSpend] = useState(resources.marketingSpend);
@@ -115,6 +115,10 @@ export default function SimulationPage() {
 
   const [customScenario, setCustomScenario] = useState("");
 
+  // Update local state when resources.team changes
+  useEffect(() => {
+    setTeamMembers(resources.team);
+  }, [resources.team]);
 
   useEffect(() => {
      if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
@@ -302,7 +306,7 @@ export default function SimulationPage() {
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&amp;D Spend ({currencySymbol})</Label>
+                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&D Spend ({currencySymbol})</Label>
                  <div className="flex items-center gap-2">
                   <Input
                     id="rnd-spend"
@@ -325,7 +329,7 @@ export default function SimulationPage() {
                 
                 <ScrollArea className="max-h-48 pr-2">
                 <div className="space-y-3">
-                  {teamToDisplay.length > 0 ? teamToDisplay.map(member => (
+                  {teamMembers.length > 0 ? teamMembers.map(member => (
                     <div key={member.role} className="flex items-center justify-between p-2 border border-border/70 rounded-md bg-card/50">
                       <div>
                         <p className="font-medium text-sm">{member.role}: {member.count}</p>
