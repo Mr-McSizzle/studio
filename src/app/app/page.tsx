@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Loader2, ShieldCheck, Settings2, Activity, Rocket } from 'lucide-react';
-import { IncepticoLogo } from '@/components/icons/logo'; // Updated import
+import { IncepticoLogo } from '@/components/icons/logo';
 
 export default function AppRootPage() {
   const router = useRouter();
@@ -47,4 +46,3 @@ export default function AppRootPage() {
     </div>
   );
 }
-    
