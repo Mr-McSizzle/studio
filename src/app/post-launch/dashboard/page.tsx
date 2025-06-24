@@ -31,7 +31,7 @@ export default function PostLaunchDashboardPage() {
   
   useEffect(() => {
     if (!isInitialized) {
-      router.replace('/app/setup');
+      router.replace('/app/post-launch/setup');
     }
   }, [isInitialized, router]);
 
@@ -69,9 +69,9 @@ export default function PostLaunchDashboardPage() {
       <div className="container mx-auto py-8 px-4 md:px-0">
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Simulation Not Initialized</AlertTitle>
+          <AlertTitle>Post-Launch Simulation Not Initialized</AlertTitle>
           <AlertDescription>
-            Redirecting to the setup page...
+            Redirecting to the post-launch setup page...
           </AlertDescription>
         </Alert>
       </div>

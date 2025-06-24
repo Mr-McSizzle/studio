@@ -169,7 +169,7 @@ export default function InnovationHubPage() {
           <AlertTitle>Simulation Not Initialized</AlertTitle>
           <AlertDescription>
             You must have an active simulation to use the Innovation Hub.
-            <Button onClick={() => router.push('/app/setup')} className="mt-2 ml-2" size="sm">Go to Setup</Button>
+            <Button onClick={() => router.push('/app/post-launch/setup')} className="mt-2 ml-2" size="sm">Go to Setup</Button>
           </AlertDescription>
         </Alert>
       )}

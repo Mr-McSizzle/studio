@@ -61,10 +61,10 @@ export default function PostLaunchGamificationPage() {
   } = useSimulationStore();
   
   useEffect(() => {
-     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
-        router.replace('/app/setup');
+     if (!isInitialized) {
+        router.replace('/app/post-launch/setup');
     }
-  }, [isInitialized, simulationMonth, router]);
+  }, [isInitialized, router]);
 
   const scoreTrend = useMemo(() => {
     return startupScore > (useSimulationStore.getState().startupScore - 1) ? "up" : startupScore < (useSimulationStore.getState().startupScore - 1) ? "down" : "neutral";
@@ -111,8 +111,8 @@ export default function PostLaunchGamificationPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Simulation Not Initialized</AlertTitle>
           <AlertDescription>
-            Please go to the "Setup Simulation" page to initialize your digital twin.
-             <Button onClick={() => router.push('/app/setup')} className="mt-2 ml-2" size="sm">Go to Setup</Button>
+            Please go to the "Post-Launch Setup" page to initialize your digital twin.
+             <Button onClick={() => router.push('/app/post-launch/setup')} className="mt-2 ml-2" size="sm">Go to Setup</Button>
           </AlertDescription>
         </Alert>
       )}
