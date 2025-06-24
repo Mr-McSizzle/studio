@@ -24,12 +24,14 @@ export const alexTheAccountantTool = ai.defineTool(
   async (input: AlexTheAccountantToolInput): Promise<AlexTheAccountantToolOutput> => {
     let summary = "Alex, your AI Accountant, is reviewing your figures. ";
     const { cashOnHand, burnRate, monthlyRevenue, monthlyExpenses, simulationMonth, currencySymbol = '$', query } = input;
+    const isPostLaunch = typeof simulationMonth === 'number' && simulationMonth > 6;
+
 
     if (query) {
       summary += `Regarding your query: "${query}"... `;
       // Basic response based on query
       if (query.toLowerCase().includes("budget allocation")) {
-        summary += "For budget allocation, prioritize areas driving growth while managing cash flow. Consider the 50/30/20 rule for core/growth/buffer as a starting point, adjusted for your startup stage. ";
+        summary += `For budget allocation, ${isPostLaunch ? 'now that you are in a growth phase, consider allocating more towards scalable marketing channels and R&D for feature enhancement' : 'prioritize areas driving growth while managing cash flow'}. Consider the 50/30/20 rule for core/growth/buffer as a starting point, adjusted for your startup stage. `;
       } else if (query.toLowerCase().includes("cash flow")) {
         summary += "Maintaining positive cash flow is critical. Regularly review your inflows and outflows, and forecast diligently. ";
       } else if (query.toLowerCase().includes("runway")) {
@@ -66,9 +68,9 @@ export const alexTheAccountantTool = ai.defineTool(
     if (typeof monthlyRevenue === 'number' && typeof monthlyExpenses === 'number') {
       const profit = monthlyRevenue - monthlyExpenses;
       if (profit > 0) {
-        summary += `This month, you are profitable with ${currencySymbol}${profit.toLocaleString()} in net profit. `;
+        summary += `This month, you are profitable with ${currencySymbol}${profit.toLocaleString()} in net profit. ${isPostLaunch ? 'Excellent work maintaining profitability.' : ''}`;
       } else {
-        summary += `This month, you have a net loss of ${currencySymbol}${Math.abs(profit).toLocaleString()}. `;
+        summary += `This month, you have a net loss of ${currencySymbol}${Math.abs(profit).toLocaleString()}. ${isPostLaunch ? 'Focusing on reducing CAC or increasing LTV could help close this gap.' : ''}`;
       }
       if (monthlyRevenue > 0 && (!query || !query.toLowerCase().includes("profit margin"))) { 
         const profitMargin = (profit / monthlyRevenue) * 100;
@@ -93,5 +95,3 @@ export const alexTheAccountantTool = ai.defineTool(
     return { summary };
   }
 );
-
-    
