@@ -1,19 +1,18 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PuzzlePiece } from './PuzzlePiece';
-import type { DashboardMilestone } from '@/types/simulation';
+import type { Mission } from '@/types/simulation';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, X } from 'lucide-react';
 
 interface MilestonePuzzleProps {
-  milestones: DashboardMilestone[];
-  onMilestonesChange: (updatedMilestones: DashboardMilestone[]) => void;
+  missions: Mission[];
+  onMissionToggle: (missionId: string) => void;
   title?: string;
   puzzleId: string;
-  userId: string;
   onPuzzleComplete?: (puzzleId: string) => void;
 }
 
@@ -55,18 +54,17 @@ const particleVariants = {
 
 
 export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
-  milestones,
-  onMilestonesChange,
+  missions,
+  onMissionToggle,
   title,
   puzzleId,
-  userId,
   onPuzzleComplete
 }) => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [hasCelebrated, setHasCelebrated] = useState(false);
 
-  const unlockedCount = useMemo(() => milestones.filter(m => m.isUnlocked).length, [milestones]);
-  const totalCount = milestones.length;
+  const unlockedCount = useMemo(() => missions.filter(m => m.isCompleted).length, [missions]);
+  const totalCount = missions.length;
   const allUnlocked = totalCount > 0 && unlockedCount === totalCount;
 
 
@@ -90,11 +88,8 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
     setShowCelebration(false);
   };
 
-  const handlePieceClick = (clickedId: string) => {
-    const updatedMilestones = milestones.map(m => 
-      m.id === clickedId ? { ...m, isUnlocked: !m.isUnlocked } : m
-    );
-    onMilestonesChange(updatedMilestones);
+  const handlePieceToggle = (clickedId: string) => {
+    onMissionToggle(clickedId);
   };
 
   return (
@@ -103,18 +98,18 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
         {title && <h3 className="text-lg font-semibold text-foreground">{title}</h3>}
       </div>
       <p className="text-sm text-muted-foreground mb-4">
-        {unlockedCount} / {totalCount} Milestones Unlocked
+        {unlockedCount} / {totalCount} Objectives Complete
       </p>
       {totalCount > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {milestones.map((milestone) => (
-            <div key={milestone.id} onClick={() => handlePieceClick(milestone.id)}>
-              <PuzzlePiece milestone={milestone} />
+          {missions.map((mission) => (
+            <div key={mission.id} onClick={() => handlePieceToggle(mission.id)}>
+              <PuzzlePiece mission={mission} />
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-muted-foreground text-center py-4">No milestones defined for this puzzle.</p>
+        <p className="text-muted-foreground text-center py-4">No objectives assigned for this quarter. Advance the simulation to receive new directives.</p>
       )}
 
       <AnimatePresence>
@@ -170,7 +165,7 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
                   {title ? `${title} Complete!` : "Objective Set Achieved!"}
                 </h2>
                 <p className="text-lg mb-6 opacity-90">
-                  Excellent work, Founder! All milestones in this set are secured.
+                  Excellent work, Founder! All objectives in this set are secured.
                 </p>
               </div>
             </motion.div>

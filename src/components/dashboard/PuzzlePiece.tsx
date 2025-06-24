@@ -3,14 +3,13 @@
 
 import React, { useEffect, useState }  from 'react';
 import { motion } from 'framer-motion';
-import type { LucideProps } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
-import type { DashboardMilestone } from '@/types/simulation';
-import { Lock, CheckCircle } from 'lucide-react';
+import type { Mission } from '@/types/simulation';
+import { Lock, CheckCircle, Puzzle } from 'lucide-react';
 
 interface PuzzlePieceProps {
-  milestone: DashboardMilestone;
+  mission: Mission;
   className?: string;
 }
 
@@ -50,11 +49,11 @@ const puzzleVariants = {
   unlockedStatic: { scale: 1, opacity: 1, filter: "blur(0px)", y: 0, boxShadow: "0 1px 3px hsla(var(--card-foreground)/0.1)" }
 };
 
-export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }) => {
-  const IconComponent = milestone.icon || (milestone.isUnlocked ? CheckCircle : Lock);
-  const iconColor = milestone.isUnlocked ? 'text-green-500' : 'text-muted-foreground/50';
-  const borderColor = milestone.isUnlocked ? 'border-green-500/60' : 'border-dashed border-border/60';
-  const bgColor = milestone.isUnlocked ? 'bg-green-500/10' : 'bg-muted/20';
+export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ mission, className }) => {
+  const IconComponent = mission.isCompleted ? CheckCircle : Puzzle;
+  const iconColor = mission.isCompleted ? 'text-green-500' : 'text-muted-foreground/50';
+  const borderColor = mission.isCompleted ? 'border-green-500/60' : 'border-dashed border-border/60';
+  const bgColor = mission.isCompleted ? 'bg-green-500/10' : 'bg-muted/20';
   const [initialRenderComplete, setInitialRenderComplete] = useState(false);
 
   useEffect(() => {
@@ -62,14 +61,14 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }
   }, []);
 
   const getInitialVariantState = () => {
-    return milestone.isUnlocked ? "unlockedStatic" : "locked"; 
+    return mission.isCompleted ? "unlockedStatic" : "locked"; 
   };
 
   const getAnimateVariantState = () => {
     if (!initialRenderComplete) {
-        return milestone.isUnlocked ? "unlockedStatic" : "locked";
+        return mission.isCompleted ? "unlockedStatic" : "locked";
     }
-    return milestone.isUnlocked ? "unlockedAnimated" : "locked";
+    return mission.isCompleted ? "unlockedAnimated" : "locked";
   };
 
   return (
@@ -81,7 +80,7 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }
               "relative flex flex-col items-center justify-center p-3 aspect-square rounded-lg border transition-colors duration-300 ease-in-out cursor-pointer",
               borderColor,
               bgColor,
-              milestone.isUnlocked ? "shadow-md" : "opacity-70",
+              mission.isCompleted ? "shadow-md" : "opacity-70",
               className
             )}
             style={{
@@ -90,21 +89,22 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }
             variants={puzzleVariants}
             initial={getInitialVariantState()} 
             animate={getAnimateVariantState()} 
-            whileHover={milestone.isUnlocked ? "hover" : undefined}
+            whileHover={mission.isCompleted ? "hover" : undefined}
           >
             <IconComponent className={cn("w-5 h-5 sm:w-6 sm:h-6 mb-1", iconColor)} />
-            {milestone.isUnlocked && (
+            {mission.isCompleted && (
               <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-background shadow-sm" />
             )}
-            {!milestone.isUnlocked && (
+            {!mission.isCompleted && (
               <div className="absolute inset-0 bg-background/20 backdrop-blur-xs rounded-md" style={{ clipPath: 'inherit' }} />
             )}
+             <p className="text-xs text-center text-muted-foreground truncate w-full px-1">{mission.title}</p>
           </motion.div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-popover text-popover-foreground shadow-lg border-accent/50">
-          <p className="font-semibold">{milestone.name}</p>
-          {milestone.description && <p className="text-xs text-muted-foreground">{milestone.description}</p>}
-          <p className="text-xs mt-1">{milestone.isUnlocked ? "Status: Unlocked & Secured" : "Status: Locked / Encrypted"}</p>
+        <TooltipContent side="top" className="bg-popover text-popover-foreground shadow-lg border-accent/50 max-w-xs">
+          <p className="font-semibold">{mission.title}</p>
+          {mission.description && <p className="text-xs text-muted-foreground mt-1">{mission.description}</p>}
+          <p className="text-xs mt-1">{mission.isCompleted ? "Status: Complete" : "Status: Pending"}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

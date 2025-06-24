@@ -7,19 +7,9 @@ import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
-import type { DashboardMilestone } from "@/types/simulation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, ChevronsRight, Loader2, RefreshCcw, TrendingUp } from "lucide-react";
+import { AlertTriangle, ChevronsRight, Loader2, RefreshCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const postLaunchMilestones: DashboardMilestone[] = [
-  { id: 'q-revenue', name: 'Quarterly Revenue Target', icon: TrendingUp, isUnlocked: false, description: "Achieve quarterly revenue goals." },
-  { id: 'q-user-growth', name: 'Quarterly User Growth', icon: TrendingUp, isUnlocked: false, description: "Hit user acquisition targets for the quarter." },
-  { id: 'q-feature-ship', name: 'Ship Key Feature', icon: TrendingUp, isUnlocked: false, description: "Successfully launch the next major feature on the roadmap." },
-  { id: 'q-churn-reduction', name: 'Reduce Churn Rate', icon: TrendingUp, isUnlocked: false, description: "Implement strategies to lower customer churn." },
-  { id: 'q-profitability', name: 'Achieve Profitability', icon: TrendingUp, isUnlocked: false, description: "Make monthly profit positive for at least one month this quarter." },
-  { id: 'q-funding-round', name: 'Secure Funding', icon: TrendingUp, isUnlocked: false, description: "Successfully close a new round of funding." },
-];
 
 export default function PostLaunchDashboardPage() {
   const router = useRouter();
@@ -28,11 +18,12 @@ export default function PostLaunchDashboardPage() {
     isInitialized,
     simulationMonth,
     financials,
+    missions,
+    toggleMissionCompletion,
     advanceMonth,
     resetSimulation,
   } = useSimulationStore();
   
-  const [quarterlyTasks, setQuarterlyTasks] = useState(postLaunchMilestones);
   const [isSimulating, setIsSimulating] = useState(false);
   
   useEffect(() => {
@@ -41,13 +32,13 @@ export default function PostLaunchDashboardPage() {
     }
   }, [isInitialized, router]);
 
-  const areTasksComplete = quarterlyTasks.every(task => task.isUnlocked);
+  const areTasksComplete = missions.length > 0 && missions.every(task => task.isCompleted);
   const isGameOver = isInitialized && financials.cashOnHand <= 0;
 
   const handleSimulateQuarter = async () => {
     setIsSimulating(true);
     toast({ title: "Simulating Quarter...", description: "Advancing simulation by 3 months. Please wait." });
-    // Simulate 3 months for a quarter
+    
     for (let i = 0; i < 3; i++) {
       if (useSimulationStore.getState().financials.cashOnHand > 0) {
         await advanceMonth();
@@ -56,10 +47,8 @@ export default function PostLaunchDashboardPage() {
         break;
       }
     }
-    toast({ title: "Quarter Complete!", description: `Advanced to Month ${useSimulationStore.getState().simulationMonth}. New objectives are available.` });
     
-    // Reset tasks for the new quarter
-    setQuarterlyTasks(postLaunchMilestones.map(m => ({ ...m, isUnlocked: false })));
+    toast({ title: "Quarter Complete!", description: `Advanced to Month ${useSimulationStore.getState().simulationMonth}. New objectives have been generated.` });
     setIsSimulating(false);
   };
   
@@ -106,14 +95,22 @@ export default function PostLaunchDashboardPage() {
             </AlertDescription>
           </Alert>
         )}
+      {!areTasksComplete && !isGameOver && (
+        <Alert>
+          <AlertTitle>Action Required</AlertTitle>
+          <AlertDescription>
+            Complete all quarterly objectives on the puzzle board below to simulate the next quarter.
+          </AlertDescription>
+        </Alert>
+      )}
 
-      <div className="space-y-8">
+
+      <div className="space-y-8 mt-6">
         <MilestonePuzzle
-          milestones={quarterlyTasks}
-          onMilestonesChange={setQuarterlyTasks}
+          missions={missions}
+          onMissionToggle={toggleMissionCompletion}
           title={`Quarter ${Math.floor(simulationMonth / 3) + 1} Objectives`}
           puzzleId={`post_launch_q${Math.floor(simulationMonth / 3) + 1}`}
-          userId="founder" // Placeholder user ID
           onPuzzleComplete={() => toast({ title: "Quarter Complete!", description: "You've met all objectives for this quarter. Ready to simulate the next one!"})}
         />
         {/* Placeholder for post-launch specific charts and metrics */}
