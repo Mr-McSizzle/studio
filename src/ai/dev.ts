@@ -12,6 +12,7 @@ import '@/ai/flows/suggest-names-flow.ts'; // New flow for suggesting names
 import '@/ai/flows/generate-dynamic-missions-flow.ts'; // New flow for dynamic missions
 import '@/ai/flows/detailed-financial-analysis-flow.ts'; // New flow for financial analysis
 import '@/ai/flows/competitor-analysis-flow.ts'; // New flow for competitor analysis
+import '@/ai/flows/simulate-feature-launch-flow.ts'; // New flow for feature launch simulation
 
 
 // Renamed and New AI Agent Tools
@@ -34,6 +35,7 @@ import '@/ai/tools/set-product-price-tool.ts';
     
 
     
+
 
 
 

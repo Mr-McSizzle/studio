@@ -631,3 +631,32 @@ export const CompetitorAnalysisOutputSchema = z.object({
   strategicRecommendations: z.array(z.string()).describe("High-level strategic recommendations for the user's startup to navigate the competitive environment."),
 });
 export type CompetitorAnalysisOutput = z.infer<typeof CompetitorAnalysisOutputSchema>;
+
+// Simulate Feature Launch Flow Schemas
+export const SimulateFeatureLaunchInputSchema = z.object({
+  simulationStateJSON: z.string().describe("An abridged version of the current DigitalTwinState, serialized as JSON."),
+  featureName: z.string().describe("The name of the new feature or product to be launched."),
+  targetAudience: z.string().describe("A description of the target audience for this new feature."),
+  estimatedBudget: z.number().describe("The estimated budget allocated for the launch (development, marketing, etc.)."),
+});
+export type SimulateFeatureLaunchInput = z.infer<typeof SimulateFeatureLaunchInputSchema>;
+
+export const AgentFeedbackSchema = z.object({
+  agentId: z.string().describe("The ID of the agent providing feedback (e.g., 'alex-accountant', 'maya-marketing-guru')."),
+  agentName: z.string().describe("The name of the agent (e.g., 'Alex', 'Maya')."),
+  feedback: z.string().describe("The concise feedback from this specific agent."),
+});
+
+export const SimulateFeatureLaunchOutputSchema = z.object({
+  projections: z.object({
+    projectedUserAdoption: z.number().describe("Estimated number of existing users adopting the feature in the first 3 months."),
+    projectedNewUsers: z.number().describe("Estimated number of new users attracted by the feature in the first 3 months."),
+    projectedRevenueImpact: z.number().describe("Estimated increase in monthly recurring revenue (MRR) after 3 months."),
+    projectedBurnRateChange: z.number().describe("Estimated increase in monthly burn rate due to the feature's costs."),
+  }).describe("Quantitative projections for the feature launch."),
+  feedback: z.object({
+    eveFeedback: z.string().describe("EVE's high-level strategic overview of the proposed launch."),
+    agentFeedback: z.array(AgentFeedbackSchema).describe("Feedback from specialized AI agents."),
+  }).describe("Qualitative feedback and analysis from the AI team."),
+});
+export type SimulateFeatureLaunchOutput = z.infer<typeof SimulateFeatureLaunchOutputSchema>;
