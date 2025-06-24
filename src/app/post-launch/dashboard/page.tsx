@@ -1,15 +1,16 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, ChevronsRight, Loader2, RefreshCcw } from "lucide-react";
+import { AlertTriangle, ChevronsRight, Loader2, RefreshCcw, TrendingUp, DollarSign, Users, Percent, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export default function PostLaunchDashboardPage() {
   const router = useRouter();
@@ -18,7 +19,9 @@ export default function PostLaunchDashboardPage() {
     isInitialized,
     simulationMonth,
     financials,
+    userMetrics,
     missions,
+    historicalRevenue,
     toggleMissionCompletion,
     advanceMonth,
     resetSimulation,
@@ -34,6 +37,15 @@ export default function PostLaunchDashboardPage() {
 
   const areTasksComplete = missions.length > 0 && missions.every(task => task.isCompleted);
   const isGameOver = isInitialized && financials.cashOnHand <= 0;
+
+  const revenueGrowth = useMemo(() => {
+    if (historicalRevenue.length < 2) return null;
+    const currentMonthRevenue = historicalRevenue[historicalRevenue.length - 1].revenue;
+    const previousMonthRevenue = historicalRevenue[historicalRevenue.length - 2].revenue;
+    if (previousMonthRevenue === 0) return { percentage: currentMonthRevenue > 0 ? "Infinite" : "0.0", isPositive: currentMonthRevenue > 0 };
+    const growth = ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100;
+    return { percentage: growth.toFixed(1), isPositive: growth >= 0 };
+  }, [historicalRevenue]);
 
   const handleSimulateQuarter = async () => {
     setIsSimulating(true);
@@ -104,6 +116,54 @@ export default function PostLaunchDashboardPage() {
         </Alert>
       )}
 
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 my-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Net Profit</CardTitle>
+            <DollarSign className={cn("h-4 w-4 text-muted-foreground", financials.profit >= 0 ? "text-green-500" : "text-destructive")} />
+          </CardHeader>
+          <CardContent>
+            <div className={cn("text-2xl font-bold", financials.profit >= 0 ? "text-green-500" : "text-destructive")}>
+              {financials.profit >= 0 ? '+' : ''}{financials.currencySymbol}{financials.profit.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Revenue minus all expenses</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">User Retention Rate</CardTitle>
+            <Percent className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {((1 - userMetrics.churnRate) * 100).toFixed(1)}%
+            </div>
+            <p className="text-xs text-muted-foreground">{(userMetrics.churnRate * 100).toFixed(1)}% churn rate</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue Growth (MoM)</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className={cn("text-2xl font-bold", revenueGrowth?.isPositive ? "text-green-500" : "text-destructive")}>
+              {revenueGrowth ? `${revenueGrowth.percentage}%` : 'N/A'}
+            </div>
+            <p className="text-xs text-muted-foreground">Month-over-month change</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Feature Adoption Rate</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">72%</div>
+            <p className="text-xs text-muted-foreground">New feature engagement (placeholder)</p>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="space-y-8 mt-6">
         <MilestonePuzzle
