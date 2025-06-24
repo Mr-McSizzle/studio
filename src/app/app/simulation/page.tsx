@@ -302,7 +302,7 @@ export default function SimulationPage() {
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&amp;D Spend ({currencySymbol})</Label>
+                <Label htmlFor="rnd-spend" className="flex items-center gap-2"><Brain className="h-4 w-4"/>Monthly R&D Spend ({currencySymbol})</Label>
                  <div className="flex items-center gap-2">
                   <Input
                     id="rnd-spend"

@@ -61,6 +61,14 @@ Current State (Month {{{currentSimulationMonth}}}):
   - Target Market: {{{market.targetMarketDescription}}}
 - Current Startup Score: {{{currentStartupScore}}}/100
 
+{{#if activeScenarios}}
+Active Strategic Scenarios to consider:
+{{#each activeScenarios}}
+- {{{this}}}
+{{/each}}
+These scenarios should influence the logic below. For example, a 'Freemium Launch' might drastically increase newUserAcquisition but generate no initial revenue from them, increasing burn.
+{{/if}}
+
 Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}}} + 1):
 
 1.  **User Base Calculation:**
@@ -73,7 +81,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
         *   Ensure 'newUserAcquisition' is a whole number. Minimal acquisition (organic/word-of-mouth only) if marketing spend is zero.
 
 2.  **Financial Calculations:**
-    *   Calculated Revenue = Updated Active Users * Price Per User.
+    *   Calculated Revenue = Updated Active Users * Price Per User. If an active scenario like 'Freemium Launch' is active, new users this month might generate 0 revenue.
     *   Expense Breakdown & Total Expenses:
         *   Provide 'expenseBreakdown' (salaries, marketing, rnd, operational).
         *   'salaries': Sum of (count * salary) for all team members.
