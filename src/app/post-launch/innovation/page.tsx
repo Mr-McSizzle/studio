@@ -3,18 +3,63 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { FlaskConical, Info, AlertTriangle, Sparkles, Loader2, DollarSign, Users, BarChart3, Bot } from "lucide-react";
+import { FlaskConical, Info, AlertTriangle, Sparkles, Loader2, DollarSign, Users, Bot, Target, TrendingUp, TrendingDown, GanttChartSquare, Activity } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { simulateFeatureLaunch, type SimulateFeatureLaunchInput, type SimulateFeatureLaunchOutput } from "@/ai/flows/simulate-feature-launch-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAgentProfileById } from "@/lib/agentsData";
+import { cn } from "@/lib/utils";
+
+const AnalysisLoadingState = () => (
+  <div className="text-center p-8 border-dashed border-2 border-primary/30 rounded-lg bg-primary/5 animate-pulse-glow-border min-h-[400px] flex flex-col justify-center" style={{ animationDuration: '3s' }}>
+    <div className="relative w-24 h-24 mx-auto mb-6">
+        <motion.div
+            className="absolute inset-0 bg-primary/20 rounded-full"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+            className="absolute inset-2 border-2 border-accent rounded-full"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+        />
+        <GanttChartSquare className="absolute inset-0 m-auto h-10 w-10 text-primary animate-subtle-pulse" />
+    </div>
+    <h3 className="text-2xl font-headline text-primary mb-3">Analyzing Proposal...</h3>
+    <p className="text-muted-foreground">EVE and her AI agents are entering the digital prototype chamber to simulate your launch.</p>
+  </div>
+);
+
+interface ResultStatCardProps {
+    icon: React.ElementType;
+    label: string;
+    value: string;
+    description: string;
+    valueColor?: string;
+    iconColor?: string;
+}
+
+const ResultStatCard = ({ icon: Icon, label, value, description, valueColor = "text-foreground", iconColor = "text-primary" }: ResultStatCardProps) => (
+    <div className="p-4 rounded-lg bg-muted/50 border border-border/50 flex flex-col justify-between">
+        <div>
+            <div className="flex items-center gap-2 mb-1">
+                <Icon className={cn("h-5 w-5", iconColor)} />
+                <h4 className="text-sm font-medium text-muted-foreground">{label}</h4>
+            </div>
+            <p className={cn("text-2xl font-bold", valueColor)}>{value}</p>
+        </div>
+        <p className="text-xs text-muted-foreground/80 mt-1">{description}</p>
+    </div>
+);
+
 
 export default function InnovationHubPage() {
   const router = useRouter();
@@ -75,6 +120,14 @@ export default function InnovationHubPage() {
     }
   };
 
+  const getChurnIconAndColor = (churnImpact: number) => {
+      if (churnImpact < -0.001) return { Icon: TrendingDown, color: "text-green-500" };
+      if (churnImpact > 0.001) return { Icon: TrendingUp, color: "text-destructive" };
+      return { Icon: Activity, color: "text-muted-foreground" };
+  }
+
+  const { Icon: ChurnIcon, color: churnColor } = getChurnIconAndColor(results?.projections.churnImpact ?? 0);
+
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
       <header className="mb-8">
@@ -100,7 +153,7 @@ export default function InnovationHubPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
-          <Card className="shadow-lg sticky top-8">
+          <Card className="shadow-lg sticky top-8 bg-card/80 backdrop-blur-sm card-glow-hover-primary">
             <CardHeader>
               <CardTitle>Launch Proposal</CardTitle>
               <CardDescription>Define your next big move.</CardDescription>
@@ -156,7 +209,9 @@ export default function InnovationHubPage() {
             </Alert>
           )}
 
-          {!results && !isLoading && (
+          {isLoading && <AnalysisLoadingState />}
+
+          {!results && !isLoading && !error && (
             <Card className="text-center py-12 border-dashed">
               <CardContent>
                 <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -165,46 +220,31 @@ export default function InnovationHubPage() {
               </CardContent>
             </Card>
           )}
-
-          {isLoading && (
-            <Card>
-                <CardHeader>
-                    <CardTitle>AI Analysis in Progress...</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="h-16 w-16 text-primary animate-spin"/>
-                    <p className="mt-4 text-muted-foreground">Your AI team is crunching the numbers...</p>
-                </CardContent>
-            </Card>
-          )}
           
-          {results && (
-            <>
-              <Card className="shadow-lg animate-fadeIn">
+          <AnimatePresence>
+          {results && !isLoading && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="space-y-6"
+            >
+              <Card className="shadow-lg">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary"/>Quantitative Projections (3-Month Outlook)</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><GanttChartSquare className="h-5 w-5 text-primary"/>Quantitative Projections</CardTitle>
+                  <CardDescription>3-month outlook based on the AI simulation.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-3 rounded-md bg-muted">
-                    <p className="text-xs text-muted-foreground">User Adoption (Existing)</p>
-                    <p className="text-lg font-bold text-foreground">~{results.projections.projectedUserAdoption.toLocaleString()}</p>
-                  </div>
-                   <div className="p-3 rounded-md bg-muted">
-                    <p className="text-xs text-muted-foreground">New User Attraction</p>
-                    <p className="text-lg font-bold text-foreground">~{results.projections.projectedNewUsers.toLocaleString()}</p>
-                  </div>
-                  <div className="p-3 rounded-md bg-muted">
-                    <p className="text-xs text-muted-foreground">Monthly Revenue Impact</p>
-                    <p className="text-lg font-bold text-green-500">+{simState.financials.currencySymbol}{results.projections.projectedRevenueImpact.toLocaleString()}</p>
-                  </div>
-                  <div className="p-3 rounded-md bg-muted">
-                    <p className="text-xs text-muted-foreground">Monthly Burn Increase</p>
-                    <p className="text-lg font-bold text-destructive">~{simState.financials.currencySymbol}{results.projections.projectedBurnRateChange.toLocaleString()}</p>
-                  </div>
+                <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <ResultStatCard icon={Target} label="Market Fit Score" value={`${results.projections.marketFitScore} / 100`} description="How well this feature meets market needs." valueColor="text-primary" />
+                  <ResultStatCard icon={ChurnIcon} label="Churn Impact" value={`${(results.projections.churnImpact * 100).toFixed(2)}%`} description="Estimated monthly change in user churn." valueColor={churnColor} iconColor={churnColor}/>
+                  <ResultStatCard icon={Users} label="User Adoption" value={`~${results.projections.projectedUserAdoption.toLocaleString()}`} description="Adoption by existing users." />
+                  <ResultStatCard icon={Users} label="New Users" value={`~${results.projections.projectedNewUsers.toLocaleString()}`} description="New users attracted by the feature." />
+                  <ResultStatCard icon={DollarSign} label="Revenue Impact" value={`+${simState.financials.currencySymbol}${results.projections.projectedRevenueImpact.toLocaleString()}`} description="Est. monthly revenue increase." valueColor="text-green-500" iconColor="text-green-500"/>
+                  <ResultStatCard icon={DollarSign} label="Burn Increase" value={`+${simState.financials.currencySymbol}${results.projections.projectedBurnRateChange.toLocaleString()}`} description="Est. monthly burn rate increase." valueColor="text-destructive" iconColor="text-destructive"/>
                 </CardContent>
               </Card>
 
-              <Card className="shadow-lg animate-fadeIn" style={{animationDelay: '0.2s'}}>
+              <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><Bot className="h-5 w-5 text-primary"/>Qualitative Feedback</CardTitle>
                 </CardHeader>
@@ -238,8 +278,9 @@ export default function InnovationHubPage() {
                   </div>
                 </CardContent>
               </Card>
-            </>
+            </motion.div>
           )}
+          </AnimatePresence>
 
         </div>
       </div>

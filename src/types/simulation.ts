@@ -653,6 +653,8 @@ export const SimulateFeatureLaunchOutputSchema = z.object({
     projectedNewUsers: z.number().describe("Estimated number of new users attracted by the feature in the first 3 months."),
     projectedRevenueImpact: z.number().describe("Estimated increase in monthly recurring revenue (MRR) after 3 months."),
     projectedBurnRateChange: z.number().describe("Estimated increase in monthly burn rate due to the feature's costs."),
+    marketFitScore: z.number().min(0).max(100).describe("A score from 0-100 representing how well the feature fits the target market's needs and aligns with the current product strategy."),
+    churnImpact: z.number().describe("The estimated monthly change in churn rate (e.g., -0.01 for a 1% decrease, 0.02 for a 2% increase). A negative value means churn is reduced."),
   }).describe("Quantitative projections for the feature launch."),
   feedback: z.object({
     eveFeedback: z.string().describe("EVE's high-level strategic overview of the proposed launch."),
