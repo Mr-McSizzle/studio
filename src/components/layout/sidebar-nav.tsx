@@ -27,11 +27,9 @@ import {
   useSidebar,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarSeparator
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 
 
 const preLaunchNavItems = [
@@ -58,6 +56,10 @@ const postLaunchNavItems = [
 export function SidebarNav() {
   const pathname = usePathname();
   const { state, isMobile } = useSidebar();
+
+  const isPostLaunch = pathname.startsWith("/app/post-launch");
+  const navItems = isPostLaunch ? postLaunchNavItems : preLaunchNavItems;
+  const navTitle = isPostLaunch ? "Post-Launch" : "Pre-Launch";
 
   const renderMenuItem = (item: typeof preLaunchNavItems[0]) => {
     const Icon = item.icon;
@@ -95,26 +97,20 @@ export function SidebarNav() {
   };
 
   return (
-    <>
-      <SidebarGroup>
-        <SidebarGroupLabel>Pre-Launch</SidebarGroupLabel>
-        <SidebarMenu>
-          {preLaunchNavItems.map(renderMenuItem)}
-        </SidebarMenu>
-      </SidebarGroup>
-      <SidebarSeparator />
-      <SidebarGroup>
-        <SidebarGroupLabel>Post-Launch</SidebarGroupLabel>
-        <SidebarMenu>
-          {postLaunchNavItems.map(renderMenuItem)}
-        </SidebarMenu>
-      </SidebarGroup>
-    </>
+    <SidebarGroup>
+      <SidebarGroupLabel>{navTitle}</SidebarGroupLabel>
+      <SidebarMenu>
+        {navItems.map(renderMenuItem)}
+      </SidebarMenu>
+    </SidebarGroup>
   );
 }
 
 export function MobileSidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
   const pathname = usePathname();
+  const isPostLaunch = pathname.startsWith("/app/post-launch");
+  const navItems = isPostLaunch ? postLaunchNavItems : preLaunchNavItems;
+  const navTitle = isPostLaunch ? "Post-Launch" : "Pre-Launch";
 
   const renderMobileMenuItem = (item: typeof preLaunchNavItems[0]) => {
     const Icon = item.icon;
@@ -137,11 +133,8 @@ export function MobileSidebarNav({ onLinkClick }: { onLinkClick?: () => void }) 
 
   return (
      <nav className="grid gap-2 text-lg font-medium">
-        <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pre-Launch</p>
-        {preLaunchNavItems.map(renderMobileMenuItem)}
-        <Separator className="my-2" />
-        <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Post-Launch</p>
-        {postLaunchNavItems.map(renderMobileMenuItem)}
+        <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{navTitle}</p>
+        {navItems.map(renderMobileMenuItem)}
       </nav>
   );
 }
