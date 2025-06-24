@@ -638,6 +638,8 @@ export const SimulateFeatureLaunchInputSchema = z.object({
   featureName: z.string().describe("The name of the new feature or product to be launched."),
   targetAudience: z.string().describe("A description of the target audience for this new feature."),
   estimatedBudget: z.number().describe("The estimated budget allocated for the launch (development, marketing, etc.)."),
+  selectedAgentIds: z.array(z.string()).optional().describe("An array of AI agent IDs selected to 'lead' or 'consult on' this launch."),
+  launchGoals: z.array(z.enum(['user_growth', 'retention', 'revenue', 'market_share'])).optional().describe("The primary strategic goals for this feature launch."),
 });
 export type SimulateFeatureLaunchInput = z.infer<typeof SimulateFeatureLaunchInputSchema>;
 

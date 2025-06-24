@@ -29,7 +29,7 @@ const prompt = ai.definePrompt({
   config: {
     temperature: 0.6,
   },
-  prompt: `You are a team of expert AI strategists for Inceptico, comprised of EVE (the Hive Mind), Alex (Accountant), and Maya (Marketing Guru). Your task is to analyze a proposed new feature launch based on the user's current simulation state and provide a comprehensive projection.
+  prompt: `You are a team of expert AI strategists for Inceptico, comprised of EVE (the Hive Mind) and her specialist agents. Your task is to analyze a proposed new feature launch based on the user's current simulation state, their chosen goals, and the agents they've assigned to consult.
 
 **Current Simulation State (JSON):**
 {{{simulationStateJSON}}}
@@ -38,8 +38,16 @@ const prompt = ai.definePrompt({
 - **Feature Name:** {{{featureName}}}
 - **Target Audience:** {{{targetAudience}}}
 - **Estimated Budget:** {{{estimatedBudget}}}
+{{#if launchGoals.length}}
+- **Primary Goals:** {{#each launchGoals}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+{{/if}}
+{{#if selectedAgentIds.length}}
+- **Lead Consulting Agents:** {{#each selectedAgentIds}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+{{/if}}
 
 **Your Analysis Task:**
+
+Frame your entire analysis with the primary goals in mind. For example, if the goal is 'retention', focus heavily on the churn impact and user adoption among existing users. If 'user_growth', focus on new user acquisition potential.
 
 1.  **Quantitative Projections:**
     *   `projectedUserAdoption`: Estimate the number of existing users who might adopt this feature in the first 3 months. Consider the target audience overlap with the current user base.
@@ -51,9 +59,7 @@ const prompt = ai.definePrompt({
 
 2.  **Qualitative Feedback:**
     *   `eveFeedback`: As EVE, provide a high-level strategic overview. Does this align with the company's current stage and goals? What are the primary risks and opportunities?
-    *   `agentFeedback`: Provide concise feedback from the perspective of Alex and Maya.
-        *   **Alex (Accountant):** Focus on financial viability. Comment on the budget, the potential ROI, and the impact on the company's runway.
-        *   **Maya (Marketing Guru):** Focus on market viability. Comment on the target audience, go-to-market feasibility, and competitive landscape for this feature.
+    *   `agentFeedback`: Provide concise feedback from the perspective of each of the **selected** consulting agents (from \`selectedAgentIds\`). If no agents are selected, default to providing feedback from Alex (Accountant) and Maya (Marketing Guru). The feedback MUST come from the agents listed in \`selectedAgentIds\` if provided. Each piece of feedback should be an object with \`agentId\`, \`agentName\`, and \`feedback\`.
 
 The output MUST be a single JSON object matching the SimulateFeatureLaunchOutputSchema.
 {{output}}

@@ -10,12 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { FlaskConical, Info, AlertTriangle, Sparkles, Loader2, DollarSign, Users, Bot, Target, TrendingUp, TrendingDown, GanttChartSquare, Activity } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FlaskConical, Info, AlertTriangle, Sparkles, Loader2, DollarSign, Users, Bot, Target, TrendingUp, TrendingDown, GanttChartSquare, Activity, Briefcase, Goal } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { simulateFeatureLaunch, type SimulateFeatureLaunchInput, type SimulateFeatureLaunchOutput } from "@/ai/flows/simulate-feature-launch-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAgentProfileById } from "@/lib/agentsData";
+import { getAgentProfileById, agentsList } from "@/lib/agentsData";
 import { cn } from "@/lib/utils";
 
 const AnalysisLoadingState = () => (
@@ -60,6 +61,12 @@ const ResultStatCard = ({ icon: Icon, label, value, description, valueColor = "t
     </div>
 );
 
+const launchGoalsOptions = [
+    { id: 'user_growth', label: 'User Growth' },
+    { id: 'retention', label: 'Improve Retention' },
+    { id: 'revenue', label: 'Increase Revenue' },
+    { id: 'market_share', label: 'Gain Market Share' },
+];
 
 export default function InnovationHubPage() {
   const router = useRouter();
@@ -69,9 +76,11 @@ export default function InnovationHubPage() {
   const [featureName, setFeatureName] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
   const [estimatedBudget, setEstimatedBudget] = useState("");
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] =useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<SimulateFeatureLaunchOutput | null>(null);
 
   const getSerializableSimulationState = () => {
@@ -90,7 +99,7 @@ export default function InnovationHubPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!featureName.trim() || !targetAudience.trim() || !estimatedBudget.trim()) {
-      toast({ title: "All Fields Required", description: "Please describe your feature, its audience, and a budget.", variant: "destructive" });
+      toast({ title: "Core Fields Required", description: "Please describe your feature, its audience, and a budget.", variant: "destructive" });
       return;
     }
 
@@ -104,6 +113,8 @@ export default function InnovationHubPage() {
         featureName,
         targetAudience,
         estimatedBudget: parseFloat(estimatedBudget) || 0,
+        selectedAgentIds,
+        launchGoals: selectedGoals as ('user_growth' | 'retention' | 'revenue' | 'market_share')[],
       };
       
       const analysisResults = await simulateFeatureLaunch(input);
@@ -118,6 +129,18 @@ export default function InnovationHubPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleAgentSelection = (agentId: string) => {
+    setSelectedAgentIds(prev =>
+      prev.includes(agentId) ? prev.filter(id => id !== agentId) : [...prev, agentId]
+    );
+  };
+  
+  const handleGoalSelection = (goalId: string) => {
+    setSelectedGoals(prev =>
+      prev.includes(goalId) ? prev.filter(id => id !== goalId) : [...prev, goalId]
+    );
   };
 
   const getChurnIconAndColor = (churnImpact: number) => {
@@ -155,7 +178,7 @@ export default function InnovationHubPage() {
         <div className="lg:col-span-1">
           <Card className="shadow-lg sticky top-8 bg-card/80 backdrop-blur-sm card-glow-hover-primary">
             <CardHeader>
-              <CardTitle>Launch Proposal</CardTitle>
+              <CardTitle>Proposal Capsule</CardTitle>
               <CardDescription>Define your next big move.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -191,6 +214,31 @@ export default function InnovationHubPage() {
                     disabled={isLoading || !isInitialized}
                   />
                 </div>
+                
+                <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><Goal className="h-4 w-4" /> Strategic Goals</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                        {launchGoalsOptions.map(goal => (
+                             <div key={goal.id} className="flex items-center space-x-2 p-2 rounded-md bg-muted/50">
+                                <Checkbox id={`goal-${goal.id}`} checked={selectedGoals.includes(goal.id)} onCheckedChange={() => handleGoalSelection(goal.id)} />
+                                <label htmlFor={`goal-${goal.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{goal.label}</label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> Consulting AI Agents</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                        {agentsList.filter(agent => agent.id !== 'eve-hive-mind').map(agent => (
+                             <div key={agent.id} className="flex items-center space-x-2 p-2 rounded-md bg-muted/50">
+                                <Checkbox id={`agent-${agent.id}`} checked={selectedAgentIds.includes(agent.id)} onCheckedChange={() => handleAgentSelection(agent.id)} />
+                                <label htmlFor={`agent-${agent.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{agent.shortName}</label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 <Button type="submit" className="w-full" disabled={isLoading || !isInitialized}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
                   {isLoading ? "Analyzing..." : "Get AI Analysis"}
