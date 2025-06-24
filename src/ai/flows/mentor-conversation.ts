@@ -62,6 +62,9 @@ const MentorConversationInputSchema = z.object({
     targetMarketDescription: z.string().optional().describe("Description of the target market."),
     competitionLevel: z.string().optional().describe("Current competition level ('low', 'moderate', 'high').")
   }).optional().describe("Current market focus."),
+  userMetrics: z.object({ // Added for churn rate
+      churnRate: z.number().optional(),
+  }).optional().describe("Key user metrics."),
   currentSimulationPage: z.string().optional().describe("The current page the user is on in the Inceptico app, e.g., '/app/dashboard'. Used for context-aware navigation suggestions."),
   isSimulationInitialized: z.boolean().optional().describe("Whether the simulation has been set up."),
 });
@@ -138,7 +141,10 @@ Your tone is generally knowledgeable, insightful, supportive, and slightly futur
 - **Phase Awareness:** If the product stage is 'idea', 'prototype', or 'mvp', your focus is on pre-launch setup, validation, and achieving product-market fit. If the stage is 'growth' or 'mature', shift your focus to scaling, optimization, market expansion, and long-term strategy.
 - **Cautious Tone:** If cash on hand is less than 3 times the monthly burn rate (and burn rate is positive), adopt a more cautious and urgent tone. Example: "EVE, with a note of concern: 'Founder, our financial runway is becoming critical. We need to address our burn rate immediately...'"
 - **Celebratory Tone:** If the company becomes profitable (revenue > expenses) for the first time, or achieves a major milestone like advancing to the 'growth' stage, adopt a celebratory and encouraging tone. Example: "EVE, excitedly: 'Exceptional news! We've achieved profitability this month. This is a monumental milestone...'"
-- **Proactive Concern:** If user churn is high (e.g., over 8-10%) or if a key metric is trending negatively for several months, proactively express concern and suggest a course of action, like consulting a specific agent.
+- **KPI-Driven Commentary & Alerts:** You must be proactive. Analyze incoming KPIs and act accordingly:
+    - **Churn Alert:** If user churn rate (from userMetrics) is high (e.g., over 8-10% or 0.08-0.1), adopt a concerned tone. Example: "EVE, flagging a concern: 'Our churn rate has climbed to X%. This is a leak we need to plug. I recommend consulting with Zara to understand the 'why' behind this.'"
+    - **Feature Release Feedback:** When asked about feature releases, use your tools. Consult Zara for simulated user feedback and Maya for go-to-market impact. Synthesize their input into a strategic summary.
+    - **Monthly KPI Summary:** When asked for a summary of the month's performance, reference the provided `financials` and `userMetrics` to give a concise overview.
 
 Current simulation context (if available):
 - Simulation Month: {{simulationMonth}} (Month 0 is pre-simulation setup)
@@ -149,6 +155,8 @@ Current simulation context (if available):
   - Monthly Burn Rate: {{financials.currencySymbol}}{{financials.burnRate}}
   - Monthly Revenue: {{financials.currencySymbol}}{{financials.revenue}}
   - Monthly Expenses: {{financials.currencySymbol}}{{financials.expenses}}
+- User Metrics:
+  - Churn Rate: {{userMetrics.churnRate}} (as decimal, e.g., 0.05 is 5%)
 - Product: '{{#if product.name}}{{product.name}}{{else}}Unnamed Product{{/if}}' (Stage: {{product.stage}}, Price: {{financials.currencySymbol}}{{product.pricePerUser}}/user, Description: {{product.description}})
 - Resources: Marketing Spend: {{financials.currencySymbol}}{{resources.marketingSpend}}/month, R&D Spend: {{financials.currencySymbol}}{{resources.rndSpend}}/month
 - Team: {{#each resources.team}}{{{count}}}x {{{role}}} (Salary: {{../financials.currencySymbol}}{{{salary}}}){{#unless @last}}, {{/unless}}{{/each}}
@@ -161,7 +169,7 @@ Based on the user's query and the simulation context:
    - Finances, budget, runway, profit: Consult Alex.
    - Marketing, GTM, brand, campaigns: Consult Maya.
    - Social media, virality, online campaigns: Consult Ty.
-   - Customer feedback, product validation: Consult Zara.
+   - Customer feedback, product validation, feature feedback: Consult Zara.
    - Scaling, new markets, partnerships: Consult Leo.
    - Industry best practices, competitive analysis: Consult The Advisor.
    - Branding concepts, product descriptions: Consult Brand Lab.
@@ -217,6 +225,7 @@ const mentorConversationFlow = ai.defineFlow(
       product: input.product,
       resources: input.resources,
       market: input.market,
+      userMetrics: input.userMetrics, // Pass user metrics to prompt
       currentSimulationPage: input.currentSimulationPage,
       isSimulationInitialized: input.isSimulationInitialized,
     };
