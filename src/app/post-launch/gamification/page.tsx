@@ -1,19 +1,53 @@
 
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ScoreDisplay } from "@/components/gamification/score-display";
 import { RewardsCard } from "@/components/gamification/rewards-card";
 import { useSimulationStore } from "@/store/simulationStore";
-import type { Mission, GenerateDynamicMissionsInput } from "@/types/simulation";
-import { generateDynamicMissions } from "@/ai/flows/generate-dynamic-missions-flow";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Trophy, AlertTriangle, ListChecks, Sparkles, Info, Loader2, Wand2 } from "lucide-react";
+import { Trophy, AlertTriangle, ListChecks, Sparkles, Info, DollarSign, Users, Rocket, Globe } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import type { StructuredKeyEvent } from "@/types/simulation";
+
+const MilestoneItem = ({ event }: { event: StructuredKeyEvent }) => (
+  <li className="flex items-start gap-3 p-2 text-sm border-b border-border/50 last:border-b-0">
+    <Sparkles className="h-4 w-4 text-yellow-500 mt-1 shrink-0" />
+    <span className="text-muted-foreground">
+      <span className="font-semibold text-foreground/80">M{event.month}:</span> [{event.category}] {event.description}
+    </span>
+  </li>
+);
+
+const MilestoneCard = ({ title, icon: Icon, milestones, emptyText }: { title: string, icon: React.ElementType, milestones: StructuredKeyEvent[], emptyText: string }) => (
+  <Card className="shadow-lg h-full">
+    <CardHeader>
+      <div className="flex items-center gap-3">
+        <Icon className="h-6 w-6 text-accent" />
+        <CardTitle className="font-headline">{title}</CardTitle>
+      </div>
+      <CardDescription>Key achievements in this category.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <ScrollArea className="h-[250px]">
+        {milestones.length > 0 ? (
+          <ul className="space-y-2">
+            {milestones.map((event, index) => (
+              <MilestoneItem key={event.id || index} event={event} />
+            ))}
+          </ul>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-4">
+            <Info className="h-10 w-10 mb-2" />
+            <p>{emptyText}</p>
+          </div>
+        )}
+      </ScrollArea>
+    </CardContent>
+  </Card>
+);
 
 export default function PostLaunchGamificationPage() {
   const router = useRouter();
@@ -21,15 +55,10 @@ export default function PostLaunchGamificationPage() {
     startupScore, 
     rewards, 
     keyEvents, 
-    missions,
-    setMissions,
     isInitialized, 
     financials, 
     simulationMonth,
-    companyName, userMetrics, product, resources, market, initialGoals, suggestedChallenges,
   } = useSimulationStore();
-  const { toast } = useToast();
-  const [isLoadingMissions, setIsLoadingMissions] = useState(false);
   
   useEffect(() => {
      if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
@@ -37,53 +66,43 @@ export default function PostLaunchGamificationPage() {
     }
   }, [isInitialized, simulationMonth, router]);
 
-  const scoreTrend = startupScore > (useSimulationStore.getState().startupScore - 1) ? "up" : startupScore < (useSimulationStore.getState().startupScore -1 ) ? "down" : "neutral";
+  const scoreTrend = useMemo(() => {
+    return startupScore > (useSimulationStore.getState().startupScore - 1) ? "up" : startupScore < (useSimulationStore.getState().startupScore - 1) ? "down" : "neutral";
+  }, [startupScore]);
 
-  const handleGenerateMissions = async () => {
-    if (!isInitialized) {
-        toast({ title: "Simulation Not Ready", description: "Initialize your simulation to generate missions.", variant: "destructive"});
-        return;
-    }
-    setIsLoadingMissions(true);
-    try {
-        const simStateForAI = {
-            simulationMonth, companyName, financials, userMetrics, product, resources, market, startupScore,
-            keyEvents: keyEvents.slice(-5).map(e => e.description),
-            rewards, initialGoals, missions, suggestedChallenges, isInitialized,
-            currentAiReasoning: null,
-            historicalRevenue: [], historicalUserGrowth: [], historicalBurnRate: [], historicalNetProfitLoss: [],
-            historicalExpenseBreakdown: [], historicalCAC: [], historicalChurnRate: [], historicalProductProgress: [],
-            sandboxState: null, isSandboxing: false, sandboxRelativeMonth: 0,
-        };
-
-        const input: GenerateDynamicMissionsInput = {
-            simulationStateJSON: JSON.stringify(simStateForAI),
-            recentEvents: keyEvents.slice(-3).map(e => e.description),
-            currentGoals: initialGoals,
-        };
-        const result = await generateDynamicMissions(input);
-        setMissions(result.generatedMissions);
-        toast({ title: "New Missions Generated!", description: "The AI has suggested new objectives."});
-    } catch (error) {
-        console.error("Error generating dynamic missions:", error);
-        toast({ title: "Mission Generation Failed", description: "Could not get new missions from AI.", variant: "destructive"});
-    } finally {
-        setIsLoadingMissions(false);
-    }
-  };
-
-  const achievements = keyEvents
+  const financialMilestones = useMemo(() => keyEvents
     .filter(event => 
-        event.category === "Product" || event.category === "Financial" ||
-        (event.category === "General" && event.impact === "Positive") ||
-        event.description.toLowerCase().includes("milestone") || 
-        event.description.toLowerCase().includes("achieved") || 
-        event.description.toLowerCase().includes("unlocked") ||
-        event.description.toLowerCase().includes("reward earned:") ||
-        event.description.toLowerCase().includes("product advanced to")
+        (event.category === "Financial" && event.impact === "Positive") ||
+        event.description.toLowerCase().includes("revenue target") ||
+        event.description.toLowerCase().includes("profitable") ||
+        event.description.toLowerCase().includes("funding")
     )
-    .slice(-10) 
-    .reverse();
+    .slice(-10).reverse(), [keyEvents]);
+
+  const userMilestones = useMemo(() => keyEvents
+    .filter(event => 
+        event.category === "User" ||
+        event.description.toLowerCase().includes("user milestone") ||
+        event.description.toLowerCase().includes(" mau") // space before to avoid "manual"
+    )
+    .slice(-10).reverse(), [keyEvents]);
+    
+  const productMilestones = useMemo(() => keyEvents
+    .filter(event => 
+        event.category === "Product" ||
+        event.description.toLowerCase().includes("product advanced to") ||
+        event.description.toLowerCase().includes("feature launch") ||
+        event.description.toLowerCase().includes("release")
+    )
+    .slice(-10).reverse(), [keyEvents]);
+
+  const marketMilestones = useMemo(() => keyEvents
+    .filter(event => 
+        event.category === "Market" ||
+        event.description.toLowerCase().includes("market expansion") ||
+        event.description.toLowerCase().includes("new market")
+    )
+    .slice(-10).reverse(), [keyEvents]);
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
@@ -92,7 +111,7 @@ export default function PostLaunchGamificationPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Simulation Not Initialized</AlertTitle>
           <AlertDescription>
-            Please go to the "Setup Simulation" page to initialize your digital twin before viewing gamification progress.
+            Please go to the "Setup Simulation" page to initialize your digital twin.
              <Button onClick={() => router.push('/app/setup')} className="mt-2 ml-2" size="sm">Go to Setup</Button>
           </AlertDescription>
         </Alert>
@@ -108,7 +127,7 @@ export default function PostLaunchGamificationPage() {
       </header>
 
       <div className="mb-8">
-        <ScoreDisplay score={isInitialized ? startupScore : 0} trend={isInitialized ? scoreTrend : "neutral"} />
+        <ScoreDisplay score={isInitialized ? startupScore : 0} trend={scoreTrend} />
       </div>
       
       {financials.cashOnHand <= 0 && isInitialized && (
@@ -121,37 +140,34 @@ export default function PostLaunchGamificationPage() {
         </Alert>
       )}
 
-      <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2">
-        <Card className="shadow-lg h-full">
-            <CardHeader>
-                <div className="flex items-center gap-3">
-                    <Sparkles className="h-6 w-6 text-accent" />
-                    <CardTitle className="font-headline">Key Events & Milestones</CardTitle>
-                </div>
-                <CardDescription>Recent notable occurrences and achievements from your simulation journey.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ScrollArea className="h-[250px]">
-                {isInitialized && achievements.length > 0 ? (
-                    <ul className="space-y-2">
-                    {achievements.map((event, index) => (
-                        <li key={event.id || index} className="flex items-start gap-3 p-2 text-sm border-b border-border/50 last:border-b-0">
-                            <Sparkles className="h-4 w-4 text-yellow-500 mt-1 shrink-0" />
-                            <span className="text-muted-foreground"><span className="font-semibold text-foreground/80">M{event.month}:</span> [{event.category}] {event.description}</span>
-                        </li>
-                    ))}
-                    </ul>
-                ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-4">
-                        <ListChecks className="h-10 w-10 mb-2" />
-                        <p>No significant events or milestones recorded yet.</p>
-                        <p className="text-xs">Advance the simulation to see achievements here.</p>
-                    </div>
-                )}
-                </ScrollArea>
-            </CardContent>
-        </Card>
-        <RewardsCard rewards={isInitialized ? rewards : []} />
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="lg:col-span-3">
+            <RewardsCard rewards={isInitialized ? rewards : []} />
+        </div>
+        <MilestoneCard 
+          title="Financial Milestones" 
+          icon={DollarSign} 
+          milestones={financialMilestones} 
+          emptyText="No major financial milestones achieved yet."
+        />
+        <MilestoneCard 
+          title="User Growth Milestones" 
+          icon={Users} 
+          milestones={userMilestones}
+          emptyText="No significant user growth milestones reached."
+        />
+        <MilestoneCard 
+          title="Product & Release Milestones" 
+          icon={Rocket} 
+          milestones={productMilestones}
+          emptyText="No new product releases or stage advancements recorded."
+        />
+        <MilestoneCard 
+          title="Market Expansion" 
+          icon={Globe} 
+          milestones={marketMilestones}
+          emptyText="No market expansion events have occurred yet."
+        />
       </div>
     </div>
   );
