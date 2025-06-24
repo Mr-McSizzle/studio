@@ -631,3 +631,42 @@ export const CompetitorAnalysisOutputSchema = z.object({
   strategicRecommendations: z.array(z.string()).describe("High-level strategic recommendations for the user's startup to navigate the competitive environment."),
 });
 export type CompetitorAnalysisOutput = z.infer<typeof CompetitorAnalysisOutputSchema>;
+
+// Post-Launch Agent Tool Schemas
+export const VictoriaInvestorRelationsToolInputSchema = z.object({
+  query: z.string().describe("Specific question for Victoria about investor relations, e.g., 'Help me draft a pitch deck summary', 'What's a reasonable valuation for a Series A round?', 'How to approach VCs?'"),
+  companyFinancials: z.any().optional().describe("Key financial metrics (revenue, profit, burn rate) for context."),
+  companyTraction: z.string().optional().describe("Key traction metrics (user growth, major partnerships, etc.).")
+});
+export type VictoriaInvestorRelationsToolInput = z.infer<typeof VictoriaInvestorRelationsToolInputSchema>;
+
+export const VictoriaInvestorRelationsToolOutputSchema = z.object({
+  advice: z.string().describe("Advice on fundraising, pitch decks, valuation, or investor communication from Victoria."),
+});
+export type VictoriaInvestorRelationsToolOutput = z.infer<typeof VictoriaInvestorRelationsToolOutputSchema>;
+
+
+export const CharlesProductOfficerToolInputSchema = z.object({
+  query: z.string().describe("Specific question for Charles about product strategy, e.g., 'Help prioritize our product roadmap for Q3', 'What's the best GTM strategy for this new feature?', 'Analyze customer feedback for feature X.'"),
+  productRoadmap: z.array(z.string()).optional().describe("Current or proposed product roadmap features."),
+  customerFeedback: z.string().optional().describe("Summary of recent customer feedback."),
+});
+export type CharlesProductOfficerToolInput = z.infer<typeof CharlesProductOfficerToolInputSchema>;
+
+export const CharlesProductOfficerToolOutputSchema = z.object({
+  recommendation: z.string().describe("Strategic product advice, roadmap prioritization, or GTM recommendations from Charles."),
+});
+export type CharlesProductOfficerToolOutput = z.infer<typeof CharlesProductOfficerToolOutputSchema>;
+
+
+export const ReggieRiskMitigatorToolInputSchema = z.object({
+  query: z.string().describe("Specific question for Reggie about risk management, e.g., 'What are the biggest market risks for our business?', 'Develop a contingency plan for a potential server outage', 'Analyze financial risks in our Q4 forecast.'"),
+  areaOfConcern: z.enum(['market', 'operational', 'financial', 'legal', 'strategic']).describe("The primary area of risk to analyze."),
+  context: z.string().optional().describe("Additional context about the specific situation or plan to be analyzed."),
+});
+export type ReggieRiskMitigatorToolInput = z.infer<typeof ReggieRiskMitigatorToolInputSchema>;
+
+export const ReggieRiskMitigatorToolOutputSchema = z.object({
+  riskAnalysis: z.string().describe("A detailed risk analysis, including identified risks, potential impact, probability, and mitigation strategies from Reggie."),
+});
+export type ReggieRiskMitigatorToolOutput = z.infer<typeof ReggieRiskMitigatorToolOutputSchema>;

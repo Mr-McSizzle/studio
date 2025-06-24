@@ -16,30 +16,30 @@ interface PuzzlePieceProps {
 
 const puzzleVariants = {
   initial: { scale: 1, y: 0, boxShadow: "0 1px 3px hsla(var(--card-foreground)/0.1)" },
-  hover: { // Float and scale effect on hover for unlocked pieces
+  hover: {
     scale: 1.08,
-    y: -5, // Float effect
+    y: -5,
     boxShadow: "0 10px 20px hsla(var(--accent)/0.25), 0 6px 6px hsla(var(--accent)/0.15)",
     transition: { type: "spring", stiffness: 300, damping: 15 }
   },
-  locked: { scale: 1, opacity: 0.65, filter: "grayscale(80%)" }, // More distinct grayscale for locked
-  unlockedEntryStart: { scale: 0.6, opacity: 0, filter: "blur(4px)", y: 15 }, // Start of unlock animation
-  unlockedAnimated: { // Animation for when a piece becomes unlocked
+  locked: { scale: 1, opacity: 0.65, filter: "grayscale(80%)" },
+  unlockedEntryStart: { scale: 0.6, opacity: 0, filter: "blur(4px)", y: 15 },
+  unlockedAnimated: {
     scale: 1,
     opacity: 1,
     filter: "blur(0px)",
     y: 0,
-    boxShadow: [ // Subtle glow animation
-      "0 0 0px 0px hsla(var(--accent)/0)",        // Start with no shadow
-      "0 0 12px 6px hsla(var(--accent)/0.35)",   // Subtle glow peak
-      "0 0 6px 3px hsla(var(--accent)/0.2)",     // Fade out glow
-      "0 1px 3px hsla(var(--card-foreground)/0.1)" // Normal resting shadow
+    boxShadow: [
+      "0 0 0px 0px hsla(var(--accent)/0)",
+      "0 0 12px 6px hsla(var(--accent)/0.35)",
+      "0 0 6px 3px hsla(var(--accent)/0.2)",
+      "0 1px 3px hsla(var(--card-foreground)/0.1)"
     ],
     transition: {
       type: "spring",
       stiffness: 180,
       damping: 12,
-      duration: 0.6, // Overall duration for scale, opacity, filter, y
+      duration: 0.6,
       boxShadow: { 
         duration: 0.6, 
         times: [0, 0.4, 0.8, 1], 
@@ -52,12 +52,9 @@ const puzzleVariants = {
 
 export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }) => {
   const IconComponent = milestone.icon || (milestone.isUnlocked ? CheckCircle : Lock);
-  // Unlocked pieces are colorful (green check, specific icon color if provided)
-  // Locked pieces are muted/grayscale via the filter and iconColor choice
   const iconColor = milestone.isUnlocked ? 'text-green-500' : 'text-muted-foreground/50';
   const borderColor = milestone.isUnlocked ? 'border-green-500/60' : 'border-dashed border-border/60';
   const bgColor = milestone.isUnlocked ? 'bg-green-500/10' : 'bg-muted/20';
-
   const [initialRenderComplete, setInitialRenderComplete] = useState(false);
 
   useEffect(() => {
@@ -65,21 +62,15 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }
   }, []);
 
   const getInitialVariantState = () => {
-    if (milestone.isUnlocked) {
-      return "unlockedStatic";
-    }
-    return "locked"; 
+    return milestone.isUnlocked ? "unlockedStatic" : "locked"; 
   };
 
   const getAnimateVariantState = () => {
     if (!initialRenderComplete) {
         return milestone.isUnlocked ? "unlockedStatic" : "locked";
     }
-    // If the piece is unlocked, trigger the 'unlockedAnimated' variant.
-    // If it's locked, trigger the 'locked' variant.
     return milestone.isUnlocked ? "unlockedAnimated" : "locked";
   };
-
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -99,7 +90,7 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ milestone, className }
             variants={puzzleVariants}
             initial={getInitialVariantState()} 
             animate={getAnimateVariantState()} 
-            whileHover={milestone.isUnlocked ? "hover" : undefined} // Hover effect only for unlocked pieces
+            whileHover={milestone.isUnlocked ? "hover" : undefined}
           >
             <IconComponent className={cn("w-5 h-5 sm:w-6 sm:h-6 mb-1", iconColor)} />
             {milestone.isUnlocked && (

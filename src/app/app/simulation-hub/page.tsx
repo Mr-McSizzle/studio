@@ -18,8 +18,8 @@ export default function SimulationHubPage() {
       title: "Post-Launch Simulation",
       description: "Navigate growth, innovation, and survival after launch.",
       icon: TrendingUp,
-      href: "#",
-      disabled: true,
+      href: "/app/post-launch/dashboard",
+      disabled: false,
     },
   ];
 
