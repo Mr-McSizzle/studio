@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSimulationStore } from "@/store/simulationStore";
@@ -83,6 +83,12 @@ export default function InnovationHubPage() {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<SimulateFeatureLaunchOutput | null>(null);
 
+  useEffect(() => {
+    if (!isInitialized) {
+      router.replace('/app/post-launch/setup');
+    }
+  }, [isInitialized, router]);
+  
   const getSerializableSimulationState = () => {
     // Abridged state for the AI
     return {
