@@ -67,7 +67,7 @@ Example Output Structure for the 'generatedMissions' array:
 [
   { "title": "Achieve First Profitable Month", "description": "Adjust your strategy (pricing, expenses, user acquisition) to make your monthly revenue exceed total monthly expenses for the first time.", "rewardText": "+15 Startup Score, +$10,000 Cash Injection", "difficulty": "medium" },
   { "title": "Counter Competitor Z's Marketing Blitz", "description": "Analyze Competitor Z's recent aggressive marketing (mentioned in events) and launch a targeted counter-campaign or product enhancement to retain market share within the next 2 months. Consult Maya for ideas.", "rewardText": "+10 Startup Score, 'Strategic Thinker' Badge", "difficulty": "hard" },
-  { "title": "Resolve Feature Glitch X", "description": "Based on recent user feedback (simulated or from events), prioritize R&D to fix the critical glitch in Feature X within one month to improve user satisfaction and reduce churn.", "rewardText": "+8 Startup Score, User Loyalty Boost", "difficulty": "medium" }
+  { "title": "Resolve Feature Glitch X", "description": "Based on recent user feedback (simulated or from events), prioritize R&D to fix the critical glitch in Feature X within one month to improve user satisfaction and reduce related churn.", "rewardText": "+8 Startup Score, User Loyalty Boost", "difficulty": "medium" }
 ]
 
 The output MUST be a single JSON object matching the GenerateDynamicMissionsOutputSchema, containing an array named 'generatedMissions'. Each object in the array must conform to the fields: title (string), description (string), rewardText (string), and optionally difficulty (enum: 'easy', 'medium', 'hard').
@@ -99,4 +99,3 @@ const generateDynamicMissionsGenkitFlow = ai.defineFlow(
     return output;
   }
 );
-
