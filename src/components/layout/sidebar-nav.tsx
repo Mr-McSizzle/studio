@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 
 const preLaunchNavItems = [
