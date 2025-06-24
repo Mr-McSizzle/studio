@@ -54,7 +54,7 @@ const particleVariants = {
 
 
 export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
-  missions,
+  missions = [],
   onMissionToggle,
   title,
   puzzleId,
