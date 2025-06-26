@@ -26,6 +26,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Strategic Coordination", "Personalized Guidance", "Insight Synthesis", "Simulation Navigation"],
     actionText: "Consult EVE",
     actionLink: "/app/mentor",
+    voiceId: "21m00Tcm4TlvDq8ikWAM", // Rachel
   },
   {
     id: "alex-accountant",
@@ -41,6 +42,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Budgeting & Forecasting", "Cash Flow Management", "Runway Calculation", "Financial Planning"],
     actionText: "Chat with Alex",
     actionLink: "/app/agents/alex-accountant",
+    voiceId: "pNInz6obpgDQGcFmaJgB", // Adam
   },
   {
     id: "maya-marketing-guru",
@@ -56,6 +58,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Go-To-Market Strategy", "Brand Building", "Campaign Design", "Market Positioning"],
     actionText: "Chat with Maya",
     actionLink: "/app/agents/maya-marketing-guru",
+    voiceId: "jBpfuIE2acCO8z3wKNLl", // Gigi
   },
   {
     id: "ty-social-media",
@@ -71,6 +74,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Social Media Strategy (Organic & Paid)", "Campaign Mockups", "Virality Prediction", "Community Engagement"],
     actionText: "Chat with Ty",
     actionLink: "/app/agents/ty-social-media",
+    voiceId: "MF3mGyEYCl7XYWbV9V6O", // Elli
   },
   {
     id: "zara-focus-group",
@@ -86,6 +90,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Simulated Customer Feedback", "Product Validation", "Brand Perception Analysis", "Concept Testing"],
     actionText: "Chat with Zara",
     actionLink: "/app/agents/zara-focus-group",
+    voiceId: "piTKgcLEGmPE4e6mEKli", // Nicole
   },
   {
     id: "leo-expansion-expert",
@@ -101,6 +106,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Market Expansion Strategy", "Operational Scaling", "Internationalization", "Partnership Development", "Risk Assessment"],
     actionText: "Chat with Leo",
     actionLink: "/app/agents/leo-expansion-expert",
+    voiceId: "ErXwobaYiN019PkySvjV", // Antoni
   },
   {
     id: "the-advisor",
@@ -116,6 +122,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Industry Best Practices", "Competitive Analysis", "Market Positioning", "Strategic Trend Spotting"],
     actionText: "Chat with Advisor",
     actionLink: "/app/agents/the-advisor",
+    voiceId: "JBFqnCBsd6RMkjVDRZzb", // George
   },
   {
     id: "brand-lab",
@@ -131,10 +138,10 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Branding Concept Feedback", "Product Description Analysis", "Visual Identity Review", "Market Trend Alignment"],
     actionText: "Chat with Brand Lab",
     actionLink: "/app/agents/brand-lab",
+    voiceId: "jsCqWAovK2LkecY7zXl4", // Freya
   },
 ];
 
 export const getAgentProfileById = (id: string): AIAgentProfile | undefined => {
   return agentsList.find(agent => agent.id === id);
 };
-

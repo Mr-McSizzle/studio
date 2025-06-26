@@ -136,11 +136,11 @@ export interface StructuredKeyEvent {
 
 // Interface for earned badges, now part of DigitalTwinState
 export interface EarnedBadge {
-  questId: string; // To link to the completed quest
+  questId: string;
   name: string;
   description: string;
-  icon?: string; // Lucide icon name
-  dateEarned: string; // ISO date string
+  icon?: string;
+  dateEarned: string;
 }
 
 // Founder Archetype
@@ -267,6 +267,7 @@ export interface AIAgentProfile {
   specialties: string[];
   actionText: string;
   actionLink?: string;
+  voiceId?: string; // For ElevenLabs TTS
 }
 
 // Snapshot type for saving simulation states
