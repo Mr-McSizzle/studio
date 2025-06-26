@@ -89,7 +89,7 @@ export default function TodoPage() {
               </SheetDescription>
             </SheetHeader>
             <div className="flex-grow overflow-y-hidden">
-              <ChatInterface />
+              <ChatInterface isEmbedded />
             </div>
              <div className="p-4 border-t">
                 <SheetClose asChild>

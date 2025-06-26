@@ -15,19 +15,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface ChatInterfaceProps {
   focusedAgentId?: string;
   focusedAgentName?: string;
+  isEmbedded?: boolean;
 }
 
 const EVE_MAIN_CHAT_CONTEXT_ID = "eve_main_chat";
 
-export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfaceProps) {
+export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = false }: ChatInterfaceProps) {
   const { messages: allMessages, addMessage, setGuidance, initializeGreeting } = useAiMentorStore();
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const simStore = useSimulationStore(); // Get the whole store instance
@@ -52,10 +54,8 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
   }, [allMessages, currentChatContext]);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  }, [displayedMessages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [displayedMessages, isLoading]);
 
   useEffect(() => {
     initializeGreeting(currentChatContext, focusedAgentId, focusedAgentName);
@@ -83,9 +83,11 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
     setIsLoading(true);
 
     try {
-      const conversationHistoryForAI = [...useAiMentorStore.getState().messages].map(msg => ({
-        role: msg.role as 'user' | 'assistant' | 'tool_response',
-        content: msg.content
+      const conversationHistoryForAI = [...useAiMentorStore.getState().messages]
+        .filter(msg => msg.role !== 'system') // Filter out system messages
+        .map(msg => ({
+          role: msg.role as 'user' | 'assistant' | 'tool_response',
+          content: msg.content
       }));
 
       const mentorInput: MentorConversationInput = {
@@ -103,7 +105,8 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
         product: isInitialized ? {
           name: product.name,
           stage: product.stage,
-          pricePerUser: product.pricePerUser
+          pricePerUser: product.pricePerUser,
+          description: product.features.join(', ')
         } : undefined,
         resources: isInitialized ? {
           marketingSpend: resources.marketingSpend,
@@ -186,10 +189,13 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
 
   return (
     <div
-      className="flex flex-col h-[calc(100vh-15rem)] max-h-[800px] bg-card shadow-lg rounded-lg"
+      className={cn(
+        "flex flex-col bg-card shadow-lg rounded-lg",
+        isEmbedded ? "h-full" : "h-[calc(100vh-15rem)] max-h-[800px]"
+        )}
       data-guidance-target="chat-container"
     >
-      <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
+      <ScrollArea className="flex-grow p-4">
         <div className="space-y-2">
           {displayedMessages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
@@ -210,6 +216,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName }: ChatInterfac
                 </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
       <form
