@@ -78,10 +78,19 @@ export default function AgentCallPage() {
   }, [toast]);
 
   const startListening = () => {
+    // This function is now more robust against rapid/duplicate calls.
     if (recognitionRef.current && callStatus !== "listening") {
+      setCallStatus("listening"); // Set state first to guard against re-entry
       setTranscript("");
-      recognitionRef.current.start();
-      setCallStatus("listening");
+      try {
+        // Attempt to start recognition
+        recognitionRef.current.start();
+      } catch (error) {
+        // If starting fails (e.g., microphone not available), revert state
+        console.error("Error starting speech recognition:", error);
+        setCallStatus("error");
+        toast({ title: "Voice Recognition Error", description: "Could not start microphone.", variant: "destructive" });
+      }
     }
   };
 
