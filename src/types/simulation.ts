@@ -673,3 +673,16 @@ export const SimulateFeatureLaunchOutputSchema = z.object({
   }).describe("Qualitative feedback and analysis from the AI team."),
 });
 export type SimulateFeatureLaunchOutput = z.infer<typeof SimulateFeatureLaunchOutputSchema>;
+
+
+// Text-to-Speech Flow Schemas
+export const TextToSpeechInputSchema = z.object({
+  text: z.string().describe('The text to convert to speech.'),
+  voiceId: z.string().optional().describe('The agent voice ID. This will be mapped to a Gemini prebuilt voice. If not provided, a default voice will be used.'),
+});
+export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
+
+export const TextToSpeechOutputSchema = z.object({
+  audioDataUri: z.string().describe("The generated audio as a Base64 encoded data URI (e.g., 'data:audio/wav;base64,...')."),
+});
+export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;

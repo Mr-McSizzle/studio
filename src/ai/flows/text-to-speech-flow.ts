@@ -10,19 +10,8 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { z } from 'zod';
 import wav from 'wav';
-
-export const TextToSpeechInputSchema = z.object({
-  text: z.string().describe('The text to convert to speech.'),
-  voiceId: z.string().optional().describe('The agent voice ID. This will be mapped to a Gemini prebuilt voice. If not provided, a default voice will be used.'),
-});
-export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
-
-export const TextToSpeechOutputSchema = z.object({
-  audioDataUri: z.string().describe("The generated audio as a Base64 encoded data URI (e.g., 'data:audio/wav;base64,...')."),
-});
-export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;
+import { TextToSpeechInputSchema, TextToSpeechOutputSchema, type TextToSpeechInput, type TextToSpeechOutput } from '@/types/simulation';
 
 export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpeechOutput> {
   return textToSpeechFlow(input);
