@@ -30,8 +30,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const { isAuthenticated, userName, userEmail, logout } = useAuthStore();
   const { 
-    isInitialized: simIsInitialized, 
-    simulationMonth,
+    isInitialized: simIsInitialized,
     savedSimulations,
     loadSimulation,
     deleteSavedSimulation,
@@ -69,6 +68,12 @@ export default function ProfilePage() {
     setIsLoadingAction(false);
   };
 
+  const handleConceptualFeatureClick = (featureName: string) => {
+    toast({
+      title: "Conceptual Feature",
+      description: `${featureName} is not yet implemented in this prototype.`,
+    });
+  };
 
   if (!isAuthenticated) {
     return (
@@ -122,13 +127,12 @@ export default function ProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="w-full justify-start gap-2" disabled>
+            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => handleConceptualFeatureClick('Profile information updates')}>
                 <User className="h-4 w-4"/> Update Profile Information
             </Button>
-            <Button variant="outline" className="w-full justify-start gap-2" disabled>
+            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => handleConceptualFeatureClick('Password changes')}>
                 <ShieldAlert className="h-4 w-4"/> Change Password
             </Button>
-            <p className="text-xs text-muted-foreground text-center pt-2">(User detail editing coming soon)</p>
           </CardContent>
         </Card>
 
@@ -229,3 +233,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

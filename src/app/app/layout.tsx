@@ -19,54 +19,65 @@ import {
   SidebarFooter,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/authStore"; 
 import { DynamicGuidanceSystem } from "@/components/guidance/DynamicGuidanceSystem";
 import { SurpriseEventModal } from "@/components/dashboard/SurpriseEventModal";
 
-function UserProfileDropdown() {
+function UserProfileFooter() {
   const router = useRouter();
   const { userName, userEmail, logout } = useAuthStore();
-  
+
   const handleLogout = () => {
-    logout(); 
+    logout();
     router.push('/login');
   };
 
-  const handleProfile = () => {
-    router.push('/app/profile');
-  };
-
-  const handleDashboard = () => { 
-    router.push('/app/dashboard');
-  };
-
-  if (!userName && !userEmail) return null;
-
   return (
-    <div className="group relative">
-      <button className="flex items-center gap-2 p-2 rounded-md hover:bg-sidebar-accent/10 transition-colors w-full text-left">
-        <Avatar className="h-8 w-8 border-2 border-sidebar-accent">
-          <AvatarImage src={`https://placehold.co/40x40.png?text=${userName ? userName.charAt(0).toUpperCase() : 'F'}`} alt={userName || "Founder"} data-ai-hint="letter avatar"/>
-          <AvatarFallback>{userName ? userName.charAt(0).toUpperCase() : "F"}</AvatarFallback>
-        </Avatar>
-        <div className="text-sm group-data-[sidebar-state=collapsed]:hidden">
-          <p className="font-semibold text-sidebar-foreground truncate max-w-[100px]">{userName || "Founder"}</p>
-          <p className="text-xs text-sidebar-foreground/70 truncate max-w-[100px]">{userEmail || "No email"}</p>
-        </div>
-      </button>
-      <div className="absolute bottom-full mb-2 left-0 w-full min-w-[180px] bg-sidebar border border-sidebar-border rounded-md shadow-xl p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto group-data-[sidebar-state=collapsed]:left-full group-data-[sidebar-state=collapsed]:bottom-auto group-data-[sidebar-state=collapsed]:top-0 group-data-[sidebar-state=collapsed]:ml-2">
-        <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleDashboard}>
-          <LayoutDashboard className="mr-2 h-4 w-4"/> Dashboard 
-        </Button>
-        <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleProfile}>
-          <Settings className="mr-2 h-4 w-4"/> Profile
-        </Button>
-        <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4"/> Logout
-        </Button>
-      </div>
+    <div className="flex flex-col gap-1">
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 p-2 h-auto text-left"
+              onClick={() => router.push('/app/profile')}
+            >
+              <Avatar className="h-8 w-8 border-2 border-sidebar-accent">
+                <AvatarImage src={`https://placehold.co/40x40.png?text=${userName ? userName.charAt(0).toUpperCase() : 'F'}`} alt={userName || "Founder"} data-ai-hint="letter avatar"/>
+                <AvatarFallback>{userName ? userName.charAt(0).toUpperCase() : "F"}</AvatarFallback>
+              </Avatar>
+              <div className="text-sm group-data-[sidebar-state=collapsed]:hidden">
+                <p className="font-semibold text-sidebar-foreground truncate max-w-[100px]">{userName || "Founder"}</p>
+                <p className="text-xs text-sidebar-foreground/70 truncate max-w-[100px]">{userEmail || "No email"}</p>
+              </div>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" align="start" className="group-data-[sidebar-state=expanded]:hidden bg-popover/80 backdrop-blur-lg border-accent/50">
+            <p>{userName || "Founder Profile"}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[sidebar-state=expanded]:justify-start group-data-[sidebar-state=collapsed]:justify-center"
+              onClick={handleLogout}
+              aria-label="Logout"
+            >
+              <LogOut className="h-4 w-4 group-data-[sidebar-state=expanded]:mr-2" />
+              <span className="group-data-[sidebar-state=collapsed]:hidden">Logout</span>
+            </Button>
+          </TooltipTrigger>
+           <TooltipContent side="right" align="start" className="group-data-[sidebar-state=expanded]:hidden bg-popover/80 backdrop-blur-lg border-accent/50">
+            <p>Logout</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }
@@ -147,7 +158,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               <SidebarNav />
             </SidebarContent>
             <SidebarFooter className="p-2 border-t border-sidebar-border">
-              <UserProfileDropdown />
+              <UserProfileFooter />
             </SidebarFooter>
           </Sidebar>
 
@@ -175,7 +186,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                     <MobileSidebarNav onLinkClick={closeMobileSheet} />
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-sidebar-border">
-                    <UserProfileDropdown />
+                    <UserProfileFooter />
                   </div>
                 </SheetContent>
               </Sheet>
@@ -193,4 +204,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </TooltipProvider>
   );
 }
+    
+
     
