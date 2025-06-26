@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/authStore"; 
 import { DynamicGuidanceSystem } from "@/components/guidance/DynamicGuidanceSystem";
 import { SurpriseEventModal } from "@/components/dashboard/SurpriseEventModal";
+import { MonthlySummaryModal } from "@/components/dashboard/MonthlySummaryModal";
 
 function UserProfileFooter() {
   const router = useRouter();
@@ -152,6 +153,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           {children}
           <DynamicGuidanceSystem />
           <SurpriseEventModal />
+          <MonthlySummaryModal />
         </div>
       </TooltipProvider>
     );
@@ -223,6 +225,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </div>
         <DynamicGuidanceSystem /> 
         <SurpriseEventModal />
+        <MonthlySummaryModal />
       </SidebarProvider>
     </TooltipProvider>
   );

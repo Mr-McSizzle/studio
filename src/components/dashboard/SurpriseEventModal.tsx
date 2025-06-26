@@ -12,8 +12,10 @@ export const SurpriseEventModal = () => {
     })
   );
 
-  const handleResolve = (outcome: 'accepted' | 'rejected') => {
-    resolveSurpriseEvent(outcome);
+  const handleResolve = (outcome: 'accepted' | 'rejected' | 'acknowledged') => {
+    if (outcome === 'accepted' || outcome === 'rejected') {
+      resolveSurpriseEvent(outcome);
+    }
   };
   
   return (

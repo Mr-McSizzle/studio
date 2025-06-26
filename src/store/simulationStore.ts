@@ -88,7 +88,7 @@ export interface EarnedBadge {
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'historicalInvestorSentiment' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory' | 'activeScenarios'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'historicalInvestorSentiment' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory' | 'activeScenarios' | 'activeMonthlySummary'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -158,6 +158,7 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
   activeSurpriseEvent: null,
   surpriseEventHistory: [],
   activeScenarios: [],
+  activeMonthlySummary: null,
 });
 
 interface SimulationActions {
@@ -186,6 +187,7 @@ interface SimulationActions {
   resolveSurpriseEvent: (outcome: 'accepted' | 'rejected') => void;
   addScenario: (scenario: string) => void;
   removeScenario: (scenario: string) => void;
+  acknowledgeMonthlySummary: () => void;
 }
 
 const parseMonetaryValue = (value: string | number | undefined): number => {
@@ -232,6 +234,7 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     activeSurpriseEvent: state.activeSurpriseEvent,
     surpriseEventHistory: state.surpriseEventHistory,
     activeScenarios: state.activeScenarios,
+    activeMonthlySummary: state.activeMonthlySummary,
   };
 };
 
@@ -695,33 +698,29 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             
             newState.currentAiReasoning = aiOutput.aiReasoning || "AI completed simulation. Reasoning not explicitly provided.";
             
-            const { addMessage } = useAiMentorStore.getState();
-            let debriefMessage = `EVE: Month ${newState.simulationMonth} concluded.\nCash is now ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, and active users are at ${newState.userMetrics.activeUsers.toLocaleString()}.\n`;
-            debriefMessage += `This month's net profit/loss: ${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}.\n`;
+            // Build and trigger the monthly summary
+            const summaryTitle = `Month ${newState.simulationMonth} Debrief`;
+            let summaryDescription = `Cash is now **${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}**, and active users are at **${newState.userMetrics.activeUsers.toLocaleString()}**.\nThis month's net profit/loss was **${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}**.`;
             
             if (aiOutput.keyEventsGenerated.length > 0) {
               const firstEvent = aiOutput.keyEventsGenerated[0];
-              debriefMessage += `A notable event was: "${firstEvent.description.substring(0, 80)}${firstEvent.description.length > 80 ? '...' : ''}" (${firstEvent.impact}).\n`;
+              summaryDescription += `\n\nA notable event was: *"${firstEvent.description.substring(0, 100)}${firstEvent.description.length > 100 ? '...' : ''}"*`;
             }
             
-            let strategicQuestion = "I have assigned new objectives for the upcoming month, Founder. You can view them on your Todo List.";
+            summaryDescription += "\n\nNew objectives have been assigned. Review them on your Dashboard or Todo List.";
+            
             if (newState.financials.cashOnHand < newState.financials.burnRate * 2 && newState.financials.burnRate > 0) {
-                strategicQuestion = "Our cash reserves are getting low. Consider this while tackling your new objectives.";
-            } else if (aiOutput.keyEventsGenerated.some(e => e.category === "Competitor" && e.impact === "Negative")) {
-                strategicQuestion = "A competitor made a significant move. Your new objectives may reflect a need to respond.";
+              summaryDescription += "\n\n**Warning:** Our cash reserves are critically low.";
             }
-            debriefMessage += `\n${strategicQuestion}`;
-            addMessage({
-              id: `eve-debrief-${newState.simulationMonth}-${Date.now()}`,
-              role: "assistant",
-              content: debriefMessage,
-              timestamp: new Date(),
-              agentContextId: EVE_MAIN_CHAT_CONTEXT_ID,
-            });
 
+            newState.activeMonthlySummary = {
+              title: summaryTitle,
+              description: summaryDescription,
+            };
+            
             set(newState);
 
-            if (Math.random() < 0.75) { // 75% chance to trigger a surprise event
+            if (Math.random() < 0.75) { 
               get().triggerSurpriseEvent();
             }
 
@@ -1141,7 +1140,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
       },
 
       triggerSurpriseEvent: () => set(state => {
-        if (state.activeSurpriseEvent) return state;
+        if (state.activeSurpriseEvent || state.activeMonthlySummary) return state;
 
         const historicEventIds = new Set(state.surpriseEventHistory.map(h => h.eventId));
         const availableEvents = predefinedSurpriseEvents.filter(event => !historicEventIds.has(event.id));
@@ -1222,6 +1221,9 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
       removeScenario: (scenario) => set((state) => ({
         activeScenarios: state.activeScenarios.filter(s => s !== scenario),
       })),
+
+      acknowledgeMonthlySummary: () => set({ activeMonthlySummary: null }),
+
     }),
     {
       name: 'inceptico-simulation-storage',
@@ -1342,6 +1344,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         mergedState.activeSurpriseEvent = mergedState.activeSurpriseEvent || null;
         mergedState.surpriseEventHistory = Array.isArray(mergedState.surpriseEventHistory) ? mergedState.surpriseEventHistory : [];
         mergedState.activeScenarios = Array.isArray(mergedState.activeScenarios) ? mergedState.activeScenarios : [];
+        mergedState.activeMonthlySummary = mergedState.activeMonthlySummary || null;
 
         return mergedState as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
       },

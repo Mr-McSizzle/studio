@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Zap, Check, X } from 'lucide-react';
 import { TavusVideoPlaceholder } from './TavusVideoPlaceholder';
+import { cn } from '@/lib/utils';
 
 interface EveEventOverlayProps {
   isOpen: boolean;
   title: string;
   description: string;
+  mode?: 'decision' | 'summary';
   acceptOption: {
     label: string;
     description: string;
@@ -20,7 +22,7 @@ interface EveEventOverlayProps {
     label: string;
     description: string;
   };
-  onResolve: (outcome: 'accepted' | 'rejected') => void;
+  onResolve: (outcome: 'accepted' | 'rejected' | 'acknowledged') => void;
 }
 
 const overlayVariants = {
@@ -53,6 +55,7 @@ export const EveEventOverlay: React.FC<EveEventOverlayProps> = ({
   isOpen,
   title,
   description,
+  mode = 'decision',
   acceptOption,
   rejectOption,
   onResolve,
@@ -82,44 +85,64 @@ export const EveEventOverlay: React.FC<EveEventOverlayProps> = ({
                  <Zap className="h-5 w-5 text-accent" />
                  <h2 className="text-2xl font-headline text-accent">{title}</h2>
               </div>
-              <p className="text-base text-muted-foreground mb-6">
-                {description}
-              </p>
+              <div
+                className="text-base text-muted-foreground mb-6 prose prose-sm dark:prose-invert max-w-none text-center"
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
             </div>
 
             <div className="flex justify-center gap-4">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => onResolve('rejected')}
-                      variant="outline"
-                      className="flex-1 bg-destructive/10 border-destructive text-destructive hover:bg-destructive/20 hover:text-destructive hover:border-destructive/80"
-                      aria-label={rejectOption.label}
-                    >
-                      <X className="mr-2 h-5 w-5" /> {rejectOption.label}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p>{rejectOption.description}</p>
-                  </TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => onResolve('accepted')}
-                      className="flex-1 bg-primary hover:bg-primary/90"
-                      aria-label={acceptOption.label}
-                    >
-                      <Check className="mr-2 h-5 w-5" /> {acceptOption.label}
-                    </Button>
-                  </TooltipTrigger>
-                   <TooltipContent side="bottom">
-                    <p>{acceptOption.description}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {mode === 'decision' ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={() => onResolve('rejected')}
+                        variant="outline"
+                        className="flex-1 bg-destructive/10 border-destructive text-destructive hover:bg-destructive/20 hover:text-destructive hover:border-destructive/80"
+                        aria-label={rejectOption.label}
+                      >
+                        <X className="mr-2 h-5 w-5" /> {rejectOption.label}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>{rejectOption.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={() => onResolve('accepted')}
+                        className="flex-1 bg-primary hover:bg-primary/90"
+                        aria-label={acceptOption.label}
+                      >
+                        <Check className="mr-2 h-5 w-5" /> {acceptOption.label}
+                      </Button>
+                    </TooltipTrigger>
+                     <TooltipContent side="bottom">
+                      <p>{acceptOption.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <TooltipProvider>
+                   <Tooltip>
+                     <TooltipTrigger asChild>
+                       <Button
+                          onClick={() => onResolve('acknowledged')}
+                          className="flex-1 bg-primary hover:bg-primary/90"
+                          aria-label={acceptOption.label}
+                        >
+                          <Check className="mr-2 h-5 w-5" /> {acceptOption.label}
+                        </Button>
+                     </TooltipTrigger>
+                     <TooltipContent side="bottom">
+                       <p>{acceptOption.description}</p>
+                     </TooltipContent>
+                   </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           </motion.div>
         </motion.div>
