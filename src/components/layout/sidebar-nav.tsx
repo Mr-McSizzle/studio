@@ -17,6 +17,7 @@ import {
   ListTodo, 
   TrendingUp,
   FlaskConical,
+  SlidersHorizontal,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ const preLaunchNavItems = [
 
 const postLaunchNavItems = [
     { href: "/app/post-launch/dashboard", label: "Quarterly Dashboard", icon: TrendingUp },
+    { href: "/app/post-launch/controls", label: "Control Room", icon: SlidersHorizontal },
     { href: "/app/post-launch/mentor", label: "Growth Hive Mind", icon: MessageSquare },
     { href: "/app/post-launch/agents", label: "Growth AI Team", icon: Users },
     { href: "/app/post-launch/innovation", label: "Innovation Hub", icon: FlaskConical },
