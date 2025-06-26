@@ -17,6 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChallengeHex } from "@/components/dashboard/ChallengeHex";
+import { StageUnlockAnimationOverlay } from "@/components/dashboard/StageUnlockAnimationOverlay";
 
 const challenges = [
   {
@@ -62,6 +63,8 @@ export default function DashboardPage() {
   } = useSimulationStore();
   
   const [isSimulating, setIsSimulating] = useState(false);
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+  const [hasCelebrated, setHasCelebrated] = useState(false);
 
   useEffect(() => {
     if (!isInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
@@ -69,13 +72,25 @@ export default function DashboardPage() {
     }
   }, [isInitialized, simulationMonth, router]);
 
+  const areMissionsComplete = missions.length > 0 && missions.every(m => m.isCompleted);
+
+  useEffect(() => {
+    if (areMissionsComplete && !hasCelebrated) {
+      setShowCompletionAnimation(true);
+      setHasCelebrated(true);
+    }
+    // Reset celebration state if missions become incomplete (e.g. after advancing month)
+    if (!areMissionsComplete && hasCelebrated) {
+      setHasCelebrated(false);
+    }
+  }, [areMissionsComplete, hasCelebrated]);
+
   const handleAdvanceMonth = async () => {
     setIsSimulating(true);
     await advanceMonth();
     setIsSimulating(false);
   };
 
-  const areMissionsComplete = missions.length > 0 && missions.every(m => m.isCompleted);
   const currencySymbol = financials?.currencySymbol || "$";
   const isGameOver = isInitialized && financials.cashOnHand <= 0;
   const isLowCash = isInitialized && financials.cashOnHand > 0 && financials.burnRate > 0 && financials.cashOnHand < (2 * financials.burnRate);
@@ -97,6 +112,12 @@ export default function DashboardPage() {
 
   return (
     <TooltipProvider>
+      <StageUnlockAnimationOverlay
+        isOpen={showCompletionAnimation}
+        title="Objectives Complete!"
+        message="Excellent work, Founder! You've cleared all directives for this period."
+        onComplete={() => setShowCompletionAnimation(false)}
+      />
       <div className="container mx-auto py-8 px-4 md:px-0">
         <header className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl font-headline text-foreground">{companyName} - Month {simulationMonth}</h1>

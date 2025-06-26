@@ -111,53 +111,6 @@ export const HexPuzzleBoard: React.FC<HexPuzzleBoardProps> = ({ missions }) => {
                 <p className="text-sm text-muted-foreground">Complete tasks from your Quest Log to assemble the hive.</p>
             </motion.div>
         )}
-        
-        <AnimatePresence>
-            {isComplete && (
-                 <>
-                    {/* Ripple Effect Container */}
-                    <motion.div
-                        key="ripple-container"
-                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1, transition: { delay: 0.2 } }}
-                        exit={{ opacity: 0 }}
-                    >
-                         {/* The actual ripple div */}
-                        <motion.div
-                            className="absolute border-2 border-accent/80"
-                            style={{
-                                width: 50,
-                                height: 50,
-                                clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                            }}
-                            initial={{ scale: 0.5, opacity: 0.8 }}
-                            animate={{
-                                scale: 8,
-                                opacity: 0,
-                            }}
-                            transition={{
-                                duration: 1.2,
-                                ease: "easeOut",
-                            }}
-                        />
-                    </motion.div>
-                    
-                    {/* Completion Message Container */}
-                    <motion.div
-                        key="completion-message"
-                        className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-accent/30 via-primary/20 to-accent/30 backdrop-blur-sm"
-                        style={{ clipPath: 'inherit' }}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.5 }}
-                    >
-                        <CheckCircle className="w-16 h-16 text-green-400 mb-4 filter drop-shadow-[0_0_10px_#22c55e]"/>
-                        <p className="text-xl font-bold text-foreground text-glow-accent">Month's Objectives Complete!</p>
-                    </motion.div>
-                 </>
-            )}
-        </AnimatePresence>
     </div>
   );
 };
