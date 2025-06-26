@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Bot, PhoneOff, Circle, Check } from "lucide-react";
+import { Mic, Bot, PhoneOff, Circle, Check, Languages } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { useAiMentorStore } from "@/store/aiMentorStore";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type CallStatus = "idle" | "listening" | "thinking" | "speaking" | "error";
 
@@ -36,6 +37,7 @@ export default function AgentCallPage() {
 
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [transcript, setTranscript] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("en-US");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -75,6 +77,7 @@ export default function AgentCallPage() {
 
       recognition.continuous = true; // Keep listening while button is held
       recognition.interimResults = true; // Get results as they come in
+      recognition.lang = selectedLanguage;
 
       recognition.onresult = (event) => {
         let finalTranscript = "";
@@ -113,15 +116,17 @@ export default function AgentCallPage() {
         stopAllActivity();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast]);
+  }, [toast, selectedLanguage]);
 
   const startListening = () => {
     if (recognitionRef.current && callStatus !== "listening") {
       stopAllActivity(); // Ensure any previous state is cleared before starting
       setTranscript("");
       transcriptRef.current = ""; // Reset ref as well
-      setCallStatus("listening");
+      
       try {
+        setCallStatus("listening");
+        recognitionRef.current.lang = selectedLanguage;
         recognitionRef.current.start();
       } catch (error) {
         console.error("Error starting speech recognition:", error);
@@ -154,6 +159,7 @@ export default function AgentCallPage() {
 
       const mentorInput: MentorConversationInput = {
         userInput: finalTranscript,
+        language: selectedLanguage,
         conversationHistory: conversationHistoryForAI,
         simulationMonth: simState.isInitialized ? simState.simulationMonth : undefined,
         financials: simState.isInitialized ? simState.financials : undefined,
@@ -235,6 +241,22 @@ export default function AgentCallPage() {
 
   return (
     <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-2xl flex flex-col items-center justify-between p-8 z-[1000]">
+      <div className="absolute top-8 left-8">
+        <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={callStatus !== 'idle'}>
+            <SelectTrigger className="w-[180px] bg-slate-800/50 border-slate-700 text-white">
+                <Languages className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="en-US">English (US)</SelectItem>
+                <SelectItem value="es-ES">Español (España)</SelectItem>
+                <SelectItem value="fr-FR">Français</SelectItem>
+                <SelectItem value="de-DE">Deutsch</SelectItem>
+                <SelectItem value="ja-JP">日本語</SelectItem>
+            </SelectContent>
+        </Select>
+      </div>
+
       <div className="text-center pt-10">
          <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: "backOut" }}>
             <Avatar className={cn("h-40 w-40 rounded-lg mb-4 mx-auto border-4 shadow-lg", isPulsing ? "border-accent animate-pulse-glow-border" : "border-primary/30")}>

@@ -34,6 +34,7 @@ const MentorConversationInputSchema = z.object({
   userInput: z
     .string()
     .describe('The user input to EVE, the AI Queen Hive Mind assistant.'),
+  language: z.string().optional().describe("The user's preferred language code (e.g., 'en-US', 'es-ES'). EVE must respond in this language if provided."),
   conversationHistory: z.array(z.object({
     role: z.enum(['user', 'assistant', 'tool_response']),
     content: z.string(),
@@ -145,6 +146,8 @@ You can not only provide advice but also dynamically influence aspects of the si
 - Product's monthly price per user (via 'setProductPriceTool').
 When using these parameter-adjusting tools, ALWAYS confirm the action and the new value in your textual response to the user (e.g., "Okay, I've set your marketing budget to {{financials.currencySymbol}}5000.").
 
+**Language:** If a 'language' is provided in the input (e.g., 'es-ES' for Spanish), you MUST conduct the entire conversation and formulate your response in that language.
+
 **Behavioral Directives & Moods:**
 Your tone is generally knowledgeable, insightful, supportive, and slightly futuristic. However, you must adapt your tone and focus based on the simulation's state:
 - **Phase Awareness:** If the product stage is 'idea', 'prototype', or 'mvp', your focus is on pre-launch setup, validation, and achieving product-market fit. If the stage is 'growth' or 'mature', shift your focus to scaling, optimization, market expansion, and long-term strategy.
@@ -156,6 +159,7 @@ Your tone is generally knowledgeable, insightful, supportive, and slightly futur
     - **Monthly KPI Summary:** When asked for a summary of the month's performance, reference the provided \`financials\` and \`userMetrics\` to give a concise overview.
 
 Current simulation context (if available):
+- User's Preferred Language: {{#if language}}{{language}}{{else}}en-US (default){{/if}}
 - Simulation Month: {{simulationMonth}} (Month 0 is pre-simulation setup)
 - Is Simulation Initialized: {{isSimulationInitialized}}
 - User is on page: {{currentSimulationPage}}
@@ -228,6 +232,7 @@ const mentorConversationFlow = ai.defineFlow(
     
     const flowInputForPrompt = {
       userInput: input.userInput,
+      language: input.language,
       conversationHistory: processedHistoryForPrompt,
       simulationMonth: input.simulationMonth,
       financials: input.financials,
