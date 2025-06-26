@@ -51,7 +51,6 @@ const postLaunchNavItems = [
     { href: "/app/post-launch/mentor", label: "Growth Hive Mind", icon: MessageSquare },
     { href: "/app/post-launch/agents", label: "Growth AI Team", icon: Users },
     { href: "/app/post-launch/innovation", label: "Innovation Hub", icon: FlaskConical },
-    { href: "/app/post-launch/todo", label: "Quarterly Objectives", icon: ListTodo },
     { href: "/app/post-launch/gamification", label: "Growth Milestones", icon: Trophy },
 ];
 
