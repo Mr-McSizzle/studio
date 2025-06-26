@@ -9,7 +9,7 @@ import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target, DollarSign, TrendingUp, Percent, Users, MessageSquare, FileSignature, Brain, Wand2, Zap, Network, UsersRound, ChevronRight } from "lucide-react";
+import { Loader2, AlertTriangle, Lightbulb, Rocket, FileText, Activity, Target, DollarSign, TrendingUp, Percent, Users, MessageSquare, FileSignature, Brain, Wand2, Zap, Network, UsersRound, ChevronRight, Link as LinkIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,7 @@ const archetypes: { id: FounderArchetype; title: string; description: string; ic
   { id: 'innovator', title: "The Disruptive Innovator", description: "Focuses on groundbreaking products and R&D, aiming to redefine the market. May involve higher initial risk for greater potential reward.", icon: Zap },
   { id: 'scaler', title: "The Lean Scaler", description: "Prioritizes operational efficiency, rapid market penetration, and sustainable growth. Emphasizes metrics and process optimization.", icon: Network },
   { id: 'community_builder', title: "The Community Builder", description: "Builds a strong user base through engagement, feedback, and fostering loyalty. Values brand reputation and user-centric development.", icon: UsersRound },
+  { id: 'blockchain_visionary', title: "The Blockchain Visionary", description: "Operates on the frontiers of Web3, focusing on protocol development, tokenomics, and decentralized governance.", icon: LinkIcon },
 ];
 
 const eveFeedbacks: Record<string, Record<string, { message: string; threshold: number | string }>> = {
@@ -277,7 +278,7 @@ export default function SetupSimulationPage() {
               <CardTitle className="flex items-center gap-2"><Lightbulb className="h-6 w-6 text-primary"/>Choose Your Founder's Calling</CardTitle>
               <CardDescription>Select an archetype that best represents your primary approach. This will subtly influence your simulation's starting conditions and potential challenges.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-3 gap-6">
+            <CardContent className="grid md:grid-cols-2 gap-6">
               {archetypes.map(archetype => {
                 const Icon = archetype.icon;
                 return (
@@ -574,3 +575,5 @@ export default function SetupSimulationPage() {
     </>
   );
 }
+
+    

@@ -144,7 +144,7 @@ export interface EarnedBadge {
 }
 
 // Founder Archetype
-export const FounderArchetypeEnum = z.enum(['innovator', 'scaler', 'community_builder']);
+export const FounderArchetypeEnum = z.enum(['innovator', 'scaler', 'community_builder', 'blockchain_visionary']);
 export type FounderArchetype = z.infer<typeof FounderArchetypeEnum>;
 
 
@@ -736,3 +736,5 @@ export type SubmitToRedditInput = z.infer<typeof SubmitToRedditInputSchema>;
 // The output of this flow is the same as the tool's output
 export const SubmitToRedditOutputSchema = RedditToolOutputSchema;
 export type SubmitToRedditOutput = z.infer<typeof SubmitToRedditOutputSchema>;
+
+    

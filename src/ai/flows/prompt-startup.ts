@@ -26,7 +26,7 @@ const PromptStartupInputSchema = z.object({
   initialTeamSetupNotes: z.string().optional().describe('User notes on desired initial team structure or key roles (e.g., "Two technical co-founders, 1 marketing intern"). AI should interpret this for the coreTeam structure.'),
   initialProductFeatures: z.array(z.string()).optional().describe('A list of key initial product features the user envisions (e.g., ["User Authentication", "Dashboard Analytics", "AI Content Suggestions"]).'),
   initialIP: z.string().optional().describe('Any initial intellectual property, unique assets, or proprietary technology the startup possesses (e.g., "Patented algorithm for X", "Exclusive dataset Y").'),
-  selectedArchetype: FounderArchetypeEnum.optional().describe("The founder's chosen archetype (e.g., 'innovator', 'scaler', 'community_builder'). This should subtly influence initial conditions."),
+  selectedArchetype: FounderArchetypeEnum.optional().describe("The founder's chosen archetype (e.g., 'innovator', 'scaler', 'community_builder', 'blockchain_visionary'). This should subtly influence initial conditions."),
 });
 export type PromptStartupInput = z.infer<typeof PromptStartupInputSchema>;
 
@@ -58,6 +58,7 @@ Founder Archetype Selected: {{{selectedArchetype}}}
 - If 'innovator': Slightly lean towards higher initial R&D focus or more ambitious product features. Maybe a slightly higher initial burn rate if justified by R&D.
 - If 'scaler': Slightly lean towards operational efficiency, perhaps a more defined initial team structure for execution, or goals related to market penetration.
 - If 'community_builder': Slightly lean towards lower initial marketing spend but perhaps suggest initial goals around user engagement or early adopter feedback. Consider features that foster community.
+- If 'blockchain_visionary': Lean towards a crypto-native concept. The product name might be "protocol" or include "DAO". The target market should be "Web3 enthusiasts". Initial IP could be "novel consensus mechanism". Initial goals should be related to "token distribution" or "decentralized governance". Generate a company name that sounds like a Web3 project (e.g., 'EthosProtocol', 'DeFiForge', 'QuantumLedger').
 These influences should be SUBTLE and not override the user's main prompt details significantly.
 
 Optional Specific Goals from User:
@@ -95,7 +96,7 @@ Based on ALL available information, generate:
         - currencyCode: Set this to {{{currencyCode}}}.
     - initialGoals: One or two key short-term objectives. If the user provided specific goals (growth, profit, CAC), incorporate them or related stepping stones here. Consider {{{selectedArchetype}}} for thematic goals.
 
-2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges. These should be specific and actionable. If the user set ambitious goals, challenges should reflect the difficulty of achieving these. Consider the chosen {{{selectedArchetype}}} for thematic challenges (e.g., an 'innovator' might face challenges in market adoption, a 'scaler' in maintaining quality).
+2. Suggested Challenges: A JSON array of 3-5 strings outlining potential strategic challenges. These should be specific and actionable. If the user set ambitious goals, challenges should reflect the difficulty of achieving these. Consider the chosen {{{selectedArchetype}}} for thematic challenges (e.g., an 'innovator' might face challenges in market adoption, a 'scaler' in maintaining quality, a 'blockchain_visionary' in regulatory hurdles).
 
 ABSOLUTELY CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
 - YOUR ENTIRE RESPONSE MUST BE A SINGLE JSON OBJECT.
@@ -120,7 +121,7 @@ function sanitizeJsonString(jsonString: string): string {
     return jsonString;
   }
   // Remove trailing commas from objects and arrays
-  let sanitized = jsonString.replace(/,\s*(?=[}\]])/g, '');
+  let sanitized = jsonString.replace(/,\\s*(?=[}\]])/g, '');
   return sanitized;
 }
 
@@ -199,3 +200,4 @@ const promptStartupFlow = ai.defineFlow(
   }
 );
 
+    

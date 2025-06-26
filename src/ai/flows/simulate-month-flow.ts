@@ -61,6 +61,7 @@ Current State (Month {{{currentSimulationMonth}}}):
   - Target Market: {{{market.targetMarketDescription}}}
 - Current Startup Score: {{{currentStartupScore}}}/100
 - Current Investor Sentiment: {{{currentInvestorSentiment}}}/100
+- Founder Archetype: (This is an internal setting, but if it were 'blockchain_visionary', your logic would adapt)
 
 {{#if activeScenarios}}
 Active Strategic Scenarios to consider:
@@ -82,7 +83,7 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
         *   Ensure 'newUserAcquisition' is a whole number. Minimal acquisition (organic/word-of-mouth only) if marketing spend is zero.
 
 2.  **Financial Calculations:**
-    *   Calculated Revenue = Updated Active Users * Price Per User. If an active scenario like 'Freemium Launch' is active, new users this month might generate 0 revenue.
+    *   Calculated Revenue = Updated Active Users * Price Per User. If an active scenario like 'Freemium Launch' is active, new users this month might generate 0 revenue. For a blockchain visionary, this might be "Protocol Fees".
     *   Expense Breakdown & Total Expenses:
         *   Provide 'expenseBreakdown' (salaries, marketing, rnd, operational).
         *   'salaries': Sum of (count * salary) for all team members.
@@ -107,10 +108,10 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Valid categories: ${KeyEventCategoryEnum.options.join(', ')}.
     *   Valid impacts: ${KeyEventImpactEnum.options.join(', ')}.
     *   **Event Diversity and Narrative:**
-        *   **Competitor Actions (Frequent):** Regularly include events like "Competitor Alpha launches a surprise new feature, directly challenging ours," "A new well-funded startup, Gamma Innovations, enters your primary market segment," or "Key competitor Beta reduces prices by 15%."
-        *   **Market Shifts:** (e.g., "New technology X emerges, potentially disrupting your market.", "Consumer sentiment shifts towards Y, impacting demand for features like Z.")
+        *   **Competitor Actions (Frequent):** Regularly include events like "Competitor Alpha launches a surprise new feature, directly challenging ours," "A new well-funded startup, Gamma Innovations, enters your primary market segment," or "Key competitor Beta reduces prices by 15%." For a blockchain visionary, this could be "A rival protocol launches with higher staking rewards."
+        *   **Market Shifts:** (e.g., "New technology X emerges, potentially disrupting your market.", "Consumer sentiment shifts towards Y, impacting demand for features like Z.") For blockchain, "Regulatory uncertainty causes market FUD (Fear, Uncertainty, Doubt)."
         *   **Operational Issues:** (e.g., "Minor server outage caused brief service disruption.", "Team morale noticeably high after successful feature launch.")
-        *   **"Eureka!" Moment (Rare, Positive):** Trigger these occasionally, especially if R&D spend has been consistently high or the team composition is strong in relevant areas. Examples: "R&D team has a breakthrough, significantly speeding up development of upcoming Feature Alpha by 20% for 2 months!" (Describe the benefit clearly; if it's a % boost, the productDevelopmentDelta should reflect this, or it can be a 'rewardGranted'), "Unexpected viral mention on a major tech blog leads to a temporary surge in signups and reduces CAC by 30% this month."
+        *   **"Eureka!" Moment (Rare, Positive):** Trigger these occasionally, especially if R&D spend has been consistently high or the team composition is strong in relevant areas. Examples: "R&D team has a breakthrough, significantly speeding up development of upcoming Feature Alpha by 20% for 2 months!" (Describe the benefit clearly; if it's a % boost, the productDevelopmentDelta should reflect this, or it can be a 'rewardGranted'), "Unexpected viral mention on a major tech blog leads to a temporary surge in signups and reduces CAC by 30% this month." For blockchain, "A partnership with a major exchange is announced, boosting protocol visibility."
         *   **"Setbacks" (Minor Negative, Unexpected):** These are challenges not directly tied to player error. Examples: "A critical software subscription used by your team increased its price by 20%, impacting operational costs.", "Recruiting for a senior engineer is proving more difficult than anticipated, delaying potential hires by a month.", "A minor data privacy regulation update requires 5 hours of unplanned compliance work by the tech team."
         *   **Consequential Feel:** While not explicitly remembering past events, generate events that *feel* like they could be consequences of earlier situations or market trends. For example, if competition was 'high' and marketing spend was low, a market share loss event is plausible. If R&D was high, a "Eureka!" moment is more plausible.
     *   Event 1: Should generally be more impactful or directly tied to player decisions or major simulation outcomes.
@@ -119,7 +120,8 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
 
 5.  **Rewards Granted (Optional):**
     *   If a major milestone was achieved (significant user growth, product stage advancement, first profitability, successful navigation of a crisis revealed in events, OR if a "Eureka!" moment grants a specific boon), grant 1-2 thematic rewards.
-    *   Example for a Eureka: { name: "R&D Breakthrough", description: "Development speed increased by 20% for the next 2 months due to an innovative discovery." } (The actual application of this buff would be handled by the simulation store based on this description).
+    *   Example for a Eureka: { name: "R&D Breakthrough", description: "Development speed increased by 20% for the next 2 months due to an innovative discovery." }
+    *   For a Blockchain Visionary, a stage advancement reward could be: { name: "Proof-of-Milestone NFT Minted", description: "A simulated NFT has been minted to commemorate reaching the MVP stage. TxID: 0x... (Simulated)" }
 
 6.  **Startup Score Adjustment:**
     *   Integer adjustment based on overall performance (profitability, cash flow, user growth, product milestones, event impacts).
@@ -231,7 +233,7 @@ const simulateMonthGenkitFlow = ai.defineFlow(
             console.warn(`AI returned ${output.keyEventsGenerated.length} events, expected 2. Padding/truncating if necessary.`);
             // Basic padding/truncating - could be more sophisticated
             while(output.keyEventsGenerated.length < 2) {
-                output.keyEventsGenerated.push({description: "Placeholder event due to AI under-generation.", category: "General", impact: "Neutral"});
+                output.keyEventsGenerated.push({description: "Placeholder event due to AI under-generation.", category: "System", impact: "Neutral"});
             }
             if(output.keyEventsGenerated.length > 2) {
                 output.keyEventsGenerated = output.keyEventsGenerated.slice(0, 2);
@@ -249,6 +251,5 @@ const simulateMonthGenkitFlow = ai.defineFlow(
     return output;
   }
 );
-
 
     
