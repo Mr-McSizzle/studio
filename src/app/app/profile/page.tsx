@@ -3,11 +3,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { User, Settings, History, LogOut, ShieldAlert, Building, Palette, ListRestart, Trash2, Loader2 } from "lucide-react";
+import { User, Settings, History, LogOut, ShieldAlert, Building, Palette, ListRestart, Trash2, Loader2, Rocket } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -98,9 +99,17 @@ export default function ProfilePage() {
                 <p className="text-muted-foreground">{userEmail || "No email set"}</p>
             </div>
         </div>
-        <Button onClick={handleLogout} variant="outline" className="bg-destructive/10 border-destructive text-destructive hover:bg-destructive/20">
-          <LogOut className="mr-2 h-5 w-5" /> Logout
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button asChild variant="outline">
+            <Link href="/app/launchpad">
+              <Rocket className="mr-2 h-4 w-4" />
+              Back to Launchpad
+            </Link>
+          </Button>
+          <Button onClick={handleLogout} variant="outline" className="bg-destructive/10 border-destructive text-destructive hover:bg-destructive/20">
+            <LogOut className="mr-2 h-5 w-5" /> Logout
+          </Button>
+        </div>
       </header>
       
        {!simIsInitialized && (

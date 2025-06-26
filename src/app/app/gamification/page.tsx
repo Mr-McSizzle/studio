@@ -2,6 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from 'next/link';
 import { ScoreDisplay } from "@/components/gamification/score-display";
 import { RewardsCard, type Reward } from "@/components/gamification/rewards-card";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -9,7 +10,7 @@ import type { Mission, GenerateDynamicMissionsInput } from "@/types/simulation";
 import { generateDynamicMissions } from "@/ai/flows/generate-dynamic-missions-flow";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trophy, AlertTriangle, ListChecks, Sparkles, Info, Loader2, Wand2 } from "lucide-react";
+import { Trophy, AlertTriangle, ListChecks, Sparkles, Info, Loader2, Wand2, Rocket } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -102,14 +103,22 @@ export default function GamificationPage() {
           </AlertDescription>
         </Alert>
       )}
-      <header className="mb-8">
-        <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
-            <Trophy className="h-8 w-8 text-accent" />
-            Progress & Achievements
-        </h1>
-        <p className="text-muted-foreground">
-          Track your startup score, earned rewards, active missions, and key milestones achieved within the Inceptico AI simulation.
-        </p>
+      <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
+              <Trophy className="h-8 w-8 text-accent" />
+              Progress & Achievements
+          </h1>
+          <p className="text-muted-foreground">
+            Track your startup score, earned rewards, active missions, and key milestones achieved within the Inceptico AI simulation.
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/app/launchpad">
+            <Rocket className="mr-2 h-4 w-4" />
+            Back to Launchpad
+          </Link>
+        </Button>
       </header>
 
       <div className="mb-8">
