@@ -46,6 +46,37 @@ async function toWav(
 }
 
 
+// Full list of available Google TTS prebuilt voices for mapping.
+// We use the ElevenLabs Voice IDs from agentsData.ts as keys to map to these Google voices.
+const GOOGLE_VOICE_MAP: Record<string, string> = {
+    // Original Mappings (for consistency with previous setup)
+    '21m00Tcm4TlvDq8ikWAM': 'Algenib',    // Rachel (F) -> EVE -> Algenib (F)
+    'pNInz6obpgDQGcFmaJgB': 'Antares',    // Adam (M) -> Alex -> Antares (M)
+    'jBpfuIE2acCO8z3wKNLl': 'Caph',       // Gigi (F) -> Maya -> Caph (F)
+    'piTKgcLEGmPE4e6mEKli': 'Hadar',      // Nicole (F) -> Zara -> Hadar (F)
+    'JBFqnCBsd6RMkjVDRZzb': 'Enif',       // George (M) -> The Advisor -> Enif (M)
+    
+    // Re-mapped voices for more variety
+    'MF3mGyEYCl7XYWbV9V6O': 'Spica',      // Elli (F) -> Ty -> Spica (F)
+    'ErXwobaYiN019PkySvjV': 'Rigel',      // Antoni (M) -> Leo -> Rigel (M)
+    'jsCqWAovK2LkecY7zXl4': 'Vega',       // Freya (F) -> Brand Lab -> Vega (F)
+    
+    // You can assign any of the remaining ElevenLabs IDs to these other available Google voices:
+    // --- Other Available Male Voices ---
+    // 'some_other_elevenlabs_id': 'Achernar',
+    // 'some_other_elevenlabs_id': 'Aldebaran',
+    // 'some_other_elevenlabs_id': 'Pollux',
+    // 'some_other_elevenlabs_id': 'Procyon',
+    // 'some_other_elevenlabs_id': 'Bellatrix',
+    
+    // --- Other Available Female Voices ---
+    // 'some_other_elevenlabs_id': 'Canopus',
+    // 'some_other_elevenlabs_id': 'Mira',
+    // 'some_other_elevenlabs_id': 'Sirius',
+    // 'some_other_elevenlabs_id': 'Deneb',
+};
+
+
 const textToSpeechFlow = ai.defineFlow(
   {
     name: 'textToSpeechFlow',
@@ -53,19 +84,8 @@ const textToSpeechFlow = ai.defineFlow(
     outputSchema: TextToSpeechOutputSchema,
   },
   async (input) => {
-    // Map ElevenLabs voice ID to Gemini voice name
-    const elevenLabsVoiceMap: Record<string, string> = {
-        '21m00Tcm4TlvDq8ikWAM': 'Algenib', // Rachel -> Algenib (Female)
-        'pNInz6obpgDQGcFmaJgB': 'Antares', // Adam -> Antares (Male)
-        'jBpfuIE2acCO8z3wKNLl': 'Caph', // Gigi -> Caph (Female)
-        'MF3mGyEYCl7XYWbV9V6O': 'Deneb', // Elli -> Deneb (Female)
-        'piTKgcLEGmPE4e6mEKli': 'Hadar',  // Nicole -> Hadar (Female)
-        'ErXwobaYiN019PkySvjV': 'Bellatrix', // Antoni -> Bellatrix (Male)
-        'JBFqnCBsd6RMkjVDRZzb': 'Enif', // George -> Enif (Male)
-        'jsCqWAovK2LkecY7zXl4': 'Fomalhaut', // Freya -> Fomalhaut (Female)
-    };
-
-    const selectedVoiceName = input.voiceId ? (elevenLabsVoiceMap[input.voiceId] || 'Algenib') : 'Algenib';
+    // Select the voice from the map, or fall back to Algenib (EVE's voice) if not found.
+    const selectedVoiceName = input.voiceId ? (GOOGLE_VOICE_MAP[input.voiceId] || 'Algenib') : 'Algenib';
     
     const { media } = await ai.generate({
       model: googleAI.model('gemini-2.5-flash-preview-tts'),
