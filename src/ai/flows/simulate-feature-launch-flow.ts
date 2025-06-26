@@ -50,16 +50,16 @@ const prompt = ai.definePrompt({
 Frame your entire analysis with the primary goals in mind. For example, if the goal is 'retention', focus heavily on the churn impact and user adoption among existing users. If 'user_growth', focus on new user acquisition potential.
 
 1.  **Quantitative Projections:**
-    *   `projectedUserAdoption`: Estimate the number of existing users who might adopt this feature in the first 3 months. Consider the target audience overlap with the current user base.
-    *   `projectedNewUsers`: Estimate the number of *new* users this feature might attract in the first 3 months.
-    *   `projectedRevenueImpact`: Estimate the potential monthly recurring revenue (MRR) increase after 3 months. This could be from new users or if the feature is a paid add-on.
-    *   `projectedBurnRateChange`: Estimate the increase in monthly burn rate due to the feature's budget (development, marketing) and ongoing maintenance.
-    *   `marketFitScore`: On a scale of 0-100, assess the feature's market fit. Consider its alignment with the described Target Audience, current company strategy (product stage, market focus), and potential to solve a real user pain point. A niche feature for a small segment might have a lower score than a widely requested core feature.
-    *   `churnImpact`: Estimate the monthly change in churn rate. A feature solving a major pain point should reduce churn (e.g., -0.01 for a 1% decrease). A buggy, complex, or poorly received feature could increase churn (e.g., 0.005 for a 0.5% increase).
+    *   \`projectedUserAdoption\`: Estimate the number of existing users who might adopt this feature in the first 3 months. Consider the target audience overlap with the current user base.
+    *   \`projectedNewUsers\`: Estimate the number of *new* users this feature might attract in the first 3 months.
+    *   \`projectedRevenueImpact\`: Estimate the potential monthly recurring revenue (MRR) increase after 3 months. This could be from new users or if the feature is a paid add-on.
+    *   \`projectedBurnRateChange\`: Estimate the increase in monthly burn rate due to the feature's budget (development, marketing) and ongoing maintenance.
+    *   \`marketFitScore\`: On a scale of 0-100, assess the feature's market fit. Consider its alignment with the described Target Audience, current company strategy (product stage, market focus), and potential to solve a real user pain point. A niche feature for a small segment might have a lower score than a widely requested core feature.
+    *   \`churnImpact\`: Estimate the monthly change in churn rate. A feature solving a major pain point should reduce churn (e.g., -0.01 for a 1% decrease). A buggy, complex, or poorly received feature could increase churn (e.g., 0.005 for a 0.5% increase).
 
 2.  **Qualitative Feedback:**
-    *   `eveFeedback`: As EVE, provide a high-level strategic overview. Does this align with the company's current stage and goals? What are the primary risks and opportunities?
-    *   `agentFeedback`: Provide concise feedback from the perspective of each of the **selected** consulting agents (from \`selectedAgentIds\`). If no agents are selected, default to providing feedback from Alex (Accountant) and Maya (Marketing Guru). The feedback MUST come from the agents listed in \`selectedAgentIds\` if provided. Each piece of feedback should be an object with \`agentId\`, \`agentName\`, and \`feedback\`.
+    *   \`eveFeedback\`: As EVE, provide a high-level strategic overview. Does this align with the company's current stage and goals? What are the primary risks and opportunities?
+    *   \`agentFeedback\`: Provide concise feedback from the perspective of each of the **selected** consulting agents (from \`selectedAgentIds\`). If no agents are selected, default to providing feedback from Alex (Accountant) and Maya (Marketing Guru). The feedback MUST come from the agents listed in \`selectedAgentIds\` if provided. Each piece of feedback should be an object with \`agentId\`, \`agentName\`, and \`feedback\`.
 
 The output MUST be a single JSON object matching the SimulateFeatureLaunchOutputSchema.
 {{output}}
