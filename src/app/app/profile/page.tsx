@@ -1,39 +1,76 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { User, Settings, History, LogOut, ShieldAlert, Building, Palette } from "lucide-react";
+import { User, Settings, History, LogOut, ShieldAlert, Building, Palette, ListRestart, Trash2, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { isAuthenticated, userName, userEmail, logout } = useAuthStore();
-  const { isInitialized: simIsInitialized, simulationMonth } = useSimulationStore(); // Renamed to avoid conflict
+  const { 
+    isInitialized: simIsInitialized, 
+    simulationMonth,
+    savedSimulations,
+    loadSimulation,
+    deleteSavedSimulation,
+  } = useSimulationStore();
+
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace('/login');
-    } else if (!simIsInitialized && typeof simulationMonth === 'number' && simulationMonth === 0) {
-        // If authenticated but sim not set up, profile is fine, but other app pages might redirect
-        // No specific redirect from profile needed if sim not setup, but good to be aware
     }
-  }, [isAuthenticated, simIsInitialized, simulationMonth, router]);
+  }, [isAuthenticated, router]);
 
   const handleLogout = () => {
     logout();
-    router.push('/login'); // Explicit redirect after logout
+    router.push('/login'); 
+  };
+  
+  const handleLoadSnapshot = (snapshotId: string, snapshotName: string) => {
+    setIsLoadingAction(true);
+    const loadedState = loadSimulation(snapshotId);
+    if (loadedState) {
+      toast({ title: "Simulation Loaded", description: `Loaded snapshot "${snapshotName}" (Month ${loadedState.simulationMonth}). Redirecting to dashboard.` });
+      router.push('/app/dashboard'); 
+    } else {
+      toast({ title: "Load Failed", description: "Could not load the selected snapshot.", variant: "destructive" });
+    }
+    setIsLoadingAction(false);
   };
 
+  const handleDeleteSnapshot = (snapshotId: string) => {
+    setIsLoadingAction(true);
+    deleteSavedSimulation(snapshotId);
+    toast({ title: "Snapshot Deleted", description: "The simulation snapshot has been removed." });
+    setIsLoadingAction(false);
+  };
+
+
   if (!isAuthenticated) {
-    // This case should ideally be handled by AppLayout's redirect,
-    // but as a fallback or if this page is accessed outside AppLayout somehow.
     return (
        <div className="flex flex-col items-center justify-center min-h-screen">
           <p>Redirecting to login...</p>
@@ -117,11 +154,75 @@ export default function ProfilePage() {
               Simulation History
             </CardTitle>
             <CardDescription>
-              Review past simulation runs and their key outcomes.
+              Review and load past simulation snapshots.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center text-muted-foreground py-10">
-            <p>(A list or cards representing past simulations and high-level results will be displayed here, allowing you to revisit them.)</p>
+          <CardContent>
+            {savedSimulations.length === 0 ? (
+               <div className="text-center text-muted-foreground py-10">
+                <p>No snapshots saved yet.</p>
+                <p className="text-xs">Save snapshots from the Innovation Lab to revisit them here.</p>
+              </div>
+            ) : (
+              <ScrollArea className="max-h-[300px] pr-2">
+                <ul className="space-y-3">
+                  {savedSimulations.map((snapshot) => (
+                    <li key={snapshot.id} className="p-3 border rounded-md bg-card/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div>
+                        <p className="font-semibold text-foreground">{snapshot.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Saved: {new Date(snapshot.createdAt).toLocaleDateString()} | Sim Month: {snapshot.simulationState.simulationMonth}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 mt-2 sm:mt-0 shrink-0">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" disabled={isLoadingAction} className="border-green-500 text-green-600 hover:bg-green-500/10 hover:text-green-700">
+                              <ListRestart className="mr-2 h-4 w-4"/> Load
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Load Simulation Snapshot?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will replace your current simulation state with "{snapshot.name}". Are you sure?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel disabled={isLoadingAction}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleLoadSnapshot(snapshot.id, snapshot.name)} disabled={isLoadingAction} className="bg-green-600 hover:bg-green-700">
+                                {isLoadingAction ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : "Load"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                         <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                             <Button variant="destructive" size="sm" disabled={isLoadingAction} className="bg-red-600/10 border-red-600 text-red-700 hover:bg-red-600/20 hover:text-red-800">
+                                <Trash2 className="mr-2 h-4 w-4"/> Delete
+                              </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Snapshot?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Permanently delete snapshot "{snapshot.name}"? This cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel disabled={isLoadingAction}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteSnapshot(snapshot.id)} disabled={isLoadingAction} className="bg-destructive hover:bg-destructive/90">
+                                 {isLoadingAction ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : "Delete"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            )}
           </CardContent>
         </Card>
       </div>
