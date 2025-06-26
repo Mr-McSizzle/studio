@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow to handle Text-to-Speech (TTS) conversion using the ElevenLabs API.
- * This flow now uses the official elevenlabs Node.js package.
+ * @fileOverview A Genkit flow to handle Text-to-Speech (TTS) conversion by directly calling the ElevenLabs API.
+ * This approach avoids using the SDK to bypass installation issues.
  *
  * - textToSpeech - Function to call the AI TTS flow.
  * - TextToSpeechInput - The input type for the textToSpeech function.
@@ -11,7 +11,6 @@
 
 import { ai } from '@/ai/genkit';
 import { TextToSpeechInputSchema, TextToSpeechOutputSchema, type TextToSpeechInput, type TextToSpeechOutput } from '@/types/simulation';
-import { ElevenLabsClient } from 'elevenlabs';
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
@@ -32,33 +31,46 @@ const textToSpeechFlow = ai.defineFlow(
         return { error: errorMsg };
     }
     
-    const elevenlabs = new ElevenLabsClient({
-        apiKey: ELEVENLABS_API_KEY,
-    });
-    
     const voiceId = input.voiceId || '21m00Tcm4TlvDq8ikWAM'; // Default to EVE's voice (Rachel)
+    const modelId = 'eleven_multilingual_v2';
+    const voiceUrl = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
     
-    try {
-        const audio = await elevenlabs.generate({
-            voice: voiceId,
-            text: input.text,
-            model_id: 'eleven_multilingual_v2',
-        });
+    const headers = {
+      "Accept": "audio/mpeg",
+      "Content-Type": "application/json",
+      "xi-api-key": ELEVENLABS_API_KEY,
+    };
 
-        // The SDK returns a ReadableStream. We need to collect it into a Buffer.
-        const chunks: Buffer[] = [];
-        for await (const chunk of audio) {
-            chunks.push(chunk);
-        }
-        const content = Buffer.concat(chunks);
-        const audioDataUri = `data:audio/mpeg;base64,${content.toString('base64')}`;
+    const body = JSON.stringify({
+      text: input.text,
+      model_id: modelId,
+      voice_settings: {
+        stability: 0.5,
+        similarity_boost: 0.75,
+      },
+    });
+
+    try {
+      const response = await fetch(voiceUrl, {
+        method: 'POST',
+        headers: headers,
+        body: body,
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText} - ${errorBody}`);
+      }
+
+      const audioBuffer = await response.arrayBuffer();
+      const audioDataUri = `data:audio/mpeg;base64,${Buffer.from(audioBuffer).toString('base64')}`;
       
-        return { audioDataUri };
+      return { audioDataUri };
 
     } catch (error) {
-        console.error("ElevenLabs SDK call failed:", error);
-        const errorMessage = error instanceof Error ? `ElevenLabs API error: ${error.message}` : "An unknown error occurred while generating audio from ElevenLabs.";
-        return { error: errorMessage };
+      console.error("ElevenLabs API call failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred while generating audio.";
+      return { error: errorMessage };
     }
   }
 );
