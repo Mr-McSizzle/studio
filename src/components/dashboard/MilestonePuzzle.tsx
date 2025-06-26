@@ -101,7 +101,7 @@ export const MilestonePuzzle: React.FC<MilestonePuzzleProps> = ({
         {unlockedCount} / {totalCount} Objectives Complete
       </p>
       {totalCount > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-3 gap-3">
           {missions.map((mission) => (
             <div key={mission.id} onClick={() => handlePieceToggle(mission.id)}>
               <PuzzlePiece mission={mission} />

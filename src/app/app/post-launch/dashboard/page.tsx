@@ -6,13 +6,16 @@ import { useRouter } from "next/navigation";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, ChevronsRight, Loader2, RefreshCcw, TrendingUp, DollarSign, Users, Percent, CheckCircle, Scaling } from "lucide-react";
+import { AlertTriangle, ChevronsRight, Loader2, RefreshCcw, TrendingUp, DollarSign, Users, Percent, CheckCircle, Scaling, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { CohortAnalysisChart } from "@/components/dashboard/CohortAnalysisChart";
+import { HexPuzzleBoard } from "@/components/dashboard/HexPuzzleBoard";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 
 
 export default function PostLaunchDashboardPage() {
@@ -217,24 +220,56 @@ export default function PostLaunchDashboardPage() {
         </Card>
       </div>
 
-      <div className="space-y-8 mt-6">
-        <MilestonePuzzle
-          missions={missions}
-          onMissionToggle={toggleMissionCompletion}
-          title={`Quarter ${Math.floor(simulationMonth / 3) + 1} Objectives`}
-          puzzleId={`post_launch_q${Math.floor(simulationMonth / 3) + 1}`}
-          onPuzzleComplete={() => toast({ title: "Quarter Complete!", description: "You've met all objectives for this quarter. Ready to simulate the next one!"})}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="lg:col-span-2 shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <Bot className="h-6 w-6 text-primary" /> EVE's Quarterly Objectives & Hive Puzzle
+            </CardTitle>
+            <CardDescription>
+              Complete these quarterly objectives to advance the simulation.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+               <ScrollArea className="h-64 pr-3">
+                  <ul className="space-y-3">
+                  {missions.map((mission) => (
+                      <li key={mission.id} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted/50">
+                        <Checkbox
+                          id={`dash-mission-${mission.id}`}
+                          checked={mission.isCompleted}
+                          onCheckedChange={() => toggleMissionCompletion(mission.id)}
+                          className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent"
+                          aria-labelledby={`dash-mission-label-${mission.id}`}
+                        />
+                        <div>
+                          <label htmlFor={`dash-mission-${mission.id}`} className={cn("text-sm font-medium cursor-pointer", mission.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground')}>
+                            {mission.title}
+                          </label>
+                          <p className="text-xs text-muted-foreground">{mission.difficulty ? `(${mission.difficulty})` : ''}</p>
+                        </div>
+                      </li>
+                  ))}
+                  </ul>
+              </ScrollArea>
+              <Button variant="outline" className="w-full" onClick={() => router.push('/app/post-launch/todo')}>
+                View Full Quest Log
+              </Button>
+            </div>
+             <div className="flex items-center justify-center pt-2">
+              <HexPuzzleBoard missions={missions} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <PerformanceChart
+          title="LTV to CAC Ratio"
+          description="Tracking the ratio of customer lifetime value to acquisition cost. A ratio > 3 is healthy."
+          dataKey="value"
+          data={ltvToCacData}
         />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <PerformanceChart
-            title="LTV to CAC Ratio"
-            description="Tracking the ratio of customer lifetime value to acquisition cost. A ratio > 3 is healthy."
-            dataKey="value"
-            data={ltvToCacData}
-          />
-          <CohortAnalysisChart />
-        </div>
+        <CohortAnalysisChart />
       </div>
     </div>
   );
