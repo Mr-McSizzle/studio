@@ -721,7 +721,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
             set(newState);
 
-            if (Math.random() < 0.25) { // 25% chance to trigger a surprise event
+            if (Math.random() < 0.75) { // 75% chance to trigger a surprise event
               get().triggerSurpriseEvent();
             }
 
@@ -1254,7 +1254,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
 
         mergedState.rewards = Array.isArray(mergedState.rewards) ? mergedState.rewards : defaultStateArrays.rewards;
-        mergedState.earnedBadges = Array.isArray(mergedState.earnedBadges) ? mergedState.earnedBadges : defaultStateArrays.earnedBadges; 
+        mergedState.earnedBadges = Array.isArray(mergedState.earnedBadges) ? mergedState.earnedBadges : []; 
         mergedState.savedSimulations = Array.isArray(mergedState.savedSimulations) ? mergedState.savedSimulations : defaultStateArrays.savedSimulations;
         
         mergedState.missions = Array.isArray(mergedState.missions) && mergedState.missions.length > 0 

@@ -2,11 +2,11 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Zap, Check, X } from 'lucide-react';
+import { TavusVideoPlaceholder } from './TavusVideoPlaceholder';
 
 interface EveEventOverlayProps {
   isOpen: boolean;
@@ -71,26 +71,13 @@ export const EveEventOverlay: React.FC<EveEventOverlayProps> = ({
         >
           <motion.div
             variants={dialogVariants}
-            className="relative w-full max-w-lg mx-4 rounded-xl border border-primary/30 bg-background/70 backdrop-blur-xl shadow-primary-glow-md"
+            className="relative w-full max-w-md mx-4 rounded-xl border border-primary/30 bg-background/70 backdrop-blur-xl shadow-primary-glow-md p-6"
           >
-            {/* EVE's Avatar positioned on top */}
-            <div className="absolute -top-16 left-1/2 -translate-x-1/2">
-              <motion.div
-                 initial={{ scale: 0.5, opacity: 0, y: 20 }}
-                 animate={{ scale: 1, opacity: 1, y: 0, transition: { delay: 0.5, duration: 0.5, ease: "backOut" } }}
-              >
-                <Image
-                  src="/new-assets/custom_eve_avatar.png"
-                  alt="EVE AI Hive Mind Avatar"
-                  width={120}
-                  height={120}
-                  className="rounded-full shadow-2xl border-4 border-accent/50 filter drop-shadow-[0_0_15px_hsl(var(--accent)/0.7)] animate-subtle-pulse"
-                  data-ai-hint="bee queen"
-                />
-              </motion.div>
+            <div className="mb-4">
+              <TavusVideoPlaceholder />
             </div>
             
-            <div className="p-6 pt-20 text-center">
+            <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-3">
                  <Zap className="h-5 w-5 text-accent" />
                  <h2 className="text-2xl font-headline text-accent">{title}</h2>
@@ -100,7 +87,7 @@ export const EveEventOverlay: React.FC<EveEventOverlayProps> = ({
               </p>
             </div>
 
-            <div className="flex justify-center gap-4 px-6 pb-6">
+            <div className="flex justify-center gap-4">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
