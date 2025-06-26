@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { PanelLeft, LogOut, Settings, LayoutDashboard } from "lucide-react"; 
+import { PanelLeft, LogOut, Settings, LayoutDashboard, Rocket } from "lucide-react"; 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; 
 
@@ -59,6 +59,27 @@ function UserProfileFooter() {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[sidebar-state=expanded]:justify-start group-data-[sidebar-state=collapsed]:justify-center"
+              onClick={() => router.push('/app/launchpad')}
+              aria-label="Back to Launchpad"
+            >
+              <Rocket className="h-4 w-4 group-data-[sidebar-state=expanded]:mr-2" />
+              <span className="group-data-[sidebar-state=collapsed]:hidden">Launchpad</span>
+            </Button>
+          </TooltipTrigger>
+           <TooltipContent side="right" align="start" className="group-data-[sidebar-state=expanded]:hidden bg-popover/80 backdrop-blur-lg border-accent/50">
+            <p>Back to Launchpad</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
