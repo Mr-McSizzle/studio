@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Briefcase } from 'lucide-react';
+import { MessageSquare, Briefcase, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AgentCardProps {
@@ -40,20 +40,31 @@ export function AgentCard({ agent }: AgentCardProps) {
               <CardDescription className="text-xs text-muted-foreground">{agent.title}</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col pt-2 pb-5 px-5">
-              <div className="text-center mb-auto">
+              <div className="flex-grow"></div>
+              <div className="flex gap-2 mt-auto">
+                <Button
+                    asChild
+                    variant="outline"
+                    className="flex-1"
+                >
+                  <Link href={agent.callLink || '#'}>
+                    <Phone className="mr-2 h-4 w-4" />
+                    Call
+                  </Link>
+                </Button>
+                <Button
+                    asChild
+                    className={cn(
+                        "flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-3 transition-all duration-300 ease-in-out hover:shadow-lg hover:brightness-110 transform hover:scale-[1.02]",
+                        "group-hover:opacity-100 opacity-90"
+                    )}
+                >
+                  <Link href={agent.actionLink || '/app/mentor'}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Chat
+                  </Link>
+                </Button>
               </div>
-              <Button
-                  asChild
-                  className={cn(
-                      "w-full mt-auto bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-3 transition-all duration-300 ease-in-out hover:shadow-lg hover:brightness-110 transform hover:scale-[1.02]",
-                      "group-hover:opacity-100 opacity-90"
-                  )}
-              >
-                <Link href={agent.actionLink || '/app/mentor'}>
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Chat with {agent.shortName}
-                </Link>
-              </Button>
             </CardContent>
           </Card>
         </TooltipTrigger>

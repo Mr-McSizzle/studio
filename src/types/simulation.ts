@@ -267,6 +267,7 @@ export interface AIAgentProfile {
   specialties: string[];
   actionText: string;
   actionLink?: string;
+  callLink?: string; // Added for call feature
   voiceId?: string; // For ElevenLabs TTS
 }
 
@@ -683,6 +684,7 @@ export const TextToSpeechInputSchema = z.object({
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
 export const TextToSpeechOutputSchema = z.object({
-  audioDataUri: z.string().describe("The generated audio as a Base64 encoded data URI (e.g., 'data:audio/wav;base64,...')."),
+  audioDataUri: z.string().optional().describe("The generated audio as a Base64 encoded data URI (e.g., 'data:audio/mpeg;base64,...')."),
+  error: z.string().optional().describe("An error message if the TTS generation failed."),
 });
 export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;

@@ -12,7 +12,8 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'], 
+        headline: ['Inter', 'sans-serif'], // Using Inter for consistency
+        'jim-nightshade': ['"Jim Nightshade"', 'cursive'],
         code: ['monospace'],
       },
       colors: {
@@ -74,12 +75,25 @@ export default {
       },
       keyframes: {
         'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
+          from: {
+            height: '0',
+          },
+          to: {
+            height: 'var(--radix-accordion-content-height)',
+          },
         },
         'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
+          from: {
+            height: 'var(--radix-accordion-content-height)',
+          },
+          to: {
+            height: '0',
+          },
+        },
+        'pulse-ring': {
+          '0%': { boxShadow: '0 0 0 0 hsl(var(--accent) / 0.7)' },
+          '70%': { boxShadow: '0 0 0 20px hsl(var(--accent) / 0)' },
+          '100%': { boxShadow: '0 0 0 0 hsl(var(--accent) / 0)' },
         },
         'subtle-pulse': { 
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
@@ -116,10 +130,14 @@ export default {
           '50%': { opacity: 'calc(var(--start-opacity, 0.3) + 0.5)', transform: 'scale(1.2)', boxShadow: '0 0 10px 2px hsl(var(--accent)/0.8)' },
         },
          'spin-slow': {
-          to: { transform: 'rotate(360deg)' },
+          to: {
+            transform: 'rotate(360deg)',
+          },
         },
         'spin-slowest': {
-          to: { transform: 'rotate(360deg)' },
+          to: {
+            transform: 'rotate(360deg)',
+          },
         },
          'honeycomb-ripple-scale-fade': {
           '0%': { transform: 'scale(0.5)', opacity: '0.8' },
@@ -151,11 +169,11 @@ export default {
             '20%, 80%': { opacity: '0.3' },
             '100%': { transform: 'translateY(100%)', opacity: '0' },
         },
-        'subtle-pulse-orb': { 
+        'subtle-pulse-orb': { /* For EVE's orb on dashboard */
           '0%, 100%': { filter: 'drop-shadow(0 0 10px hsl(var(--accent)/0.5)) brightness(1)', transform: 'scale(1)' },
           '50%': { filter: 'drop-shadow(0 0 18px hsl(var(--accent)/0.7)) brightness(1.1)', transform: 'scale(1.03)' },
         },
-        'pulse-glow-border': { 
+        'pulse-glow-border': { /* For active phase card border */
           '0%, 100%': { 
             'box-shadow': '0 0 0px 0px var(--glow-color, hsl(var(--accent)/0.4)), inset 0 0 0px 0px var(--glow-color, hsl(var(--accent)/0.2))',
             'border-color': 'var(--border-color, hsl(var(--accent)/0.7))',
@@ -165,41 +183,45 @@ export default {
             'border-color': 'var(--border-color-active, hsl(var(--accent)))',
           },
         },
-        'float-pulse': { 
+        'float-pulse': { /* For EVE's orb in dashboard top */
           '0%, 100%': { transform: 'translateY(0px) scale(1)', filter: 'drop-shadow(0 0 12px hsl(var(--accent)/0.5))'},
           '50%': { transform: 'translateY(-5px) scale(1.02)', filter: 'drop-shadow(0 0 18px hsl(var(--accent)/0.65))'},
         },
-        'subtle-grid-pan': { 
+        'subtle-grid-pan': { /* For dashboard background grid */
           '0%': { 'background-position': '0 0' },
-          '100%': { 'background-position': '80px 80px' }, 
+          '100%': { 'background-position': '80px 80px' }, /* Should be 2x grid size */
         },
-         'subtle-grid-pan-faster': { /* For enhanced hive grid */
-          '0%': { 'background-position': '0 0' },
-          '100%': { 'background-position': '60px 60px' },
-        },
-         'shimmer': { 
+         'shimmer': { /* For hex card hover */
           '0%': { transform: 'translateX(-100%) skewX(-20deg)' },
           '100%': { transform: 'translateX(200%) skewX(-20deg)' },
-        },
-        'title-underline-glow': { 
-          '0%, 100%': { width: '40%', filter: 'blur(0.5px) brightness(0.9)', opacity: '0.8', backgroundColor: 'hsl(var(--accent) / 0.7)' },
-          '50%': { width: '66.66%', filter: 'blur(1px) brightness(1.2)', opacity: '1', backgroundColor: 'hsl(var(--accent))' },
-        },
-        'subtle-button-pulse': { 
-          '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 5px hsl(var(--accent)/0.3)' },
-          '50%': { transform: 'scale(1.02)', boxShadow: '0 0 10px hsl(var(--accent)/0.45)' },
-        },
-         'drift': { /* For particle field */
-          '0%': { transform: 'translate(var(--x-start), var(--y-start))', opacity: '0' },
-          '25%': { opacity: '0.7' },
-          '75%': { opacity: '0.7' },
-          '100%': { transform: 'translate(var(--x-end), var(--y-end))', opacity: '0'},
-        },
-        'digital-nectar-sweep': { /* For completed hex modules */
-          '0%': { opacity: '0', transform: 'scaleY(0)', 'transform-origin': 'bottom' },
-          '50%': { opacity: '0.7', transform: 'scaleY(1)', 'transform-origin': 'bottom' },
-          '100%': { opacity: '0.5', transform: 'scaleY(1)', 'transform-origin': 'bottom' },
         }
+      },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'pulse-ring': 'pulse-ring 2s ease-out infinite',
+        'subtle-pulse': 'subtle-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
+        'orbit': 'orbit var(--orbit-duration, 20s) linear infinite', /* Allow overriding duration */
+        'fadeIn': 'fadeIn 1s ease-out forwards',
+        'fadeInUp': 'fadeInUp 0.8s ease-out forwards',
+        'background-pan': 'background-pan 15s ease infinite',
+        'float-rotate-3d': 'float-rotate-3d ease-in-out infinite',
+        'sparkle': 'sparkle ease-in-out infinite',
+        'spin-slow': 'spin-slow 20s linear infinite', 
+        'spin-slowest': 'spin-slowest 120s linear infinite',
+        'honeycomb-ripple': 'honeycomb-ripple-scale-fade var(--ripple-duration, 1.2s) ease-out var(--ripple-delay, 0s) forwards',
+        'particle-burst': 'particle-burst-rise-fade var(--particle-duration, 1.5s) ease-out var(--particle-delay, 0s) forwards',
+        'avatar-glide': 'avatar-glide-in 0.7s ease-out forwards',
+        'text-fade-in': 'text-fade-in-scale-up 0.6s ease-out forwards',
+        'orb-pulse': 'orb-pulse 3s ease-in-out infinite',
+        'ring-rotate-scale': 'ring-rotate-scale 5s linear infinite',
+        'data-stream': 'data-stream 3s linear infinite',
+        'subtle-pulse-orb': 'subtle-pulse-orb 3s infinite ease-in-out', 
+        'pulse-glow-border': 'pulse-glow-border 2s infinite ease-in-out', 
+        'float-pulse': 'float-pulse 4s infinite ease-in-out', /* New */
+        'subtle-grid-pan': 'subtle-grid-pan 60s linear infinite', /* New */
+        'shimmer': 'shimmer 1s ease-in-out', /* New */
       },
       boxShadow: { 
         'accent-glow-sm': '0 0 10px 1px hsl(var(--accent) / 0.6)',

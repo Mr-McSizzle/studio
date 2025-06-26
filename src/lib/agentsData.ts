@@ -26,6 +26,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Strategic Coordination", "Personalized Guidance", "Insight Synthesis", "Simulation Navigation"],
     actionText: "Consult EVE",
     actionLink: "/app/mentor",
+    callLink: "/app/call/eve-hive-mind",
     voiceId: "21m00Tcm4TlvDq8ikWAM", // Rachel
   },
   {
@@ -42,6 +43,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Budgeting & Forecasting", "Cash Flow Management", "Runway Calculation", "Financial Planning"],
     actionText: "Chat with Alex",
     actionLink: "/app/agents/alex-accountant",
+    callLink: "/app/call/alex-accountant",
     voiceId: "pNInz6obpgDQGcFmaJgB", // Adam
   },
   {
@@ -58,6 +60,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Go-To-Market Strategy", "Brand Building", "Campaign Design", "Market Positioning"],
     actionText: "Chat with Maya",
     actionLink: "/app/agents/maya-marketing-guru",
+    callLink: "/app/call/maya-marketing-guru",
     voiceId: "jBpfuIE2acCO8z3wKNLl", // Gigi
   },
   {
@@ -74,6 +77,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Social Media Strategy (Organic & Paid)", "Campaign Mockups", "Virality Prediction", "Community Engagement"],
     actionText: "Chat with Ty",
     actionLink: "/app/agents/ty-social-media",
+    callLink: "/app/call/ty-social-media",
     voiceId: "MF3mGyEYCl7XYWbV9V6O", // Elli
   },
   {
@@ -90,6 +94,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Simulated Customer Feedback", "Product Validation", "Brand Perception Analysis", "Concept Testing"],
     actionText: "Chat with Zara",
     actionLink: "/app/agents/zara-focus-group",
+    callLink: "/app/call/zara-focus-group",
     voiceId: "piTKgcLEGmPE4e6mEKli", // Nicole
   },
   {
@@ -106,6 +111,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Market Expansion Strategy", "Operational Scaling", "Internationalization", "Partnership Development", "Risk Assessment"],
     actionText: "Chat with Leo",
     actionLink: "/app/agents/leo-expansion-expert",
+    callLink: "/app/call/leo-expansion-expert",
     voiceId: "ErXwobaYiN019PkySvjV", // Antoni
   },
   {
@@ -122,6 +128,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Industry Best Practices", "Competitive Analysis", "Market Positioning", "Strategic Trend Spotting"],
     actionText: "Chat with Advisor",
     actionLink: "/app/agents/the-advisor",
+    callLink: "/app/call/the-advisor",
     voiceId: "JBFqnCBsd6RMkjVDRZzb", // George
   },
   {
@@ -138,6 +145,7 @@ export const agentsList: AIAgentProfile[] = [
     specialties: ["Branding Concept Feedback", "Product Description Analysis", "Visual Identity Review", "Market Trend Alignment"],
     actionText: "Chat with Brand Lab",
     actionLink: "/app/agents/brand-lab",
+    callLink: "/app/call/brand-lab",
     voiceId: "jsCqWAovK2LkecY7zXl4", // Freya
   },
 ];
