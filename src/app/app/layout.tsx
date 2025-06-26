@@ -92,12 +92,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userEmail === undefined) return; 
 
-    const specialPages = ['/app/login', '/app/signup', '/app/launchpad', '/app/simulation-hub'];
+    const specialPages = ['/app/login', '/app/signup', '/app/launchpad', '/app/simulation-hub', '/app/profile'];
     if (pathname.startsWith('/app') && !specialPages.some(p => pathname === p)) {
       if (!isAuthenticated) {
         router.replace('/login');
       }
-    } else if ((pathname === '/app/launchpad' || pathname === '/app/simulation-hub') && !isAuthenticated) {
+    } else if ((pathname === '/app/launchpad' || pathname === '/app/simulation-hub' || pathname === '/app/profile') && !isAuthenticated) {
       router.replace('/login');
     }
   }, [isAuthenticated, userEmail, router, pathname]);
@@ -123,14 +123,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Hide sidebar for the Launchpad and Simulation Hub pages
-  if (pathname === '/app/launchpad' || pathname === '/app/simulation-hub') {
+  // Hide sidebar for Launchpad, Sim Hub, and Profile pages
+  if (pathname === '/app/launchpad' || pathname === '/app/simulation-hub' || pathname === '/app/profile') {
     return (
-      <div className="min-h-screen w-full bg-background">
-        {children}
-        <DynamicGuidanceSystem />
-        <SurpriseEventModal />
-      </div>
+      <TooltipProvider>
+        <div className="min-h-screen w-full bg-background">
+          {children}
+          <DynamicGuidanceSystem />
+          <SurpriseEventModal />
+        </div>
+      </TooltipProvider>
     );
   }
 
@@ -204,6 +206,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     </TooltipProvider>
   );
 }
-    
-
-    
