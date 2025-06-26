@@ -36,6 +36,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
     );
   }
 
+  // Format assistant messages to render bold text from markdown and handle newlines.
+  const assistantFormattedContent = message.content
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br />');
+
   return (
     <div
       className={cn(
@@ -56,10 +61,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
           "max-w-[70%] rounded-lg p-3 shadow-md",
           isUser
             ? "bg-primary text-primary-foreground"
-            : "bg-secondary text-secondary-foreground" // Changed from bg-card to bg-secondary
+            : "bg-secondary text-secondary-foreground"
         )}
       >
-        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+        {isAssistant ? (
+          <div 
+            className="text-sm prose dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: assistantFormattedContent }}
+          />
+        ) : (
+          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+        )}
         <p className="mt-1 text-xs opacity-70">
           {new Date(message.timestamp).toLocaleTimeString()}
         </p>
