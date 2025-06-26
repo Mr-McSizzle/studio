@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Bot, PhoneOff, Circle, Check } from "lucide-react";
+import { Mic, Bot, PhoneOff, Circle, Check, Globe } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { useAiMentorStore } from "@/store/aiMentorStore";
@@ -13,6 +14,7 @@ import { mentorConversation, type MentorConversationInput } from "@/ai/flows/men
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +27,33 @@ declare global {
   }
 }
 
+const languages = [
+  { name: "English (US)", code: "en-US" },
+  { name: "Spanish (Spain)", code: "es-ES" },
+  { name: "French (France)", code: "fr-FR" },
+  { name: "German (Germany)", code: "de-DE" },
+  { name: "Italian (Italy)", code: "it-IT" },
+  { name: "Portuguese (Portugal)", code: "pt-PT" },
+  { name: "Dutch (Netherlands)", code: "nl-NL" },
+  { name: "Russian (Russia)", code: "ru-RU" },
+  { name: "Japanese (Japan)", code: "ja-JP" },
+  { name: "Korean (South Korea)", code: "ko-KR" },
+  { name: "Chinese (Mandarin)", code: "zh-CN" },
+  { name: "Arabic (Saudi Arabia)", code: "ar-SA" },
+  { name: "Hindi (India)", code: "hi-IN" },
+  { name: "Indonesian (Indonesia)", code: "id-ID" },
+  { name: "Turkish (Turkey)", code: "tr-TR" },
+  { name: "Polish (Poland)", code: "pl-PL" },
+  { name: "Swedish (Sweden)", code: "sv-SE" },
+  { name: "Norwegian (Norway)", code: "no-NO" },
+  { name: "Danish (Denmark)", code: "da-DK" },
+  { name: "Finnish (Finland)", code: "fi-FI" },
+  { name: "Greek (Greece)", code: "el-GR" },
+  { name: "Vietnamese (Vietnam)", code: "vi-VN" },
+  { name: "Thai (Thailand)", code: "th-TH" },
+];
+
+
 export default function AgentCallPage() {
   const router = useRouter();
   const params = useParams();
@@ -35,7 +64,7 @@ export default function AgentCallPage() {
 
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [transcript, setTranscript] = useState("");
-  const [detectedLanguage, setDetectedLanguage] = useState("en-US"); // Default, updates on client mount
+  const [selectedLanguage, setSelectedLanguage] = useState("en-US");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -45,10 +74,12 @@ export default function AgentCallPage() {
     transcriptRef.current = transcript;
   }, [transcript]);
 
-  // Effect to set the language from the browser
+  // Effect to set the language from the browser on initial load
   useEffect(() => {
     if (typeof window !== 'undefined' && navigator.language) {
-      setDetectedLanguage(navigator.language);
+      const browserLangCode = navigator.language.split('-')[0];
+      const matchingLang = languages.find(l => l.code.startsWith(browserLangCode));
+      setSelectedLanguage(matchingLang ? matchingLang.code : "en-US");
     }
   }, []);
 
@@ -82,8 +113,7 @@ export default function AgentCallPage() {
 
       recognition.continuous = true; // Keep listening while button is held
       recognition.interimResults = true; // Get results as they come in
-      recognition.lang = detectedLanguage; // Use auto-detected language
-
+      
       recognition.onresult = (event) => {
         let finalTranscript = "";
         for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -121,7 +151,7 @@ export default function AgentCallPage() {
         stopAllActivity();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast, detectedLanguage]); // Depend on detectedLanguage
+  }, [toast]);
 
   const startListening = () => {
     if (recognitionRef.current && callStatus !== "listening") {
@@ -131,7 +161,7 @@ export default function AgentCallPage() {
       
       try {
         setCallStatus("listening");
-        recognitionRef.current.lang = detectedLanguage; // Ensure lang is set before starting
+        recognitionRef.current.lang = selectedLanguage; // Use selected language
         recognitionRef.current.start();
       } catch (error) {
         console.error("Error starting speech recognition:", error);
@@ -164,7 +194,7 @@ export default function AgentCallPage() {
 
       const mentorInput: MentorConversationInput = {
         userInput: finalTranscript,
-        language: detectedLanguage, // Pass the auto-detected language
+        language: selectedLanguage, // Pass the selected language
         conversationHistory: conversationHistoryForAI,
         simulationMonth: simState.isInitialized ? simState.simulationMonth : undefined,
         financials: simState.isInitialized ? simState.financials : undefined,
@@ -246,8 +276,20 @@ export default function AgentCallPage() {
 
   return (
     <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-2xl flex flex-col items-center justify-between p-8 z-[1000]">
-      <div className="absolute top-8 left-8 text-xs text-slate-400 font-mono">
-        Lang: {detectedLanguage}
+      <div className="absolute top-8 left-8">
+        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+            <SelectTrigger className="w-[200px] bg-slate-800/50 border-slate-700 text-white">
+                <Globe className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                {languages.map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code} className="cursor-pointer hover:bg-slate-700">
+                        {lang.name}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
       </div>
 
       <div className="text-center pt-10">
