@@ -6,7 +6,7 @@ import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Users, TrendingUp as TrendingUpIcon, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Activity, Percent, Bot, ListChecks, Target, BrainCircuit, X } from "lucide-react";
+import { DollarSign, Users, TrendingUp as TrendingUpIcon, BarChartBig, ChevronsRight, RefreshCcw, AlertTriangle, PiggyBank, Activity, Percent, Bot, ListChecks, Target, BrainCircuit, X, Briefcase } from "lucide-react";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -46,6 +46,7 @@ export default function DashboardPage() {
     financials,
     userMetrics,
     startupScore,
+    investorSentiment,
     missions,
     toggleMissionCompletion,
     advanceMonth,
@@ -57,6 +58,7 @@ export default function DashboardPage() {
     historicalCAC,
     historicalChurnRate,
     historicalProductProgress,
+    historicalInvestorSentiment,
     historicalExpenseBreakdown,
     activeScenarios,
     removeScenario,
@@ -169,7 +171,7 @@ export default function DashboardPage() {
           </Alert>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5 mb-8">
           <Card className="shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Cash on Hand</CardTitle>
@@ -200,6 +202,16 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{userMetrics.activeUsers.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">New this month: {userMetrics.newUserAcquisitionRate.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+           <Card className="shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Investor Sentiment</CardTitle>
+              <Briefcase className="h-5 w-5 text-indigo-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{investorSentiment}/100</div>
+              <p className="text-xs text-muted-foreground">Confidence in future growth</p>
             </CardContent>
           </Card>
           <Card className="shadow-lg">
@@ -241,6 +253,7 @@ export default function DashboardPage() {
                 <PerformanceChart title={`Net Profit / Loss (${currencySymbol})`} description="Monthly net income (Revenue - Expenses)." dataKey="value" data={historicalNetProfitLoss} />
                 <PerformanceChart title={`Monthly Burn Rate (${currencySymbol})`} description="Cash spent per month after revenue." dataKey="value" data={historicalBurnRate} />
                 <ExpenseBreakdownChart data={historicalExpenseBreakdown} currencySymbol={currencySymbol} />
+                <PerformanceChart title="Investor Sentiment" description="Tracking investor confidence over time." dataKey="value" data={historicalInvestorSentiment} />
                 <PerformanceChart title={`Customer Acquisition Cost (CAC) (${currencySymbol})`} description="Average cost to acquire one new user." dataKey="value" data={historicalCAC} />
                 <PerformanceChart title="Monthly Churn Rate (%)" description="Percentage of users lost each month." dataKey="value" data={historicalChurnRate} />
                 <PerformanceChart title="Product Development Progress (%)" description="Progress towards the next product stage." dataKey="value" data={historicalProductProgress} />

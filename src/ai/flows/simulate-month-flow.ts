@@ -60,6 +60,7 @@ Current State (Month {{{currentSimulationMonth}}}):
   - Competition Level: {{{market.competitionLevel}}} (low, moderate, high)
   - Target Market: {{{market.targetMarketDescription}}}
 - Current Startup Score: {{{currentStartupScore}}}/100
+- Current Investor Sentiment: {{{currentInvestorSentiment}}}/100
 
 {{#if activeScenarios}}
 Active Strategic Scenarios to consider:
@@ -129,7 +130,15 @@ Simulation Logic Guidelines for the NEXT MONTH (Month {{{currentSimulationMonth}
     *   Negative impact events should reduce score (-1 to -3 per significant negative event). Positive impact events can slightly boost it (+1 to +2).
     *   Max score 100, min 0.
 
-7.  **AI Reasoning (Optional):**
+7. **Investor Sentiment Adjustment:**
+    * Base sentiment on performance: Strong profitability, high user growth, and low churn should increase it (+2 to +5).
+    * High burn rate with low cash (runway < 3 months), user loss, or major negative events should decrease it (-5 to -15).
+    * Stagnation or moderate performance causes a slight decay (-1).
+    * Product stage advancements (e.g., 'mvp' to 'growth') give a significant boost (+5 to +10).
+    * A pivot announcement (this would likely be represented as a 'key event' you generate) should cause a temporary drop (-10 to -20).
+    * Factor in the impact of the key events you generate. A positive PR event might boost sentiment, while a new competitor could lower it.
+
+8.  **AI Reasoning (Optional):**
     *   Provide a brief, 1-2 sentence explanation summarizing your key considerations for *user acquisition rates*, *product development speed*, *financial calculations*, or *event generation* this month, especially if they were significantly influenced by the new nuanced logic, random factors, or the current simulation context. Example: "User growth was modest despite marketing spend due to high competition and early product stage. R&D progress was solid thanks to focused engineering effort. Generated a competitor action event due to high market competition and a minor operational setback for balance."
 
 Output MUST be a single, valid JSON object matching the SimulateMonthOutputSchema.

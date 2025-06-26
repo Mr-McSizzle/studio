@@ -88,7 +88,7 @@ export interface EarnedBadge {
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory' | 'activeScenarios'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'historicalInvestorSentiment' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory' | 'activeScenarios'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -127,6 +127,7 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
     competitionLevel: 'moderate',
   },
   startupScore: 10,
+  investorSentiment: 50,
   isInitialized: false,
   initialGoals: [],
 };
@@ -139,6 +140,7 @@ const getInitialState = (): DigitalTwinState & { savedSimulations: SimulationSna
   rewards: [],
   earnedBadges: [],
   suggestedChallenges: [],
+  historicalInvestorSentiment: [],
   historicalRevenue: [],
   historicalUserGrowth: [],
   historicalBurnRate: [],
@@ -205,6 +207,7 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     resources: state.resources,
     market: state.market,
     startupScore: state.startupScore,
+    investorSentiment: state.investorSentiment,
     keyEvents: state.keyEvents,
     rewards: state.rewards,
     earnedBadges: state.earnedBadges, 
@@ -214,6 +217,7 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     isInitialized: state.isInitialized,
     currentAiReasoning: state.currentAiReasoning,
     selectedArchetype: state.selectedArchetype,
+    historicalInvestorSentiment: state.historicalInvestorSentiment,
     historicalRevenue: state.historicalRevenue,
     historicalUserGrowth: state.historicalUserGrowth,
     historicalBurnRate: state.historicalBurnRate,
@@ -430,6 +434,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           isInitialized: true,
           simulationMonth: 0,
           startupScore: 10,
+          investorSentiment: 50,
+          historicalInvestorSentiment: [{ month: 'M0', value: 50, desktop: 50 }],
           activeScenarios: [],
           savedSimulations: state.savedSimulations, 
         }));
@@ -572,6 +578,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             targetMarketDescription: currentState.market.targetMarketDescription,
           },
           currentStartupScore: currentState.startupScore,
+          currentInvestorSentiment: currentState.investorSentiment,
+          activeScenarios: currentState.activeScenarios,
         };
 
         try {
@@ -623,6 +631,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Month ${newState.simulationMonth} (AI Sim): Revenue ${newState.financials.currencySymbol}${newState.financials.revenue.toLocaleString()}, Users ${newState.userMetrics.activeUsers.toLocaleString()}, Cash ${newState.financials.currencySymbol}${newState.financials.cashOnHand.toLocaleString()}, Burn ${newState.financials.currencySymbol}${currentMonthBurnRate.toLocaleString()}, Profit ${newState.financials.currencySymbol}${newState.financials.profit.toLocaleString()}`, "System", "Neutral"));
 
             newState.startupScore = Math.max(0, Math.min(100, newState.startupScore + aiOutput.startupScoreAdjustment));
+            newState.investorSentiment = Math.max(0, Math.min(100, newState.investorSentiment + aiOutput.investorSentimentAdjustment));
             if (newState.financials.cashOnHand <= 0 && currentState.financials.cashOnHand > 0) { 
                 newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `Critical: Ran out of cash! Simulation unstable.`, "Financial", "Negative"));
             }
@@ -658,6 +667,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
 
             const monthLabel = `M${newState.simulationMonth}`;
+            newState.historicalInvestorSentiment.push({ month: monthLabel, value: newState.investorSentiment, desktop: newState.investorSentiment });
             newState.historicalRevenue.push({ month: monthLabel, revenue: newState.financials.revenue, desktop: newState.financials.revenue });
             newState.historicalUserGrowth.push({ month: monthLabel, users: newState.userMetrics.activeUsers, desktop: newState.userMetrics.activeUsers });
             newState.historicalBurnRate.push({ month: monthLabel, value: currentMonthBurnRate, desktop: currentMonthBurnRate });
@@ -666,6 +676,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newState.historicalChurnRate.push({ month: monthLabel, value: newState.userMetrics.churnRate * 100, desktop: newState.userMetrics.churnRate * 100 });
             newState.historicalProductProgress.push({ month: monthLabel, value: newState.product.developmentProgress, desktop: newState.product.developmentProgress });
 
+            if (newState.historicalInvestorSentiment.length > 12) newState.historicalInvestorSentiment.shift();
             if (newState.historicalRevenue.length > 12) newState.historicalRevenue.shift();
             if (newState.historicalUserGrowth.length > 12) newState.historicalUserGrowth.shift();
             if (newState.historicalBurnRate.length > 12) newState.historicalBurnRate.shift();
@@ -767,6 +778,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         const activeSimState = extractActiveSimState(state);
         const sandboxCopy = JSON.parse(JSON.stringify(activeSimState)) as DigitalTwinState;
         
+        sandboxCopy.historicalInvestorSentiment = [];
         sandboxCopy.historicalRevenue = [];
         sandboxCopy.historicalUserGrowth = [];
         sandboxCopy.historicalBurnRate = [];
@@ -902,6 +914,8 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             targetMarketDescription: sandbox.market.targetMarketDescription,
           },
           currentStartupScore: sandbox.startupScore,
+          currentInvestorSentiment: sandbox.investorSentiment,
+          activeScenarios: sandbox.activeScenarios,
         };
 
         try {
@@ -950,6 +964,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newSandboxKeyEvents.push(createStructuredEvent(simulatedSandboxDisplayMonth, `(Sandbox M${simulatedSandboxDisplayMonth} Sim): Revenue ${newSandboxState.financials.currencySymbol}${newSandboxState.financials.revenue.toLocaleString()}, Users ${newSandboxState.userMetrics.activeUsers.toLocaleString()}, Cash ${newSandboxState.financials.currencySymbol}${newSandboxState.financials.cashOnHand.toLocaleString()}`, "System", "Neutral"));
             
             newSandboxState.startupScore = Math.max(0, Math.min(100, newSandboxState.startupScore + aiOutput.startupScoreAdjustment));
+            newSandboxState.investorSentiment = Math.max(0, Math.min(100, newSandboxState.investorSentiment + aiOutput.investorSentimentAdjustment));
              if (newSandboxState.financials.cashOnHand <= 0 && state.sandboxState.financials.cashOnHand > 0) {
                 newSandboxKeyEvents.push(createStructuredEvent(simulatedSandboxDisplayMonth, `(Sandbox) Critical: Ran out of cash!`, "Financial", "Negative"));
             }
@@ -957,8 +972,10 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newSandboxState.keyEvents = [...state.sandboxState.keyEvents, ...newSandboxKeyEvents];
 
             const sandboxMonthLabel = `SB M${simulatedSandboxDisplayMonth}`;
+            newSandboxState.historicalInvestorSentiment.push({ month: sandboxMonthLabel, value: newSandboxState.investorSentiment, desktop: newSandboxState.investorSentiment });
             newSandboxState.historicalRevenue.push({ month: sandboxMonthLabel, revenue: newSandboxState.financials.revenue, desktop: newSandboxState.financials.revenue });
             newSandboxState.historicalUserGrowth.push({ month: sandboxMonthLabel, users: newSandboxState.userMetrics.activeUsers, desktop: newSandboxState.userMetrics.activeUsers });
+             if (newSandboxState.historicalInvestorSentiment.length > 6) newSandboxState.historicalInvestorSentiment.shift(); 
              if (newSandboxState.historicalRevenue.length > 6) newSandboxState.historicalRevenue.shift(); 
              if (newSandboxState.historicalUserGrowth.length > 6) newSandboxState.historicalUserGrowth.shift();
 
@@ -1037,6 +1054,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           resources: updatedMainState.resources,
           market: updatedMainState.market,
           startupScore: updatedMainState.startupScore,
+          investorSentiment: updatedMainState.investorSentiment,
           selectedArchetype: updatedMainState.selectedArchetype,
           keyEvents: updatedMainState.keyEvents,
           rewards: updatedMainState.rewards,
@@ -1046,6 +1064,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           suggestedChallenges: updatedMainState.suggestedChallenges,
           isInitialized: updatedMainState.isInitialized,
           currentAiReasoning: updatedMainState.currentAiReasoning,
+          historicalInvestorSentiment: updatedMainState.historicalInvestorSentiment,
           historicalRevenue: updatedMainState.historicalRevenue,
           historicalUserGrowth: updatedMainState.historicalUserGrowth,
           historicalBurnRate: updatedMainState.historicalBurnRate,
@@ -1215,6 +1234,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
         mergedState.initialGoals = Array.isArray(mergedState.initialGoals) ? mergedState.initialGoals : defaultStateArrays.initialGoals;
         mergedState.suggestedChallenges = Array.isArray(mergedState.suggestedChallenges) ? mergedState.suggestedChallenges : defaultStateArrays.suggestedChallenges;
+        mergedState.historicalInvestorSentiment = Array.isArray(mergedState.historicalInvestorSentiment) ? mergedState.historicalInvestorSentiment : defaultStateArrays.historicalInvestorSentiment;
         mergedState.historicalRevenue = Array.isArray(mergedState.historicalRevenue) ? mergedState.historicalRevenue : defaultStateArrays.historicalRevenue;
         mergedState.historicalUserGrowth = Array.isArray(mergedState.historicalUserGrowth) ? mergedState.historicalUserGrowth : defaultStateArrays.historicalUserGrowth;
         mergedState.historicalBurnRate = Array.isArray(mergedState.historicalBurnRate) ? mergedState.historicalBurnRate : defaultStateArrays.historicalBurnRate;
@@ -1314,6 +1334,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             mergedState.sandboxState.historicalCAC = Array.isArray(mergedState.sandboxState.historicalCAC) ? mergedState.sandboxState.historicalCAC : [];
             mergedState.sandboxState.historicalChurnRate = Array.isArray(mergedState.sandboxState.historicalChurnRate) ? mergedState.sandboxState.historicalChurnRate : [];
             mergedState.sandboxState.historicalProductProgress = Array.isArray(mergedState.sandboxState.historicalProductProgress) ? mergedState.sandboxState.historicalProductProgress : [];
+            mergedState.sandboxState.historicalInvestorSentiment = Array.isArray(mergedState.sandboxState.historicalInvestorSentiment) ? mergedState.sandboxState.historicalInvestorSentiment : [];
             mergedState.sandboxState.earnedBadges = Array.isArray(mergedState.sandboxState.earnedBadges) ? mergedState.sandboxState.earnedBadges : []; 
         }
 

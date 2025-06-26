@@ -188,6 +188,7 @@ export interface DigitalTwinState {
   resources: Resources;
   market: MarketConditions;
   startupScore: number;
+  investorSentiment: number; // Score from 0-100
   keyEvents: StructuredKeyEvent[];
   rewards: Reward[];
   earnedBadges: EarnedBadge[]; // Added for quest completion badges
@@ -198,6 +199,7 @@ export interface DigitalTwinState {
   currentAiReasoning: string | null;
   selectedArchetype?: FounderArchetype; // Added founder archetype
 
+  historicalInvestorSentiment: HistoricalDataPoint[];
   historicalRevenue: RevenueDataPoint[];
   historicalUserGrowth: UserDataPoint[];
   historicalBurnRate: HistoricalDataPoint[];
@@ -423,6 +425,7 @@ export const SimulateMonthInputSchema = z.object({
     targetMarketDescription: z.string(),
   }).describe("Current market conditions."),
   currentStartupScore: z.number().describe("The current startup score before this month's simulation."),
+  currentInvestorSentiment: z.number().describe("The current investor sentiment score (0-100)."),
   activeScenarios: z.array(z.string()).optional().describe("An array of active strategic scenarios that should modify the simulation's logic for this month (e.g., 'Freemium Launch')."),
 });
 export type SimulateMonthInput = z.infer<typeof SimulateMonthInputSchema>;
@@ -455,6 +458,7 @@ export const SimulateMonthOutputSchema = z.object({
   keyEventsGenerated: z.array(AIKeyEventSchema).length(2).describe("An array of exactly two significant, context-aware events that occurred during the month. Each event must be an object with 'description', 'category', 'and 'impact' fields."),
   rewardsGranted: z.array(RewardSchema).optional().describe("List of rewards granted this month if a significant milestone was achieved. These rewards should be thematic to the achievement."),
   startupScoreAdjustment: z.number().int().describe("An integer representing the change to the startup score based on this month's performance, achievements, and rewards."),
+  investorSentimentAdjustment: z.number().int().describe("The change in investor sentiment score for this month (+/-)."),
   aiReasoning: z.string().optional().describe("A brief, 1-2 sentence explanation from the AI about its key considerations or calculations for this month's simulation outcomes, especially if they were influenced by nuanced logic or dynamic events."),
 });
 export type SimulateMonthOutput = z.infer<typeof SimulateMonthOutputSchema>;
