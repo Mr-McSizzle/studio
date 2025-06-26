@@ -25,6 +25,7 @@ export default function PostLaunchDashboardPage() {
   const {
     isInitialized,
     simulationMonth,
+    companyName,
     financials,
     userMetrics,
     missions,
@@ -145,7 +146,7 @@ export default function PostLaunchDashboardPage() {
       />
       <div className="container mx-auto py-8 px-4 md:px-0">
         <header className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-headline text-foreground">Post-Launch Dashboard: Q{Math.floor(simulationMonth / 3) + 1}</h1>
+          <h1 className="text-3xl font-headline text-foreground">{companyName}: Q{Math.floor(simulationMonth / 3) + 1}</h1>
           <div className="flex items-center gap-3">
             <Button
               onClick={handleSimulateQuarter}
