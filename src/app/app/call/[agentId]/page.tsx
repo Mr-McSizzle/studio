@@ -39,8 +39,26 @@ export default function AgentCallPage() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Use a ref to track the latest transcript to avoid stale closures in event handlers
+  const transcriptRef = useRef("");
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
+
   const { isAuthenticated } = useAuthStore();
   const simState = useSimulationStore();
+
+  const stopAllActivity = () => {
+    if (recognitionRef.current) {
+        recognitionRef.current.abort(); // Use abort for immediate stop without side-effects
+    }
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = ''; // Detach source to ensure it stops loading
+        audioRef.current = null;
+    }
+    setCallStatus("idle");
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -48,48 +66,71 @@ export default function AgentCallPage() {
     }
   }, [isAuthenticated, router]);
 
+  // Main setup and cleanup effect for speech recognition and audio
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
+      const recognition = recognitionRef.current;
 
-      recognitionRef.current.onresult = (event) => {
+      recognition.continuous = true; // Keep listening while button is held
+      recognition.interimResults = true; // Get results as they come in
+
+      recognition.onresult = (event) => {
         let finalTranscript = "";
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
             finalTranscript += event.results[i][0].transcript;
           }
         }
-        if (finalTranscript) {
-          setTranscript(t => t + finalTranscript + " ");
+        if (finalTranscript.trim()) {
+           setTranscript(prev => prev + finalTranscript.trim() + ' ');
         }
       };
 
-      recognitionRef.current.onerror = (event) => {
+      recognition.onerror = (event) => {
         console.error("Speech recognition error", event.error);
-        toast({ title: "Voice Recognition Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+        if (event.error !== 'aborted') { // Don't show toast on intentional abort
+            toast({ title: "Voice Recognition Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+        }
         setCallStatus("error");
       };
+      
+      recognition.onend = () => {
+        // A natural end (e.g. from browser timeout) should reset the state.
+        setCallStatus((currentStatus) => {
+            if(currentStatus === 'listening') return 'idle';
+            return currentStatus;
+        });
+      };
+
     } else {
       toast({ title: "Browser Not Supported", description: "Speech recognition is not supported in this browser.", variant: "destructive" });
     }
+
+    // Master cleanup function when component unmounts
+    return () => {
+        stopAllActivity();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   const startListening = () => {
-    // This function is now more robust against rapid/duplicate calls.
     if (recognitionRef.current && callStatus !== "listening") {
-      setCallStatus("listening"); // Set state first to guard against re-entry
+      stopAllActivity(); // Ensure any previous state is cleared before starting
       setTranscript("");
+      transcriptRef.current = ""; // Reset ref as well
+      setCallStatus("listening");
       try {
-        // Attempt to start recognition
         recognitionRef.current.start();
       } catch (error) {
-        // If starting fails (e.g., microphone not available), revert state
         console.error("Error starting speech recognition:", error);
         setCallStatus("error");
-        toast({ title: "Voice Recognition Error", description: "Could not start microphone.", variant: "destructive" });
+        if (error instanceof Error && error.name === 'InvalidStateError') {
+             // This can happen if start is called too quickly after a stop. Our state guard should prevent logical issues.
+        } else {
+             toast({ title: "Voice Recognition Error", description: "Could not start microphone.", variant: "destructive" });
+        }
       }
     }
   };
@@ -99,7 +140,10 @@ export default function AgentCallPage() {
       recognitionRef.current.stop();
       setCallStatus("thinking");
 
-      if (!transcript.trim()) {
+      // Use the ref for the most up-to-date transcript to avoid stale state in async flow
+      const finalTranscript = transcriptRef.current.trim();
+      
+      if (!finalTranscript) {
         setCallStatus("idle");
         return;
       }
@@ -109,7 +153,7 @@ export default function AgentCallPage() {
         .map(msg => ({ role: msg.role as 'user' | 'assistant' | 'tool_response', content: msg.content }));
 
       const mentorInput: MentorConversationInput = {
-        userInput: transcript.trim(),
+        userInput: finalTranscript,
         conversationHistory: conversationHistoryForAI,
         simulationMonth: simState.isInitialized ? simState.simulationMonth : undefined,
         financials: simState.isInitialized ? simState.financials : undefined,
@@ -140,6 +184,10 @@ export default function AgentCallPage() {
             audio.onended = () => {
               setCallStatus("idle");
             };
+             audio.onerror = () => {
+              toast({ title: "Audio Playback Error", description: "Could not play the agent's voice.", variant: "destructive" });
+              setCallStatus("error");
+            };
           }
         } else {
             setCallStatus("idle");
@@ -153,8 +201,7 @@ export default function AgentCallPage() {
   };
   
   const endCall = () => {
-      if (recognitionRef.current) recognitionRef.current.abort();
-      if (audioRef.current) audioRef.current.pause();
+      stopAllActivity();
       router.back();
   };
 
