@@ -113,12 +113,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userEmail === undefined) return; 
 
-    const specialPages = ['/app/login', '/app/signup', '/app/launchpad', '/app/simulation-hub', '/app/profile'];
+    const specialPages = ['/app/login', '/app/signup', '/app/launchpad', '/app/simulation-hub', '/app/profile', '/app/gamification'];
     if (pathname.startsWith('/app') && !specialPages.some(p => pathname === p)) {
       if (!isAuthenticated) {
         router.replace('/login');
       }
-    } else if ((pathname === '/app/launchpad' || pathname === '/app/simulation-hub' || pathname === '/app/profile') && !isAuthenticated) {
+    } else if ((pathname === '/app/launchpad' || pathname === '/app/simulation-hub' || pathname === '/app/profile' || pathname === '/app/gamification') && !isAuthenticated) {
       router.replace('/login');
     }
   }, [isAuthenticated, userEmail, router, pathname]);
@@ -145,7 +145,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   }
 
   // Hide sidebar for Launchpad, Sim Hub, and Profile pages
-  if (pathname === '/app/launchpad' || pathname === '/app/simulation-hub' || pathname === '/app/profile') {
+  if (pathname === '/app/launchpad' || pathname === '/app/simulation-hub' || pathname === '/app/profile' || pathname === '/app/gamification') {
     return (
       <TooltipProvider>
         <div className="min-h-screen w-full bg-background">

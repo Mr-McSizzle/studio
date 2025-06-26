@@ -24,6 +24,7 @@ export default function GamificationPage() {
     keyEvents, 
     missions,
     setMissions,
+    toggleMissionCompletion,
     isInitialized, 
     financials, 
     simulationMonth,
@@ -148,9 +149,9 @@ export default function GamificationPage() {
                     <Checkbox 
                         id={`mission-${mission.id}`} 
                         checked={mission.isCompleted} 
+                        onCheckedChange={() => toggleMissionCompletion(mission.id)}
                         aria-label={mission.title} 
-                        className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent" 
-                        disabled // Completion logic not yet implemented
+                        className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent"
                     />
                     <div className="flex-grow">
                         <label htmlFor={`mission-${mission.id}`} className={`font-medium ${mission.isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
@@ -212,5 +213,3 @@ export default function GamificationPage() {
     </div>
   );
 }
-
-
