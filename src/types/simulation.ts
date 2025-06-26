@@ -688,3 +688,51 @@ export const TextToSpeechOutputSchema = z.object({
   error: z.string().optional().describe("An error message if the TTS generation failed."),
 });
 export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;
+
+// Absurdity Arena Schemas
+export const AnalyzeSillyIdeaInputSchema = z.object({
+  sillyIdeaDescription: z.string().describe("A detailed description of the user's wacky, weird, or silly idea."),
+  joyMetric: z.string().describe("The user's chosen metric to optimize for, e.g., 'Maximum Confusion', 'Unpredictable Laughter', 'Pure Whimsy'."),
+});
+export type AnalyzeSillyIdeaInput = z.infer<typeof AnalyzeSillyIdeaInputSchema>;
+
+export const AgentBanterSchema = z.object({
+  agentId: z.string().describe("ID of the agent making the comment (e.g., 'alex-accountant')."),
+  agentName: z.string().describe("Name of the agent."),
+  comment: z.string().describe("The agent's humorous, in-character reaction to the silly idea."),
+});
+
+export const AnalyzeSillyIdeaOutputSchema = z.object({
+  whimsyScore: z.number().min(1).max(10).describe("A score from 1-10 on how wonderfully bizarre and impractical the idea is."),
+  joyToEffortRatio: z.string().describe("A humorous, non-scientific ratio of joy to effort (e.g., 'Infinite Joy / Minimal Sanity Loss')."),
+  viralityPotential: z.string().describe("A short, qualitative assessment of how likely the idea is to become a meme."),
+  agentBanter: z.array(AgentBanterSchema).describe("A list of 2-3 humorous reactions from different AI agents."),
+});
+export type AnalyzeSillyIdeaOutput = z.infer<typeof AnalyzeSillyIdeaOutputSchema>;
+
+
+// Reddit Tool and Flow Schemas
+export const RedditToolInputSchema = z.object({
+  subreddit: z.string().describe("The name of the subreddit to post to (without 'r/')."),
+  title: z.string().describe("The title of the Reddit post."),
+  body: z.string().describe("The markdown body content of the Reddit post."),
+});
+export type RedditToolInput = z.infer<typeof RedditToolInputSchema>;
+
+export const RedditToolOutputSchema = z.object({
+  success: z.boolean().describe("Whether the post was successfully simulated."),
+  postUrl: z.string().url().optional().describe("The URL of the (simulated) new Reddit post."),
+  message: z.string().describe("A confirmation or error message."),
+});
+export type RedditToolOutput = z.infer<typeof RedditToolOutputSchema>;
+
+
+export const SubmitToRedditInputSchema = AnalyzeSillyIdeaOutputSchema.extend({
+  sillyIdeaTitle: z.string().describe("The original title or short description of the idea."),
+  sillyIdeaDescription: z.string().describe("The full description of the silly idea."),
+});
+export type SubmitToRedditInput = z.infer<typeof SubmitToRedditInputSchema>;
+
+// The output of this flow is the same as the tool's output
+export const SubmitToRedditOutputSchema = RedditToolOutputSchema;
+export type SubmitToRedditOutput = z.infer<typeof SubmitToRedditOutputSchema>;
