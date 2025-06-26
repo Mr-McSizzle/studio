@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessage } from "./chat-message";
 import type { ChatMessage as ChatMessageType } from "@/types";
-import { SendHorizonal, Loader2, Brain } from "lucide-react";
+import { SendHorizonal, Loader2, Brain, Mic, MicOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAiMentorStore } from "@/store/aiMentorStore";
@@ -25,12 +25,23 @@ interface ChatInterfaceProps {
 
 const EVE_MAIN_CHAT_CONTEXT_ID = "eve_main_chat";
 
+// Extend the window type for webkitSpeechRecognition
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+  }
+}
+
 export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = false }: ChatInterfaceProps) {
   const { messages: allMessages, addMessage, setGuidance, initializeGreeting } = useAiMentorStore();
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [isSpeechRecognitionSupported, setIsSpeechRecognitionSupported] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const simStore = useSimulationStore(); // Get the whole store instance
   const {
@@ -40,9 +51,9 @@ export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = f
     product,
     resources,
     market,
-    setMarketingSpend, // Action from store
-    setRndSpend,       // Action from store
-    setPricePerUser    // Action from store
+    setMarketingSpend,
+    setRndSpend,
+    setPricePerUser
   } = simStore;
 
   const pathname = usePathname();
@@ -65,6 +76,36 @@ export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = f
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChatContext, focusedAgentId, focusedAgentName, initializeGreeting]);
 
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      setIsSpeechRecognitionSupported(true);
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setUserInput(prev => prev ? `${prev} ${transcript}` : transcript);
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        toast({ title: "Voice Recognition Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
+        setIsRecording(false);
+      };
+      
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+      
+    } else {
+      setIsSpeechRecognitionSupported(false);
+    }
+  }, [toast]);
+
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -84,7 +125,7 @@ export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = f
 
     try {
       const conversationHistoryForAI = [...useAiMentorStore.getState().messages]
-        .filter(msg => msg.role !== 'system') // Filter out system messages
+        .filter(msg => msg.role !== 'system')
         .map(msg => ({
           role: msg.role as 'user' | 'assistant' | 'tool_response',
           content: msg.content
@@ -183,6 +224,17 @@ export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = f
     }
   };
 
+  const handleMicClick = () => {
+    if (!recognitionRef.current) return;
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
+  };
+
   const placeholderText = focusedAgentName
     ? `Ask EVE about ${focusedAgentName}'s domain... (e.g., 'Set marketing to $5000')`
     : "Ask EVE, your AI Hive Mind... (e.g., 'Change product price to $19.99')";
@@ -232,6 +284,22 @@ export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = f
           disabled={isLoading}
           aria-label="User input for EVE AI assistant"
         />
+        {isSpeechRecognitionSupported && (
+          <Button
+            type="button"
+            size="icon"
+            variant={isRecording ? "destructive" : "outline"}
+            onClick={handleMicClick}
+            disabled={isLoading}
+            aria-label={isRecording ? "Stop recording" : "Start recording"}
+          >
+            {isRecording ? (
+              <MicOff className="h-5 w-5 animate-pulse" />
+            ) : (
+              <Mic className="h-5 w-5" />
+            )}
+          </Button>
+        )}
         <Button type="submit" disabled={isLoading || !userInput.trim()} className="bg-accent hover:bg-accent/90 text-accent-foreground">
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
