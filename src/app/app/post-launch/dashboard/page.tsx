@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MilestonePuzzle } from "@/components/dashboard/MilestonePuzzle";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, ChevronsRight, Loader2, RefreshCcw, TrendingUp, DollarSign, Users, Percent, CheckCircle } from "lucide-react";
+import { AlertTriangle, ChevronsRight, Loader2, RefreshCcw, TrendingUp, DollarSign, Users, Percent, CheckCircle, Scaling } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { PerformanceChart } from "@/components/dashboard/performance-chart";
+import { CohortAnalysisChart } from "@/components/dashboard/CohortAnalysisChart";
+
 
 export default function PostLaunchDashboardPage() {
   const router = useRouter();
@@ -22,6 +25,9 @@ export default function PostLaunchDashboardPage() {
     userMetrics,
     missions,
     historicalRevenue,
+    historicalUserGrowth,
+    historicalCAC,
+    historicalChurnRate,
     toggleMissionCompletion,
     advanceMonth,
     resetSimulation,
@@ -46,6 +52,40 @@ export default function PostLaunchDashboardPage() {
     const growth = ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100;
     return { percentage: growth.toFixed(1), isPositive: growth >= 0 };
   }, [historicalRevenue]);
+
+  const ltvToCacData = useMemo(() => {
+    const ratioData: { month: string, value: number, desktop: number }[] = [];
+    const historicalDataMap = new Map<string, any>();
+
+    historicalRevenue.forEach(d => {
+      if (!historicalDataMap.has(d.month)) historicalDataMap.set(d.month, {});
+      historicalDataMap.get(d.month).revenue = d.revenue;
+    });
+    historicalUserGrowth.forEach(d => {
+      if (!historicalDataMap.has(d.month)) historicalDataMap.set(d.month, {});
+      historicalDataMap.get(d.month).users = d.users;
+    });
+    historicalCAC.forEach(d => {
+      if (!historicalDataMap.has(d.month)) historicalDataMap.set(d.month, {});
+      historicalDataMap.get(d.month).cac = d.value;
+    });
+    historicalChurnRate.forEach(d => {
+      if (!historicalDataMap.has(d.month)) historicalDataMap.set(d.month, {});
+      historicalDataMap.get(d.month).churn = d.value / 100; // Convert from % to decimal
+    });
+
+    for (const [month, data] of historicalDataMap.entries()) {
+      if (data.revenue !== undefined && data.users > 0 && data.churn > 0 && data.cac > 0) {
+        const arpu = data.revenue / data.users;
+        const ltv = arpu / data.churn;
+        const ratio = ltv / data.cac;
+        ratioData.push({ month, value: parseFloat(ratio.toFixed(2)), desktop: parseFloat(ratio.toFixed(2)) });
+      }
+    }
+
+    return ratioData;
+  }, [historicalRevenue, historicalUserGrowth, historicalCAC, historicalChurnRate]);
+
 
   const handleSimulateQuarter = async () => {
     setIsSimulating(true);
@@ -116,7 +156,7 @@ export default function PostLaunchDashboardPage() {
         </Alert>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 my-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5 my-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Monthly Net Profit</CardTitle>
@@ -163,6 +203,18 @@ export default function PostLaunchDashboardPage() {
             <p className="text-xs text-muted-foreground">New feature engagement (placeholder)</p>
           </CardContent>
         </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">LTV : CAC Ratio</CardTitle>
+            <Scaling className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {ltvToCacData.length > 0 ? `${ltvToCacData[ltvToCacData.length - 1].value}:1` : 'N/A'}
+            </div>
+            <p className="text-xs text-muted-foreground">Customer Lifetime Value to Acquisition Cost</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="space-y-8 mt-6">
@@ -173,16 +225,16 @@ export default function PostLaunchDashboardPage() {
           puzzleId={`post_launch_q${Math.floor(simulationMonth / 3) + 1}`}
           onPuzzleComplete={() => toast({ title: "Quarter Complete!", description: "You've met all objectives for this quarter. Ready to simulate the next one!"})}
         />
-        {/* Placeholder for post-launch specific charts and metrics */}
-        <Card>
-            <CardHeader>
-                <CardTitle>Post-Launch Analytics</CardTitle>
-                <CardDescription>Advanced metrics like LTV:CAC, Cohort Analysis, and more will be displayed here.</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center text-muted-foreground p-12">
-                <p>(Advanced Post-Launch Charts Coming Soon)</p>
-            </CardContent>
-        </Card>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <PerformanceChart
+            title="LTV to CAC Ratio"
+            description="Tracking the ratio of customer lifetime value to acquisition cost. A ratio > 3 is healthy."
+            dataKey="value"
+            data={ltvToCacData}
+          />
+          <CohortAnalysisChart />
+        </div>
       </div>
     </div>
   );
