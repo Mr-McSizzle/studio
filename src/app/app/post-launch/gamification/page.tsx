@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { ScoreDisplay } from "@/components/gamification/score-display";
 import { RewardsCard } from "@/components/gamification/rewards-card";
 import { useSimulationStore } from "@/store/simulationStore";
+import { useGuidanceStore } from "@/store/guidanceStore";
 import { Button } from "@/components/ui/button";
-import { Trophy, AlertTriangle, ListChecks, Sparkles, Info, DollarSign, Users, Rocket, Globe } from "lucide-react";
+import { Trophy, AlertTriangle, Info, DollarSign, Users, Rocket, Globe } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { StructuredKeyEvent } from "@/types/simulation";
 
@@ -59,16 +61,13 @@ export default function PostLaunchGamificationPage() {
     financials, 
     simulationMonth,
   } = useSimulationStore();
+  const { founderAcumenScore, founderAcumenLevel } = useGuidanceStore();
   
   useEffect(() => {
      if (!isInitialized) {
         router.replace('/app/post-launch/setup');
     }
   }, [isInitialized, router]);
-
-  const scoreTrend = useMemo(() => {
-    return startupScore > (useSimulationStore.getState().startupScore - 1) ? "up" : startupScore < (useSimulationStore.getState().startupScore - 1) ? "down" : "neutral";
-  }, [startupScore]);
 
   const financialMilestones = useMemo(() => keyEvents
     .filter(event => 
@@ -119,15 +118,40 @@ export default function PostLaunchGamificationPage() {
       <header className="mb-8">
         <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
             <Trophy className="h-8 w-8 text-accent" />
-            Growth & Milestones
+            Founder Acumen & Growth
         </h1>
         <p className="text-muted-foreground">
-          Track your Startup Score, earned rewards, and key milestones during your growth phase.
+          Track your overall Founder Acumen, earned rewards, and key milestones during your growth phase.
         </p>
       </header>
 
-      <div className="mb-8">
-        <ScoreDisplay score={isInitialized ? startupScore : 0} trend={scoreTrend} />
+      <div className="grid gap-8 md:grid-cols-2 mb-8">
+        <ScoreDisplay
+          title="Founder Acumen"
+          score={founderAcumenScore}
+          level={founderAcumenLevel}
+          trend="neutral"
+        />
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline">Acumen Score Breakdown</CardTitle>
+            <CardDescription>Your overall score is composed of your performance and discoveries.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Pre-Launch Sim Score</span>
+              <Badge variant="outline">N/A</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Post-Launch Sim Score</span>
+              <span className="font-mono text-foreground">{isInitialized ? `${startupScore} / 100` : "N/A"}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Clash of Sims Score</span>
+              <Badge variant="outline" className="border-purple-500/50 text-purple-400">Coming Soon</Badge>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       {financials.cashOnHand <= 0 && isInitialized && (

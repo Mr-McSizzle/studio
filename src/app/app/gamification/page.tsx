@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ScoreDisplay } from "@/components/gamification/score-display";
 import { RewardsCard, type Reward } from "@/components/gamification/rewards-card";
 import { useSimulationStore } from "@/store/simulationStore";
+import { useGuidanceStore } from "@/store/guidanceStore";
 import type { Mission, GenerateDynamicMissionsInput } from "@/types/simulation";
 import { generateDynamicMissions } from "@/ai/flows/generate-dynamic-missions-flow";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trophy, AlertTriangle, ListChecks, Sparkles, Info, Loader2, Wand2, Rocket } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,6 +33,7 @@ export default function GamificationPage() {
     simulationMonth,
     companyName, userMetrics, product, resources, market, initialGoals, suggestedChallenges,
   } = useSimulationStore();
+  const { founderAcumenScore, founderAcumenLevel } = useGuidanceStore();
   const { toast } = useToast();
   const [isLoadingMissions, setIsLoadingMissions] = useState(false);
   
@@ -107,10 +110,10 @@ export default function GamificationPage() {
         <div>
           <h1 className="text-3xl font-headline text-foreground flex items-center gap-3">
               <Trophy className="h-8 w-8 text-accent" />
-              Progress & Achievements
+              Founder Acumen & Progress
           </h1>
           <p className="text-muted-foreground">
-            Track your startup score, earned rewards, active missions, and key milestones achieved within the Inceptico AI simulation.
+            Track your overall founder level, earned rewards, active missions, and key milestones.
           </p>
         </div>
         <Button asChild variant="outline">
@@ -121,8 +124,33 @@ export default function GamificationPage() {
         </Button>
       </header>
 
-      <div className="mb-8">
-        <ScoreDisplay score={isInitialized ? startupScore : 0} trend={isInitialized ? scoreTrend : "neutral"} />
+      <div className="grid gap-8 md:grid-cols-2 mb-8">
+        <ScoreDisplay
+          title="Founder Acumen"
+          score={founderAcumenScore}
+          level={founderAcumenLevel}
+          trend="neutral"
+        />
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline">Acumen Score Breakdown</CardTitle>
+            <CardDescription>Your overall score is composed of your performance and discoveries.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Pre-Launch Sim Score</span>
+              <span className="font-mono text-foreground">{isInitialized ? `${startupScore} / 100` : "N/A"}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Post-Launch Sim Score</span>
+              <Badge variant="outline">Not Started</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Clash of Sims Score</span>
+              <Badge variant="outline" className="border-purple-500/50 text-purple-400">Coming Soon</Badge>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       {financials.cashOnHand <= 0 && isInitialized && (
