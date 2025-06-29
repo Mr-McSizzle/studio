@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
     ],
   },
   webpack: (config, { isServer }) => {
+    // Ignore warnings from handlebars
+    config.ignoreWarnings = [
+      { module: /node_modules\/handlebars\/lib\/index\.js/ }
+    ];
+    
     // You can add custom webpack configurations here if needed in the future.
     return config;
   },
