@@ -9,9 +9,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
+    "@genkit-ai/firebase": "^1.8.0",
     "@genkit-ai/googleai": "^1.8.0",
     "@genkit-ai/next": "^1.8.0",
     "@hookform/resolvers": "^4.1.3",
