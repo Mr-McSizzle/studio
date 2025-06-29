@@ -15,7 +15,7 @@ export default function PostLaunchAIAgentsPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const { isAuthenticated } = useAuthStore();
-  const { isInitialized } = useSimulationStore();
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Ensure client-side only execution
   useEffect(() => {
@@ -23,6 +23,10 @@ export default function PostLaunchAIAgentsPage() {
     
     if (!isAuthenticated) {
       router.replace('/login');
+    } else {
+      // Get simulation state after component mounts
+      const simState = useSimulationStore.getState();
+      setIsInitialized(simState.isInitialized);
     }
   }, [isAuthenticated, router]);
   

@@ -1,26 +1,45 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { AgentCard } from "@/components/agents/agent-card";
 import { agentsList } from "@/lib/agentsData"; // Import from shared location
-import { Lightbulb } from "lucide-react"; // Users icon removed
+import { Lightbulb, Loader2 } from "lucide-react"; // Users icon removed
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export default function AIAgentsPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const { isAuthenticated } = useAuthStore();
-  const { isInitialized, simulationMonth } = useSimulationStore();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [simulationMonth, setSimulationMonth] = useState(0);
 
   useEffect(() => {
+    setMounted(true);
+    
     if (!isAuthenticated) {
       router.replace('/login');
+    } else {
+      // Get simulation state after component mounts
+      const simState = useSimulationStore.getState();
+      setIsInitialized(simState.isInitialized);
+      setSimulationMonth(simState.simulationMonth);
     }
   }, [isAuthenticated, router]);
+  
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading...</p>
+      </div>
+    );
+  }
   
   if (!isAuthenticated) {
     return (
