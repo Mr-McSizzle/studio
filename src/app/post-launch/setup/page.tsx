@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type FormEvent, useEffect } from 'react';
@@ -40,15 +39,18 @@ const initializationSteps = [
   "Engaging Growth Algorithms...",
   "Evolving Hive Mind Consciousness...",
 ];
-const eveFinalMessage = "Welcome to the post-launch realm. I’ve initialized your business twin. Let’s scale boldly.";
-
+const eveFinalMessage = "Welcome to the post-launch realm. I've initialized your business twin. Let's scale boldly.";
 
 export default function PostLaunchSetupPage() {
   const router = useRouter();
   const { toast } = useToast();
-  // We'll create a new action for this in the store
-  const initializePostLaunchSimulation = useSimulationStore(state => state.initializeSimulation); // Reusing for simplicity, but logic will differ. A dedicated one is better.
-  const resetSimStore = useSimulationStore(state => state.resetSimulation);
+  const [mounted, setMounted] = useState(false);
+  
+  // Get store functions after component mounts
+  const [storeActions, setStoreActions] = useState<{
+    initializeSimulation: any;
+    resetSimulation: any;
+  }>({ initializeSimulation: null, resetSimulation: null });
 
   // Form State
   const [businessModel, setBusinessModel] = useState('');
@@ -69,6 +71,17 @@ export default function PostLaunchSetupPage() {
   const [showEveInOverlay, setShowEveInOverlay] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    
+    // Get store functions after component mounts
+    const store = useSimulationStore.getState();
+    setStoreActions({
+      initializeSimulation: store.initializeSimulation,
+      resetSimulation: store.resetSimulation
+    });
+  }, []);
+
+  useEffect(() => {
     let timer: NodeJS.Timeout;
     if (showCinematicOverlay && !showEveInOverlay && cinematicStepIndex < initializationSteps.length) {
       setCinematicProgressText(initializationSteps[cinematicStepIndex]);
@@ -83,6 +96,15 @@ export default function PostLaunchSetupPage() {
     return () => clearTimeout(timer);
   }, [showCinematicOverlay, cinematicStepIndex, showEveInOverlay]);
 
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading setup page...</p>
+      </div>
+    );
+  }
 
   const handleAddFeature = () => {
     if (newFeature.trim() && !launchedFeatures.includes(newFeature.trim())) {
@@ -107,7 +129,6 @@ export default function PostLaunchSetupPage() {
     );
   };
 
-
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!businessModel || !mrr || !activeUsers) {
@@ -123,7 +144,7 @@ export default function PostLaunchSetupPage() {
     setShowCinematicOverlay(true);
     setCinematicStepIndex(0);
     setShowEveInOverlay(false);
-    resetSimStore(); // Clear any old state before initializing
+    storeActions.resetSimulation(); // Clear any old state before initializing
 
     // Mocking Firestore save by preparing data for Zustand store
     const postLaunchData = {
@@ -167,7 +188,7 @@ export default function PostLaunchSetupPage() {
     };
 
     // We use the existing initializeSimulation function but it will now get post-launch flavored data
-    initializePostLaunchSimulation(mockAiOutput, "Evolved Venture", `An established ${postLaunchData.businessModel} business`, String(postLaunchData.mrr * 6), postLaunchData.currency, 'scaler');
+    storeActions.initializeSimulation(mockAiOutput, "Evolved Venture", `An established ${postLaunchData.businessModel} business`, String(postLaunchData.mrr * 6), postLaunchData.currency, 'scaler');
     
     // Simulate async operation and cinematic display
     setTimeout(() => {

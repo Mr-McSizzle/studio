@@ -1,12 +1,12 @@
-
 "use client";
+
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ScoreDisplay } from "@/components/gamification/score-display";
 import { RewardsCard } from "@/components/gamification/rewards-card";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
-import { Trophy, AlertTriangle, ListChecks, Sparkles, Info, DollarSign, Users, Rocket, Globe } from "lucide-react";
+import { Trophy, AlertTriangle, Info, DollarSign, Users, Rocket, Globe, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,64 +49,106 @@ const MilestoneCard = ({ title, icon: Icon, milestones, emptyText }: { title: st
   </Card>
 );
 
+// Import Sparkles component
+const Sparkles = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M12 3v3m0 12v3M3 12h3m12 0h3m-2.5-8.5-2 2m-9 9-2 2m13-2 2 2m-9-13-2 2" />
+  </svg>
+);
+
 export default function PostLaunchGamificationPage() {
   const router = useRouter();
-  const { 
-    startupScore, 
-    rewards, 
-    keyEvents, 
-    isInitialized, 
-    financials, 
-    simulationMonth,
-  } = useSimulationStore();
+  const [mounted, setMounted] = useState(false);
+  const [storeState, setStoreState] = useState({
+    startupScore: 0,
+    rewards: [],
+    keyEvents: [],
+    isInitialized: false,
+    financials: { cashOnHand: 0 },
+    simulationMonth: 0
+  });
   
   useEffect(() => {
-     if (!isInitialized) {
-        router.replace('/app/post-launch/setup');
+    setMounted(true);
+    
+    // Get store state after component mounts
+    const state = useSimulationStore.getState();
+    setStoreState({
+      startupScore: state.startupScore,
+      rewards: state.rewards,
+      keyEvents: state.keyEvents,
+      isInitialized: state.isInitialized,
+      financials: state.financials,
+      simulationMonth: state.simulationMonth
+    });
+    
+    if (!state.isInitialized) {
+      router.replace('/app/post-launch/setup');
     }
-  }, [isInitialized, router]);
+  }, [router]);
+  
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading achievements...</p>
+      </div>
+    );
+  }
 
   const scoreTrend = useMemo(() => {
-    return startupScore > (useSimulationStore.getState().startupScore - 1) ? "up" : startupScore < (useSimulationStore.getState().startupScore - 1) ? "down" : "neutral";
-  }, [startupScore]);
+    // This is now safe to calculate since we're client-side
+    const prevScore = useSimulationStore.getState().startupScore - 1;
+    return storeState.startupScore > prevScore ? "up" : 
+           storeState.startupScore < prevScore ? "down" : "neutral";
+  }, [storeState.startupScore]);
 
-  const financialMilestones = useMemo(() => keyEvents
+  const financialMilestones = useMemo(() => storeState.keyEvents
     .filter(event => 
         (event.category === "Financial" && event.impact === "Positive") ||
         event.description.toLowerCase().includes("revenue target") ||
         event.description.toLowerCase().includes("profitable") ||
         event.description.toLowerCase().includes("funding")
     )
-    .slice(-10).reverse(), [keyEvents]);
+    .slice(-10).reverse(), [storeState.keyEvents]);
 
-  const userMilestones = useMemo(() => keyEvents
+  const userMilestones = useMemo(() => storeState.keyEvents
     .filter(event => 
         event.category === "User" ||
         event.description.toLowerCase().includes("user milestone") ||
         event.description.toLowerCase().includes(" mau") // space before to avoid "manual"
     )
-    .slice(-10).reverse(), [keyEvents]);
+    .slice(-10).reverse(), [storeState.keyEvents]);
     
-  const productMilestones = useMemo(() => keyEvents
+  const productMilestones = useMemo(() => storeState.keyEvents
     .filter(event => 
         event.category === "Product" ||
         event.description.toLowerCase().includes("product advanced to") ||
         event.description.toLowerCase().includes("feature launch") ||
         event.description.toLowerCase().includes("release")
     )
-    .slice(-10).reverse(), [keyEvents]);
+    .slice(-10).reverse(), [storeState.keyEvents]);
 
-  const marketMilestones = useMemo(() => keyEvents
+  const marketMilestones = useMemo(() => storeState.keyEvents
     .filter(event => 
         event.category === "Market" ||
         event.description.toLowerCase().includes("market expansion") ||
         event.description.toLowerCase().includes("new market")
     )
-    .slice(-10).reverse(), [keyEvents]);
+    .slice(-10).reverse(), [storeState.keyEvents]);
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
-       {!isInitialized && (
+       {!storeState.isInitialized && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Simulation Not Initialized</AlertTitle>
@@ -127,10 +169,10 @@ export default function PostLaunchGamificationPage() {
       </header>
 
       <div className="mb-8">
-        <ScoreDisplay score={isInitialized ? startupScore : 0} trend={scoreTrend} />
+        <ScoreDisplay score={storeState.isInitialized ? storeState.startupScore : 0} trend={scoreTrend} />
       </div>
       
-      {financials.cashOnHand <= 0 && isInitialized && (
+      {storeState.financials.cashOnHand <= 0 && storeState.isInitialized && (
          <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Game Over - Out of Cash!</AlertTitle>
@@ -142,7 +184,7 @@ export default function PostLaunchGamificationPage() {
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         <div className="lg:col-span-3">
-            <RewardsCard rewards={isInitialized ? rewards : []} />
+            <RewardsCard rewards={storeState.isInitialized ? storeState.rewards : []} />
         </div>
         <MilestoneCard 
           title="Financial Milestones" 

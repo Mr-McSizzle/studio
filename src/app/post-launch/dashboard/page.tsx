@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -15,41 +14,65 @@ import { cn } from "@/lib/utils";
 export default function PostLaunchDashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const {
-    isInitialized,
-    simulationMonth,
-    financials,
-    userMetrics,
-    missions,
-    historicalRevenue,
-    toggleMissionCompletion,
-    advanceMonth,
-    resetSimulation,
-  } = useSimulationStore();
-  
+  const [mounted, setMounted] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   
+  // Use state to avoid hydration mismatch
+  const [storeState, setStoreState] = useState({
+    isInitialized: false,
+    simulationMonth: 0,
+    financials: { cashOnHand: 0, profit: 0, currencySymbol: "$" },
+    userMetrics: { churnRate: 0 },
+    missions: [],
+    historicalRevenue: []
+  });
+  
   useEffect(() => {
-    if (!isInitialized) {
+    setMounted(true);
+    
+    // Get store state after component mounts
+    const simState = useSimulationStore.getState();
+    setStoreState({
+      isInitialized: simState.isInitialized,
+      simulationMonth: simState.simulationMonth,
+      financials: simState.financials,
+      userMetrics: simState.userMetrics,
+      missions: simState.missions,
+      historicalRevenue: simState.historicalRevenue
+    });
+    
+    if (!simState.isInitialized) {
       router.replace('/app/post-launch/setup');
     }
-  }, [isInitialized, router]);
+  }, [router]);
 
-  const areTasksComplete = missions.length > 0 && missions.every(task => task.isCompleted);
-  const isGameOver = isInitialized && financials.cashOnHand <= 0;
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  const areTasksComplete = storeState.missions.length > 0 && storeState.missions.every(task => task.isCompleted);
+  const isGameOver = storeState.isInitialized && storeState.financials.cashOnHand <= 0;
 
   const revenueGrowth = useMemo(() => {
-    if (historicalRevenue.length < 2) return null;
-    const currentMonthRevenue = historicalRevenue[historicalRevenue.length - 1].revenue;
-    const previousMonthRevenue = historicalRevenue[historicalRevenue.length - 2].revenue;
+    if (storeState.historicalRevenue.length < 2) return null;
+    const currentMonthRevenue = storeState.historicalRevenue[storeState.historicalRevenue.length - 1].revenue;
+    const previousMonthRevenue = storeState.historicalRevenue[storeState.historicalRevenue.length - 2].revenue;
     if (previousMonthRevenue === 0) return { percentage: currentMonthRevenue > 0 ? "Infinite" : "0.0", isPositive: currentMonthRevenue > 0 };
     const growth = ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100;
     return { percentage: growth.toFixed(1), isPositive: growth >= 0 };
-  }, [historicalRevenue]);
+  }, [storeState.historicalRevenue]);
 
   const handleSimulateQuarter = async () => {
     setIsSimulating(true);
     toast({ title: "Simulating Quarter...", description: "Advancing simulation by 3 months. Please wait." });
+    
+    const advanceMonth = useSimulationStore.getState().advanceMonth;
     
     for (let i = 0; i < 3; i++) {
       if (useSimulationStore.getState().financials.cashOnHand > 0) {
@@ -62,9 +85,20 @@ export default function PostLaunchDashboardPage() {
     
     toast({ title: "Quarter Complete!", description: `Advanced to Month ${useSimulationStore.getState().simulationMonth}. New objectives have been generated.` });
     setIsSimulating(false);
+    
+    // Update local state after simulation
+    const updatedState = useSimulationStore.getState();
+    setStoreState({
+      isInitialized: updatedState.isInitialized,
+      simulationMonth: updatedState.simulationMonth,
+      financials: updatedState.financials,
+      userMetrics: updatedState.userMetrics,
+      missions: updatedState.missions,
+      historicalRevenue: updatedState.historicalRevenue
+    });
   };
   
-  if (!isInitialized) {
+  if (!storeState.isInitialized) {
     return (
       <div className="container mx-auto py-8 px-4 md:px-0">
         <Alert variant="destructive" className="mb-6">
@@ -81,7 +115,7 @@ export default function PostLaunchDashboardPage() {
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
       <header className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-        <h1 className="text-3xl font-headline text-foreground">Post-Launch Dashboard: Q{Math.floor(simulationMonth / 3) + 1}</h1>
+        <h1 className="text-3xl font-headline text-foreground">Post-Launch Dashboard: Q{Math.floor(storeState.simulationMonth / 3) + 1}</h1>
         <div className="flex items-center gap-3">
           <Button
             onClick={handleSimulateQuarter}
@@ -91,7 +125,17 @@ export default function PostLaunchDashboardPage() {
             {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ChevronsRight className="mr-2 h-4 w-4" />}
             Simulate Next Quarter
           </Button>
-          <Button onClick={resetSimulation} variant="outline">
+          <Button onClick={() => {
+            useSimulationStore.getState().resetSimulation();
+            setStoreState({
+              isInitialized: false,
+              simulationMonth: 0,
+              financials: { cashOnHand: 0, profit: 0, currencySymbol: "$" },
+              userMetrics: { churnRate: 0 },
+              missions: [],
+              historicalRevenue: []
+            });
+          }} variant="outline">
             <RefreshCcw className="mr-2 h-4 w-4" />
             Reset Simulation
           </Button>
@@ -120,11 +164,11 @@ export default function PostLaunchDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Monthly Net Profit</CardTitle>
-            <DollarSign className={cn("h-4 w-4 text-muted-foreground", financials.profit >= 0 ? "text-green-500" : "text-destructive")} />
+            <DollarSign className={cn("h-4 w-4 text-muted-foreground", storeState.financials.profit >= 0 ? "text-green-500" : "text-destructive")} />
           </CardHeader>
           <CardContent>
-            <div className={cn("text-2xl font-bold", financials.profit >= 0 ? "text-green-500" : "text-destructive")}>
-              {financials.profit >= 0 ? '+' : ''}{financials.currencySymbol}{financials.profit.toLocaleString()}
+            <div className={cn("text-2xl font-bold", storeState.financials.profit >= 0 ? "text-green-500" : "text-destructive")}>
+              {storeState.financials.profit >= 0 ? '+' : ''}{storeState.financials.currencySymbol}{storeState.financials.profit.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Revenue minus all expenses</p>
           </CardContent>
@@ -136,9 +180,9 @@ export default function PostLaunchDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {((1 - userMetrics.churnRate) * 100).toFixed(1)}%
+              {((1 - storeState.userMetrics.churnRate) * 100).toFixed(1)}%
             </div>
-            <p className="text-xs text-muted-foreground">{(userMetrics.churnRate * 100).toFixed(1)}% churn rate</p>
+            <p className="text-xs text-muted-foreground">{(storeState.userMetrics.churnRate * 100).toFixed(1)}% churn rate</p>
           </CardContent>
         </Card>
         <Card>
@@ -167,10 +211,22 @@ export default function PostLaunchDashboardPage() {
 
       <div className="space-y-8 mt-6">
         <MilestonePuzzle
-          missions={missions}
-          onMissionToggle={toggleMissionCompletion}
-          title={`Quarter ${Math.floor(simulationMonth / 3) + 1} Objectives`}
-          puzzleId={`post_launch_q${Math.floor(simulationMonth / 3) + 1}`}
+          missions={storeState.missions}
+          onMissionToggle={(id) => {
+            const toggleMissionCompletion = useSimulationStore.getState().toggleMissionCompletion;
+            toggleMissionCompletion(id);
+            
+            // Update local state after toggling
+            const updatedState = useSimulationStore.getState();
+            setStoreState(prev => ({
+              ...prev,
+              missions: updatedState.missions
+            }));
+            
+            toast({ title: "Mission Status Updated", description: "Your progress has been saved." });
+          }}
+          title={`Quarter ${Math.floor(storeState.simulationMonth / 3) + 1} Objectives`}
+          puzzleId={`post_launch_q${Math.floor(storeState.simulationMonth / 3) + 1}`}
           onPuzzleComplete={() => toast({ title: "Quarter Complete!", description: "You've met all objectives for this quarter. Ready to simulate the next one!"})}
         />
         {/* Placeholder for post-launch specific charts and metrics */}

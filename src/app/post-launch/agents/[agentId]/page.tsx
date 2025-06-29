@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChatInterface } from "@/components/mentor/chat-interface";
 import { getAgentProfileById, agentsList } from "@/lib/agentsData"; 
@@ -13,19 +12,31 @@ import { cn } from "@/lib/utils";
 export default function AgentChatPage() {
   const params = useParams();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const agentId = typeof params.agentId === 'string' ? params.agentId : undefined;
   let agentProfile: AIAgentProfile | undefined = undefined;
 
-  if (agentId) {
-    agentProfile = getAgentProfileById(agentId);
-  }
-  
   useEffect(() => {
-    if (agentId && !agentProfile) {
-      console.warn(`Agent profile for ID "${agentId}" not found. Redirecting.`);
-      router.replace('/app/post-launch/agents');
+    setMounted(true);
+    
+    if (agentId) {
+      agentProfile = getAgentProfileById(agentId);
+      if (!agentProfile) {
+        console.warn(`Agent profile for ID "${agentId}" not found. Redirecting.`);
+        router.replace('/app/post-launch/agents');
+      }
     }
-  }, [agentId, agentProfile, router]);
+  }, [agentId, router]);
+  
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="container mx-auto py-8 px-4 md:px-0 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+        <p>Loading agent information...</p>
+      </div>
+    );
+  }
 
   if (!agentId) {
     return (

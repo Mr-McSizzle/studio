@@ -1,28 +1,41 @@
-
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { AgentCard } from "@/components/agents/agent-card";
 import { agentsList } from "@/lib/agentsData";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export default function PostLaunchAIAgentsPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const { isAuthenticated } = useAuthStore();
   const { isInitialized } = useSimulationStore();
 
+  // Ensure client-side only execution
   useEffect(() => {
+    setMounted(true);
+    
     if (!isAuthenticated) {
       router.replace('/login');
     }
   }, [isAuthenticated, router]);
   
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading...</p>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">

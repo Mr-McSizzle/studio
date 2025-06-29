@@ -1,13 +1,12 @@
-
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ListTodo, Bot } from "lucide-react";
+import { ListTodo, Bot, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { cn } from "@/lib/utils";
@@ -28,20 +27,33 @@ const difficultyColorMap = {
   hard: "bg-pink-500/20 text-pink-700 border-pink-500/50",
 };
 
-
 export default function PostLaunchTodoPage() {
-  const { isAuthenticated } = useAuthStore();
-  const { missions, toggleMissionCompletion } = useSimulationStore(state => ({
-    missions: state.missions,
-    toggleMissionCompletion: state.toggleMissionCompletion
-  }));
   const router = useRouter();
-
+  const [mounted, setMounted] = useState(false);
+  const [missions, setMissions] = useState([]);
+  const { isAuthenticated } = useAuthStore();
+  
   useEffect(() => {
+    setMounted(true);
+    
     if (!isAuthenticated) {
       router.replace('/login');
+    } else {
+      // Get missions from store after component mounts
+      const storeMissions = useSimulationStore.getState().missions;
+      setMissions(storeMissions);
     }
   }, [isAuthenticated, router]);
+  
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading tasks...</p>
+      </div>
+    );
+  }
   
   if (!isAuthenticated) {
     return (
@@ -52,6 +64,15 @@ export default function PostLaunchTodoPage() {
   }
   
   const pendingTasks = missions.filter(t => !t.isCompleted).length;
+
+  const handleToggleMission = (missionId) => {
+    const toggleMissionCompletion = useSimulationStore.getState().toggleMissionCompletion;
+    toggleMissionCompletion(missionId);
+    
+    // Update local state after toggling
+    const updatedMissions = useSimulationStore.getState().missions;
+    setMissions(updatedMissions);
+  };
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-0">
@@ -81,7 +102,7 @@ export default function PostLaunchTodoPage() {
               </SheetDescription>
             </SheetHeader>
             <div className="flex-grow overflow-y-hidden">
-              <ChatInterface />
+              <ChatInterface isEmbedded />
             </div>
              <div className="p-4 border-t">
                 <SheetClose asChild>
@@ -115,7 +136,7 @@ export default function PostLaunchTodoPage() {
                     <Checkbox
                       id={`mission-${mission.id}`}
                       checked={mission.isCompleted}
-                      onCheckedChange={() => toggleMissionCompletion(mission.id)}
+                      onCheckedChange={() => handleToggleMission(mission.id)}
                       aria-labelledby={`mission-label-${mission.id}`}
                       className="mt-1 shrink-0 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground focus-visible:ring-accent"
                     />

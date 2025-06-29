@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type FormEvent, useEffect } from "react";
@@ -70,7 +69,8 @@ const launchGoalsOptions = [
 
 export default function InnovationHubPage() {
   const router = useRouter();
-  const { isInitialized, ...simState } = useSimulationStore();
+  const [mounted, setMounted] = useState(false);
+  const [simState, setSimState] = useState({ isInitialized: false, financials: { currencySymbol: "$" } });
   const { toast } = useToast();
 
   const [featureName, setFeatureName] = useState("");
@@ -84,23 +84,40 @@ export default function InnovationHubPage() {
   const [results, setResults] = useState<SimulateFeatureLaunchOutput | null>(null);
 
   useEffect(() => {
-    if (!isInitialized) {
+    setMounted(true);
+    
+    // Get store state after component mounts
+    const state = useSimulationStore.getState();
+    setSimState(state);
+    
+    if (!state.isInitialized) {
       router.replace('/app/post-launch/setup');
     }
-  }, [isInitialized, router]);
+  }, [router]);
   
   const getSerializableSimulationState = () => {
     // Abridged state for the AI
+    const state = useSimulationStore.getState();
     return {
-      simulationMonth: simState.simulationMonth,
-      companyName: simState.companyName,
-      financials: simState.financials,
-      userMetrics: simState.userMetrics,
-      product: simState.product,
-      market: simState.market,
-      startupScore: simState.startupScore,
+      simulationMonth: state.simulationMonth,
+      companyName: state.companyName,
+      financials: state.financials,
+      userMetrics: state.userMetrics,
+      product: state.product,
+      market: state.market,
+      startupScore: state.startupScore,
     };
   };
+
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading innovation hub...</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -169,7 +186,7 @@ export default function InnovationHubPage() {
         </p>
       </header>
       
-      {!isInitialized && (
+      {!simState.isInitialized && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Simulation Not Initialized</AlertTitle>
@@ -196,7 +213,7 @@ export default function InnovationHubPage() {
                     value={featureName}
                     onChange={(e) => setFeatureName(e.target.value)}
                     placeholder="e.g., AI-Powered Analytics Suite"
-                    disabled={isLoading || !isInitialized}
+                    disabled={isLoading || !simState.isInitialized}
                   />
                 </div>
                 <div>
@@ -206,7 +223,7 @@ export default function InnovationHubPage() {
                     value={targetAudience}
                     onChange={(e) => setTargetAudience(e.target.value)}
                     placeholder="e.g., Existing power users, enterprise clients"
-                    disabled={isLoading || !isInitialized}
+                    disabled={isLoading || !simState.isInitialized}
                   />
                 </div>
                 <div>
@@ -217,7 +234,7 @@ export default function InnovationHubPage() {
                     value={estimatedBudget}
                     onChange={(e) => setEstimatedBudget(e.target.value)}
                     placeholder="e.g., 50000"
-                    disabled={isLoading || !isInitialized}
+                    disabled={isLoading || !simState.isInitialized}
                   />
                 </div>
                 
@@ -245,7 +262,7 @@ export default function InnovationHubPage() {
                     </div>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading || !isInitialized}>
+                <Button type="submit" className="w-full" disabled={isLoading || !simState.isInitialized}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
                   {isLoading ? "Analyzing..." : "Get AI Analysis"}
                 </Button>
