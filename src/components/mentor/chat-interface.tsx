@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -112,11 +111,11 @@ export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = f
     if (!userInput.trim() || isLoading) return;
 
     const newUserMessage: ChatMessageType = {
-      id: `user-${currentChatContext}-${Date.now()}`,
+      id: `user-${currentChatContext}-${Date.now()}`, // Context in ID for easier debugging
       role: "user",
       content: userInput.trim(),
       timestamp: new Date(),
-      agentContextId: currentChatContext,
+      agentContextId: currentChatContext, // Tag with current context
     };
     addMessage(newUserMessage);
     const currentInput = userInput;

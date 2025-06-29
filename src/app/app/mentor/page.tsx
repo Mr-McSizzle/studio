@@ -1,3 +1,4 @@
+"use client";
 
 import Link from 'next/link';
 import { ChatInterface } from "@/components/mentor/chat-interface";

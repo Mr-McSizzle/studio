@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Bot, PhoneOff, Circle, Check, Globe } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mic, Bot, PhoneOff, Circle, Check, Globe } from 'lucide-react';
 import { useAuthStore } from "@/store/authStore";
 import { useSimulationStore } from "@/store/simulationStore";
 import { useAiMentorStore } from "@/store/aiMentorStore";
@@ -152,6 +151,7 @@ export default function AgentCallPage() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
+
 
   const startListening = () => {
     if (recognitionRef.current && callStatus !== "listening") {

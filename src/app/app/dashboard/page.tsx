@@ -1,6 +1,6 @@
-
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
