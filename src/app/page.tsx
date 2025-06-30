@@ -1,8 +1,8 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button"
@@ -659,6 +659,19 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      <div className="fixed bottom-4 right-4 z-30">
+        <a href="https://bolt.new" target="_blank" rel="noopener noreferrer" title="Made with Bolt">
+          <Image
+            src="/new-assets/boltlogo.png"
+            alt="Made with Bolt"
+            width={100}
+            height={25}
+            className="opacity-70 hover:opacity-100 transition-opacity"
+            data-ai-hint="bolt logo"
+          />
+        </a>
+      </div>
     </div>
   )
 }
