@@ -709,32 +709,3 @@ export const AnalyzeSillyIdeaOutputSchema = z.object({
   agentBanter: z.array(AgentBanterSchema).describe("A list of 2-3 humorous reactions from different AI agents."),
 });
 export type AnalyzeSillyIdeaOutput = z.infer<typeof AnalyzeSillyIdeaOutputSchema>;
-
-
-// Reddit Tool and Flow Schemas
-export const RedditToolInputSchema = z.object({
-  subreddit: z.string().describe("The name of the subreddit to post to (without 'r/')."),
-  title: z.string().describe("The title of the Reddit post."),
-  body: z.string().describe("The markdown body content of the Reddit post."),
-});
-export type RedditToolInput = z.infer<typeof RedditToolInputSchema>;
-
-export const RedditToolOutputSchema = z.object({
-  success: z.boolean().describe("Whether the post was successfully simulated."),
-  postUrl: z.string().url().optional().describe("The URL of the (simulated) new Reddit post."),
-  message: z.string().describe("A confirmation or error message."),
-});
-export type RedditToolOutput = z.infer<typeof RedditToolOutputSchema>;
-
-
-export const SubmitToRedditInputSchema = AnalyzeSillyIdeaOutputSchema.extend({
-  sillyIdeaTitle: z.string().describe("The original title or short description of the idea."),
-  sillyIdeaDescription: z.string().describe("The full description of the silly idea."),
-});
-export type SubmitToRedditInput = z.infer<typeof SubmitToRedditInputSchema>;
-
-// The output of this flow is the same as the tool's output
-export const SubmitToRedditOutputSchema = RedditToolOutputSchema;
-export type SubmitToRedditOutput = z.infer<typeof SubmitToRedditOutputSchema>;
-
-    
