@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from "react";
@@ -9,6 +8,12 @@ import type { AIAgentProfile } from "@/types/simulation";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+
+export async function generateStaticParams() {
+  return agentsList.map((agent) => ({
+    agentId: agent.id,
+  }));
+}
 
 export default function AgentChatPage() {
   const params = useParams();
