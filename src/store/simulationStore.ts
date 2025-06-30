@@ -399,7 +399,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
 
         set(state => ({
           ...getInitialState(),
-          companyName: parsedConditions.companyName || userStartupName || "AI Suggested Venture",
+          companyName: userStartupName || parsedConditions.companyName || "AI Suggested Venture",
           selectedArchetype: selectedArchetype,
           market: {
             ...initialBaseState.market,
