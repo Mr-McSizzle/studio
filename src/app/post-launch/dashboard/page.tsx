@@ -217,10 +217,10 @@ export default function PostLaunchDashboardPage() {
             toggleMissionCompletion(id);
             
             // Update local state after toggling
-            const updatedState = useSimulationStore.getState();
+            const updatedMissions = useSimulationStore.getState().missions;
             setStoreState(prev => ({
               ...prev,
-              missions: updatedState.missions
+              missions: updatedMissions
             }));
             
             toast({ title: "Mission Status Updated", description: "Your progress has been saved." });

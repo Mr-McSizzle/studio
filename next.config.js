@@ -18,8 +18,8 @@ const nextConfig = {
     ],
     unoptimized: true,
   },
-  // Comment out for development, uncomment for production static export
-  // output: 'export',
+  // Enable static export for production deployment
+  output: 'export',
   webpack: (config, { isServer }) => {
     // Ignore warnings from handlebars
     config.ignoreWarnings = [
