@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -6,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Zap, Check, X } from 'lucide-react';
-import { TavusVideoPlaceholder } from './TavusVideoPlaceholder';
 import { cn } from '@/lib/utils';
 
 interface EveEventOverlayProps {
@@ -76,10 +74,6 @@ export const EveEventOverlay: React.FC<EveEventOverlayProps> = ({
             variants={dialogVariants}
             className="relative w-full max-w-md mx-4 rounded-xl border border-primary/30 bg-background/70 backdrop-blur-xl shadow-primary-glow-md p-6"
           >
-            <div className="mb-4">
-              <TavusVideoPlaceholder />
-            </div>
-            
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-3">
                  <Zap className="h-5 w-5 text-accent" />
@@ -122,7 +116,7 @@ export const EveEventOverlay: React.FC<EveEventOverlayProps> = ({
                     </TooltipTrigger>
                      <TooltipContent side="bottom">
                       <p>{acceptOption.description}</p>
-                    </TooltipContent>
+                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
