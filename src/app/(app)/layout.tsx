@@ -1,6 +1,12 @@
+
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { PanelLeft } from "lucide-react";
+import { PanelLeft, Loader2 } from "lucide-react";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
 
 import { IncepticoLogo } from "@/components/icons/logo";
 import { SidebarNav, MobileSidebarNav, SidebarToggleButton } from "@/components/layout/sidebar-nav";
@@ -17,6 +23,35 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const { isAuthenticated, userEmail } = useAuthStore();
+
+  useEffect(() => {
+    // Wait for the auth store to be rehydrated from localStorage
+    if (userEmail === undefined) {
+      return; 
+    }
+    // If not authenticated, redirect to login page.
+    if (!isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, userEmail, router]);
+
+  // While checking auth, show a loading screen to prevent content flicker
+  if (userEmail === undefined || !isAuthenticated) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-muted/40">
+        <div className="flex flex-col items-center gap-4">
+            <IncepticoLogo className="h-16 w-16 text-primary animate-subtle-pulse"/>
+            <p className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Verifying secure session...
+            </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <TooltipProvider>
       <SidebarProvider defaultOpen={true}>
@@ -39,7 +74,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </SidebarFooter>
           </Sidebar>
 
-          <div className="flex flex-col sm:gap-4 sm:py-4 md:ml-[var(--sidebar-width-icon)] group-data-[state=expanded]:md:ml-[var(--sidebar-width)] transition-[margin-left] duration-200 ease-linear">
+          <div className="flex flex-col sm:gap-4 sm:py-4 md:ml-[var(--sidebar-width-icon)] peer-data-[state=expanded]:md:ml-[var(--sidebar-width)] transition-[margin-left] duration-300 ease-in-out">
              <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
               <Sheet>
                 <SheetTrigger asChild>

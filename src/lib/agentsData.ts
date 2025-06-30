@@ -19,7 +19,7 @@ export const agentsList: AIAgentProfile[] = [
     title: "AI Queen Hive Mind Assistant",
     icon: Brain,
     iconColorClass: "text-primary-foreground",
-    avatarUrl: "/new-assets/agents/eve-hive-mind.png",
+    avatarUrl: "/new-assets/custom_eve_avatar.png",
     gradientFromClass: "from-primary",
     gradientToClass: "to-blue-400", // Adjusted to a lighter blue for EVE
     description: "Your central AI strategist. EVE coordinates the specialized AI agents, synthesizes insights, and provides personalized guidance throughout your Inceptico journey.",
