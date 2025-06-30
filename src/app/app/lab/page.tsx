@@ -10,12 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb, XCircle, Save, ListRestart, HistoryIcon, CheckCircle, HelpCircle, Bot, Trophy, GitCommitVertical } from "lucide-react";
+import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb, XCircle, Save, ListRestart, HistoryIcon, CheckCircle, HelpCircle, Bot, Trophy } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { analyzeCustomScenario, type AnalyzeCustomScenarioInput } from "@/ai/flows/analyze-custom-scenario-flow";
 import { suggestScenarios, type SuggestScenariosInput, type SuggestedScenario } from "@/ai/flows/suggest-scenarios-flow";
 import { analyzeSillyIdea, type AnalyzeSillyIdeaInput, type AnalyzeSillyIdeaOutput } from "@/ai/flows/analyze-silly-idea-flow";
-import { submitToReddit, type SubmitToRedditInput, type SubmitToRedditOutput } from "@/ai/flows/submit-to-reddit-flow";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,6 +31,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getAgentProfileById } from "@/lib/agentsData";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -288,14 +293,11 @@ const StrategicAnalysisTab = () => {
 
 const AbsurdityArenaTab = () => {
     const { toast } = useToast();
-    const simState = useSimulationStore();
     const [sillyIdeaDescription, setSillyIdeaDescription] = useState("");
     const [joyMetric, setJoyMetric] = useState("Maximum Confusion");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [analysisResult, setAnalysisResult] = useState<AnalyzeSillyIdeaOutput | null>(null);
-    const [isSubmittingToReddit, setIsSubmittingToReddit] = useState(false);
-    const [redditSubmissionResult, setRedditSubmissionResult] = useState<SubmitToRedditOutput | null>(null);
 
     const handleAnalyze = async (e: FormEvent) => {
         e.preventDefault();
@@ -307,7 +309,6 @@ const AbsurdityArenaTab = () => {
         setIsLoading(true);
         setError(null);
         setAnalysisResult(null);
-        setRedditSubmissionResult(null);
 
         try {
             const input: AnalyzeSillyIdeaInput = { sillyIdeaDescription, joyMetric };
@@ -323,32 +324,6 @@ const AbsurdityArenaTab = () => {
         }
     };
 
-    const handleSubmitToReddit = async () => {
-        if (!analysisResult || !sillyIdeaDescription) return;
-
-        setIsSubmittingToReddit(true);
-        setRedditSubmissionResult(null);
-        try {
-            const input: SubmitToRedditInput = {
-                sillyIdeaTitle: sillyIdeaDescription.substring(0, 50),
-                sillyIdeaDescription,
-                ...analysisResult
-            };
-            const result = await submitToReddit(input);
-            setRedditSubmissionResult(result);
-            toast({
-                title: "Submission Simulated!",
-                description: result.success ? "Your idea has been 'posted' to Reddit for eternal glory." : "Submission failed.",
-                variant: result.success ? "default" : "destructive",
-            });
-        } catch(err) {
-             const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-             toast({ title: "Submission Error", description: errorMessage, variant: "destructive" });
-        } finally {
-            setIsSubmittingToReddit(false);
-        }
-    }
-
     return (
         <div className="space-y-6">
             <Card className="shadow-lg border-purple-500/30">
@@ -358,7 +333,6 @@ const AbsurdityArenaTab = () => {
                             <CardTitle className="flex items-center gap-3 text-xl text-purple-400"><HelpCircle className="h-7 w-7" />The Absurdity Arena</CardTitle>
                             <CardDescription>Inspired by the Reddit x Bolt Developer Platform Challenge. Pitch your wackiest, weirdest, and most gloriously impractical ideas for AI analysis.</CardDescription>
                         </div>
-                        <img src="https://www.redditinc.com/assets/images/site/reddit-logo.png" alt="Reddit Logo" className="h-8 w-auto" />
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -413,27 +387,6 @@ const AbsurdityArenaTab = () => {
                                     )
                                 })}
                             </div>
-                        </div>
-                        <Separator />
-                        <div className="text-center space-y-3">
-                             <Button onClick={handleSubmitToReddit} disabled={isSubmittingToReddit} className="bg-orange-500 hover:bg-orange-600 text-white">
-                                {isSubmittingToReddit ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trophy className="mr-2 h-4 w-4"/>}
-                                Submit to Reddit for Eternal Glory
-                            </Button>
-                             {redditSubmissionResult && (
-                                <Alert variant={redditSubmissionResult.success ? "default" : "destructive"} className="text-left">
-                                  <GitCommitVertical className="h-4 w-4" />
-                                  <AlertTitle>{redditSubmissionResult.success ? "Submission Simulated!" : "Submission Failed"}</AlertTitle>
-                                  <AlertDescription>
-                                    {redditSubmissionResult.message}
-                                    {redditSubmissionResult.postUrl && (
-                                      <a href={redditSubmissionResult.postUrl} target="_blank" rel="noopener noreferrer" className="block text-xs text-blue-400 hover:underline mt-1 break-all">
-                                        View simulated post: {redditSubmissionResult.postUrl}
-                                      </a>
-                                    )}
-                                  </AlertDescription>
-                                </Alert>
-                              )}
                         </div>
                     </CardContent>
                  </Card>
