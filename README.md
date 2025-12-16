@@ -50,3 +50,5 @@ Inceptico aims to revolutionize the startup and business strategy ecosystem by p
 
 This is a NextJS starter in Firebase Studio.
 To get started, take a look at `src/app/page.tsx`.
+
+Can be found at: inceptico.netlify.app
