@@ -81,7 +81,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   };
 
 
-  let userAvatarSrc = "/new-assets/placeholder-avatar.png"; 
+  let userAvatarSrc = ""; 
   let userAvatarHint = "letter avatar";
   let UserIconFallback = User;
   let userAvatarAlt = "User Avatar";
