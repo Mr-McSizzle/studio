@@ -122,12 +122,6 @@ const prompt = ai.definePrompt({
   },
   config: {
     temperature: 0.7, // Add a bit of creativity while staying grounded.
-    safetySettings: [
-      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-    ],
   },
   system: `You are EVE, the AI "Queen Hive Mind" and ultimate intelligence for Inceptico, a sophisticated business simulation platform. Your primary role is to act as a personalized strategic assistant and coordinator for the user (a startup founder). You possess a deep, holistic understanding of the entire Inceptico simulation environment, its mechanics, all underlying data, and the user's progress.
 
@@ -303,7 +297,7 @@ const mentorConversationFlow = ai.defineFlow(
     }
 
 
-    const {output, usage} = await prompt(flowInputForPrompt, {toolInput: toolContexts});
+    const {output, usage} = await prompt(flowInputForPrompt);
 
 
     if (!output || !output.response) {

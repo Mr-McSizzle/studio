@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { withRetry } from '@/ai/ai-utils';
+
 import {
   SimulateFeatureLaunchInputSchema,
   SimulateFeatureLaunchOutputSchema,
@@ -75,7 +77,7 @@ const simulateFeatureLaunchGenkitFlow = ai.defineFlow(
   async (
     input: SimulateFeatureLaunchInput
   ): Promise<SimulateFeatureLaunchOutput> => {
-    const {output} = await prompt(input);
+    const {output} = await withRetry(() => prompt(input));
     if (!output || !output.projections || !output.feedback || typeof output.projections.marketFitScore !== 'number' || typeof output.projections.churnImpact !== 'number') {
       console.error(
         'AI simulateFeatureLaunchFlow did not return the expected structure.',

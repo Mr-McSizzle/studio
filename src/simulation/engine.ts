@@ -8,7 +8,7 @@ import type { DigitalTwinState, AIInitialConditions } from '@/types/simulation';
 
 // This initial state is now primarily managed within the Zustand store.
 // It's kept here as a reference or for utility functions if needed.
-export const initialReferenceDigitalTwinState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'isInitialized'> = {
+export const initialReferenceDigitalTwinState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'suggestedChallenges' | 'isInitialized' | 'investorSentiment' | 'earnedBadges' | 'historicalInvestorSentiment' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'currentAiReasoning' | 'activeSurpriseEvent' | 'surpriseEventHistory' | 'activeScenarios' | 'activeMonthlySummary' | 'selectedArchetype' | 'isSimulating'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -18,6 +18,8 @@ export const initialReferenceDigitalTwinState: Omit<DigitalTwinState, 'missions'
     burnRate: 5000,
     cashOnHand: 50000,
     fundingRaised: 50000,
+    currencyCode: 'USD',
+    currencySymbol: '$',
   },
   userMetrics: {
     activeUsers: 0,
@@ -31,6 +33,7 @@ export const initialReferenceDigitalTwinState: Omit<DigitalTwinState, 'missions'
     stage: 'idea',
     features: ["Core Concept"],
     developmentProgress: 10,
+    pricePerUser: 10,
   },
   resources: {
     initialBudget: 50000,

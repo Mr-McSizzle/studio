@@ -10,6 +10,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { withRetry } from '@/ai/ai-utils';
+
 import { CompetitorAnalysisInputSchema, CompetitorAnalysisOutputSchema, type CompetitorAnalysisInput, type CompetitorAnalysisOutput } from '@/types/simulation';
 
 export async function competitorAnalysis(input: CompetitorAnalysisInput): Promise<CompetitorAnalysisOutput> {
@@ -63,7 +65,7 @@ const competitorAnalysisGenkitFlow = ai.defineFlow(
     outputSchema: CompetitorAnalysisOutputSchema,
   },
   async (input: CompetitorAnalysisInput): Promise<CompetitorAnalysisOutput> => {
-    const {output} = await prompt(input);
+    const {output} = await withRetry(() => prompt(input));
 
     if (!output || !output.overallMarketPerspective || !Array.isArray(output.detailedAnalyses)) {
       console.error("AI competitorAnalysisFlow did not return the expected structure.", output);

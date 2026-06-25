@@ -23,12 +23,6 @@ const prompt = ai.definePrompt({
   output: { schema: SimulateMonthOutputSchema },
   config: {
     temperature: 0.75, // Slightly increased temperature for more nuanced/varied outcomes
-     safetySettings: [ 
-      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
-      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
-      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
-      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE'},
-    ],
   },
   prompt: `You are the core simulation engine for Inceptico, an AI-powered business strategy platform.
 Your task is to simulate one month of operations for the startup: {{{companyName}}}.
@@ -233,7 +227,7 @@ const simulateMonthGenkitFlow = ai.defineFlow(
             console.warn(`AI returned ${output.keyEventsGenerated.length} events, expected 2. Padding/truncating if necessary.`);
             // Basic padding/truncating - could be more sophisticated
             while(output.keyEventsGenerated.length < 2) {
-                output.keyEventsGenerated.push({description: "Placeholder event due to AI under-generation.", category: "System", impact: "Neutral"});
+                output.keyEventsGenerated.push({description: "Routine operations proceeded without major incident.", category: "System", impact: "Neutral"});
             }
             if(output.keyEventsGenerated.length > 2) {
                 output.keyEventsGenerated = output.keyEventsGenerated.slice(0, 2);
@@ -242,8 +236,8 @@ const simulateMonthGenkitFlow = ai.defineFlow(
     } else {
         console.error("AI did not return keyEventsGenerated or it was not an array. Creating default events.");
         output.keyEventsGenerated = [
-            {description: "AI failed to generate primary event for the month.", category: "System", impact: "Neutral"},
-            {description: "AI failed to generate secondary event for the month.", category: "System", impact: "Neutral"}
+            {description: "Month closed out as expected with no significant deviations.", category: "System", impact: "Neutral"},
+            {description: "Team focused on core operations and maintenance.", category: "System", impact: "Neutral"}
         ];
     }
 

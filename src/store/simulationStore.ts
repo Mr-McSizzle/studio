@@ -4,8 +4,10 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { DigitalTwinState, Reward, AIInitialConditions, RevenueDataPoint, UserDataPoint, SimulateMonthInput, SimulateMonthOutput, HistoricalDataPoint, ExpenseBreakdownDataPoint, TeamMember, ExpenseBreakdown, SimulationSnapshot, Mission, StructuredKeyEvent, KeyEventCategory, KeyEventImpact, GeneratedMission, FounderArchetype, ActiveSurpriseEvent, SurpriseEventHistoryItem, SurpriseEventOptionOutcome } from '@/types/simulation';
 import type { PromptStartupOutput } from '@/ai/flows/prompt-startup';
 import { simulateMonth as simulateMonthFlow } from '@/ai/flows/simulate-month-flow';
-import { generateDynamicMissions, type GenerateDynamicMissionsInput } from '@/ai/flows/generate-dynamic-missions-flow';
+import { generateDynamicMissions } from '@/ai/flows/generate-dynamic-missions-flow';
+import type { GenerateDynamicMissionsInput } from '@/types/simulation';
 import { useAiMentorStore, EVE_MAIN_CHAT_CONTEXT_ID } from './aiMentorStore';
+import { sanitizeAiError } from '@/ai/ai-utils';
 
 const MOCK_PRICE_PER_USER_PER_MONTH_DEFAULT = 10;
 const MOCK_SALARY_PER_FOUNDER = 0;
@@ -88,7 +90,7 @@ export interface EarnedBadge {
 }
 
 
-const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'historicalInvestorSentiment' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory' | 'activeScenarios' | 'activeMonthlySummary'> = {
+const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEvents' | 'historicalRevenue' | 'historicalUserGrowth' | 'historicalBurnRate' | 'historicalNetProfitLoss' | 'historicalExpenseBreakdown' | 'currentAiReasoning' | 'sandboxState' | 'isSandboxing' | 'sandboxRelativeMonth' | 'historicalCAC' | 'historicalChurnRate' | 'historicalProductProgress' | 'historicalInvestorSentiment' | 'earnedBadges' | 'selectedArchetype' | 'activeSurpriseEvent' | 'surpriseEventHistory' | 'activeScenarios' | 'activeMonthlySummary' | 'suggestedChallenges'> = {
   simulationMonth: 0,
   companyName: "Your New Venture",
   financials: {
@@ -130,6 +132,7 @@ const initialBaseState: Omit<DigitalTwinState, 'missions' | 'rewards' | 'keyEven
   investorSentiment: 50,
   isInitialized: false,
   initialGoals: [],
+  isSimulating: false,
 };
 
 
@@ -235,6 +238,7 @@ const extractActiveSimState = (state: DigitalTwinState & { savedSimulations: Sim
     surpriseEventHistory: state.surpriseEventHistory,
     activeScenarios: state.activeScenarios,
     activeMonthlySummary: state.activeMonthlySummary,
+    isSimulating: state.isSimulating,
   };
 };
 
@@ -539,7 +543,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
           return;
         }
 
-        set({ currentAiReasoning: "Hive Mind is simulating month... Processing inputs and predicting outcomes..."});
+        set({ isSimulating: true, currentAiReasoning: "Hive Mind is simulating month... Processing inputs and predicting outcomes..."});
 
         let currentProductStageForAI = currentState.product.stage;
         const validStages: DigitalTwinState['product']['stage'][] = ['idea', 'prototype', 'mvp', 'growth', 'mature'];
@@ -652,19 +656,24 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             newState.rewards = currentRewards;
 
             // Generate new missions for the upcoming month
-            const missionInput: GenerateDynamicMissionsInput = {
-              simulationStateJSON: JSON.stringify(newState),
-              recentEvents: newKeyEvents.slice(-3).map(e => e.description),
-              currentGoals: newState.initialGoals,
-            };
-            const missionResult = await generateDynamicMissions(missionInput);
-            const newMissions: Mission[] = missionResult.generatedMissions.map(genMission => ({
-              ...genMission,
-              id: `mission-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-              isCompleted: false,
-            }));
-            newState.missions = newMissions;
-            newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `EVE has assigned new monthly objectives. Check the Todo List.`, "System", "Neutral"));
+            try {
+              const missionInput: GenerateDynamicMissionsInput = {
+                simulationStateJSON: JSON.stringify(newState),
+                recentEvents: newKeyEvents.slice(-3).map(e => e.description),
+                currentGoals: newState.initialGoals,
+              };
+              const missionResult = await generateDynamicMissions(missionInput);
+              const newMissions: Mission[] = missionResult.generatedMissions.map(genMission => ({
+                ...genMission,
+                id: `mission-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                isCompleted: false,
+              }));
+              newState.missions = newMissions;
+              newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `EVE has assigned new monthly objectives. Check the Todo List.`, "System", "Neutral"));
+            } catch (missionError: any) {
+              console.warn("Failed to generate missions this month, continuing simulation...", missionError);
+              newKeyEvents.push(createStructuredEvent(newState.simulationMonth, `EVE failed to generate new objectives this month due to an error: ${sanitizeAiError(missionError)}`, "System", "Neutral"));
+            }
             
             newState.keyEvents = [...currentState.keyEvents, ...newKeyEvents.filter(e => !currentState.keyEvents.find(se => se.id === e.id))];
 
@@ -723,38 +732,20 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             if (Math.random() < 0.75) { 
               get().triggerSurpriseEvent();
             }
-
         } catch (error) {
           console.error("Error during AI month simulation:", error);
           const targetMonth = get().simulationMonth + 1;
-          let userFriendlyMessage = `AI simulation for month ${targetMonth} failed.`;
-          let reasoningMessage = `AI simulation for month ${targetMonth} encountered an error.`;
+          const sanitizedMsg = sanitizeAiError(error);
+          
+          const userFriendlyMessage = `AI simulation for month ${targetMonth} failed. ${sanitizedMsg}`;
+          const reasoningMessage = `AI simulation for month ${targetMonth} encountered an error: ${sanitizedMsg}`;
 
-          if (error instanceof Error) {
-            const errorMessageLower = error.message.toLowerCase();
-            if (errorMessageLower.includes("503") ||
-                errorMessageLower.includes("service unavailable") ||
-                errorMessageLower.includes("googlegenerativeai error") ||
-                errorMessageLower.includes("visibility check was unavailable") ||
-                errorMessageLower.includes("resource has been exhausted") ||
-                errorMessageLower.includes("model_error") ||
-                errorMessageLower.includes("api key not valid")) {
-              userFriendlyMessage = `The AI simulation service is temporarily unavailable or experiencing high load (may be Error 503, resource exhaustion, or API key issue). Please try advancing the month again shortly or check configuration.`;
-              reasoningMessage = `AI service unavailable. Please try again. Details: ${error.message}`;
-            } else {
-              userFriendlyMessage += ` Details: ${error.message}`;
-              reasoningMessage += ` Details: ${error.message}`;
-            }
-          } else {
-            userFriendlyMessage += ` An unknown error occurred.`;
-            reasoningMessage += ` An unknown error occurred.`;
-          }
-
-          set(state => ({
-            ...state,
-            keyEvents: [...state.keyEvents, createStructuredEvent(targetMonth, userFriendlyMessage, "System", "Negative")],
-            currentAiReasoning: reasoningMessage
-          }));
+          set({
+            keyEvents: [...get().keyEvents, createStructuredEvent(get().simulationMonth, userFriendlyMessage, "System", "Negative")],
+            currentAiReasoning: reasoningMessage,
+          });
+        } finally {
+          set({ isSimulating: false });
         }
       },
 
@@ -1146,7 +1137,6 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         const availableEvents = predefinedSurpriseEvents.filter(event => !historicEventIds.has(event.id));
 
         if (availableEvents.length === 0) {
-          console.log("No new surprise events available to trigger.");
           return state;
         }
 
@@ -1175,7 +1165,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
             timestamp: new Date().toISOString(),
         };
 
-        const effectsToApply = activeSurpriseEvent.effects?.[outcome];
+        const effectsToApply = activeSurpriseEvent.effects?.[outcome === 'accepted' ? 'accept' : 'reject'];
         let updatedFinancials = { ...state.financials };
         let updatedStartupScore = state.startupScore;
         let eventResolutionLog = `Resolved '${activeSurpriseEvent.title}' by choosing to '${outcome}'.`;
@@ -1346,7 +1336,7 @@ export const useSimulationStore = create<DigitalTwinState & { savedSimulations: 
         mergedState.activeScenarios = Array.isArray(mergedState.activeScenarios) ? mergedState.activeScenarios : [];
         mergedState.activeMonthlySummary = mergedState.activeMonthlySummary || null;
 
-        return mergedState as DigitalTwinState & { savedSimulations: SimulationSnapshot[] };
+        return mergedState as any;
       },
     }
   )

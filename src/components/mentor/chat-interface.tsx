@@ -77,29 +77,30 @@ export function ChatInterface({ focusedAgentId, focusedAgentName, isEmbedded = f
   }, [currentChatContext, focusedAgentId, focusedAgentName, initializeGreeting]);
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       setIsSpeechRecognitionSupported(true);
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event) => {
+      recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         setUserInput(prev => prev ? `${prev} ${transcript}` : transcript);
         setIsRecording(false);
       };
 
-      recognitionRef.current.onerror = (event) => {
+      recognition.onerror = (event: any) => {
         console.error('Speech recognition error', event.error);
         toast({ title: "Voice Recognition Error", description: `An error occurred: ${event.error}`, variant: "destructive" });
         setIsRecording(false);
       };
       
-      recognitionRef.current.onend = () => {
+      recognition.onend = () => {
         setIsRecording(false);
       };
+      recognitionRef.current = recognition;
       
     } else {
       setIsSpeechRecognitionSupported(false);

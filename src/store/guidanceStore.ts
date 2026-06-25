@@ -179,7 +179,6 @@ export const useGuidanceStore = create<GuidanceState>()(
               }
               const streakBonusXp = currentDailyStreak * 1; // Example: 1 XP per day in streak
               currentInsightXp += streakBonusXp;
-              console.log(`Daily insight streak: ${currentDailyStreak}, Bonus XP: ${streakBonusXp}`);
               lastShownDate = today;
             }
           }
@@ -202,7 +201,6 @@ export const useGuidanceStore = create<GuidanceState>()(
               // Unlock cosmetic if defined for the quest
               if (questRewardDetails.unlocksCosmeticId && !currentUnlockedCosmetics.includes(questRewardDetails.unlocksCosmeticId)) {
                 currentUnlockedCosmetics.push(questRewardDetails.unlocksCosmeticId);
-                console.log(`Unlocked cosmetic: ${questRewardDetails.unlocksCosmeticId}`);
               }
             }
           }

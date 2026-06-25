@@ -7,7 +7,7 @@ import { RewardsCard } from "@/components/gamification/rewards-card";
 import { useSimulationStore } from "@/store/simulationStore";
 import { useGuidanceStore } from "@/store/guidanceStore";
 import { Button } from "@/components/ui/button";
-import { Trophy, AlertTriangle, Info, DollarSign, Users, Rocket, Globe } from "lucide-react";
+import { Trophy, AlertTriangle, Info, DollarSign, Users, Rocket, Globe, Sparkles } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

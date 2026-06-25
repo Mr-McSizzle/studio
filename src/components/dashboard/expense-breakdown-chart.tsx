@@ -54,7 +54,7 @@ export function ExpenseBreakdownChart({ data, currencySymbol = "$" }: ExpenseBre
                   cursor={false}
                   content={<ChartTooltipContent indicator="dashed" />}
                 />
-                <Legend contentStyle={{ color: "hsl(var(--foreground))" }}/>
+                <Legend wrapperStyle={{ color: "hsl(var(--foreground))" }}/>
                 <Bar dataKey="salaries" fill="var(--color-salaries)" radius={0} stackId="a" />
                 <Bar dataKey="marketing" fill="var(--color-marketing)" radius={0} stackId="a" />
                 <Bar dataKey="rnd" fill="var(--color-rnd)" radius={0} stackId="a" />

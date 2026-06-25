@@ -4,7 +4,9 @@
 import { useState, useEffect, type ChangeEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { promptStartup, type PromptStartupInput, type PromptStartupOutput } from "@/ai/flows/prompt-startup";
-import { suggestNames, type SuggestNamesInput, type SuggestNamesOutput } from "@/ai/flows/suggest-names-flow";
+import { suggestNames } from "@/ai/flows/suggest-names-flow";
+import { sanitizeAiError } from "@/ai/ai-utils";
+import type { SuggestNamesInput, SuggestNamesOutput } from "@/types/simulation";
 import { useSimulationStore } from "@/store/simulationStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -211,10 +213,9 @@ export default function SetupSimulationPage() {
       console.error("Error initializing startup simulation:", err);
       setShowCinematicOverlay(false);
       setIsLoadingAiCall(false);
-      let userFriendlyMessage = "Failed to initialize simulation. The AI might be unavailable or returned an unexpected response. Please try again.";
-      if (err instanceof Error) userFriendlyMessage = `Failed to initialize simulation. Details: ${err.message}`;
-      setError(userFriendlyMessage);
-      toast({ title: "Error Initializing Simulation", description: userFriendlyMessage, variant: "destructive" });
+      const safeError = sanitizeAiError(err);
+      setError(safeError);
+      toast({ title: "Error Initializing Simulation", description: safeError, variant: "destructive" });
     }
   };
 
@@ -234,7 +235,7 @@ export default function SetupSimulationPage() {
       toast({ title: "AI Name Ideas!", description: <pre className="whitespace-pre-wrap text-xs">{message}</pre>, duration: 15000 });
     } catch (err) {
       console.error("Error suggesting names:", err);
-      toast({ title: "Name Suggestion Failed", description: err instanceof Error ? err.message : "Could not get name suggestions.", variant: "destructive" });
+      toast({ title: "Name Suggestion Failed", description: sanitizeAiError(err), variant: "destructive" });
     } finally {
       setIsSuggestingNames(false);
     }

@@ -44,6 +44,8 @@ Please provide your analysis in the required JSON format.
 `
 });
 
+import { withRetry } from '@/ai/ai-utils';
+
 const analyzeSillyIdeaFlow = ai.defineFlow(
   {
     name: 'analyzeSillyIdeaFlow',
@@ -51,8 +53,8 @@ const analyzeSillyIdeaFlow = ai.defineFlow(
     outputSchema: AnalyzeSillyIdeaOutputSchema,
   },
   async (input: AnalyzeSillyIdeaInput): Promise<AnalyzeSillyIdeaOutput> => {
-    const {output} = await prompt(input);
-    if (!output || !output.whimsyScore || !Array.isArray(output.agentBanter)) {
+    const {output} = await withRetry(() => prompt(input));
+    if (!output || typeof output.whimsyScore !== 'number' || !output.agentBanter || output.agentBanter.length === 0) {
       console.error("AI analyzeSillyIdeaFlow did not return the expected structure.", output);
       throw new Error("AI analysis of the silly idea failed to produce a valid output structure.");
     }

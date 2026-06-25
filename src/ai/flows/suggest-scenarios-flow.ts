@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { withRetry } from '@/ai/ai-utils';
+
 import {z} from 'zod'; // z is from genkit, not directly from 'zod'
 import { 
     SuggestScenariosInputSchema, 
@@ -56,7 +58,7 @@ const suggestScenariosGenkitFlow = ai.defineFlow(
     outputSchema: SuggestScenariosOutputSchema,
   },
   async (input: SuggestScenariosInput): Promise<SuggestScenariosOutput> => {
-    const {output} = await prompt(input);
+    const {output} = await withRetry(() => prompt(input));
 
     if (!output || !Array.isArray(output.suggestedScenarios) || output.suggestedScenarios.length === 0) {
       console.error("AI suggestScenariosFlow did not return the expected 'suggestedScenarios' array.", output);

@@ -18,9 +18,6 @@ export const redditTool = ai.defineTool(
     outputSchema: RedditToolOutputSchema,
   },
   async (input: RedditToolInput): Promise<RedditToolOutput> => {
-    console.log(`[SIMULATED] Posting to r/${input.subreddit}: "${input.title}"`);
-    console.log(`[SIMULATED] Body:\n${input.body}`);
-
     // In a real implementation, this is where you would use `fetch` with OAuth tokens to call:
     // `https://oauth.reddit.com/api/submit`
     

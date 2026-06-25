@@ -89,8 +89,7 @@ export default function ProfilePage() {
       <header className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20 border-2 border-primary">
-                 <AvatarImage src={`https://placehold.co/80x80.png?text=${userName ? userName.charAt(0).toUpperCase() : 'U'}`} alt={userName || "User"} data-ai-hint="letter avatar" />
-                <AvatarFallback>{userName ? userName.charAt(0).toUpperCase() : "U"}</AvatarFallback>
+                 <AvatarFallback className="text-2xl bg-primary/20 text-primary">{userName ? userName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
             </Avatar>
             <div>
                 <h1 className="text-3xl font-headline text-foreground">

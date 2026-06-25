@@ -14,6 +14,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { FounderArchetypeEnum, type FounderArchetype } from '@/types/simulation'; // Import FounderArchetype
+import { withRetry, safeJsonParse } from '@/ai/ai-utils';
 
 const PromptStartupInputSchema = z.object({
   prompt: z
@@ -116,14 +117,6 @@ ABSOLUTELY CRITICAL INSTRUCTIONS FOR JSON VALIDITY AND CONTENT:
 `,
 });
 
-function sanitizeJsonString(jsonString: string): string {
-  if (!jsonString || typeof jsonString !== 'string') {
-    return jsonString;
-  }
-  // Remove trailing commas from objects and arrays
-  let sanitized = jsonString.replace(/,\\s*(?=[}\]])/g, '');
-  return sanitized;
-}
 
 const promptStartupFlow = ai.defineFlow(
   {
@@ -132,7 +125,7 @@ const promptStartupFlow = ai.defineFlow(
     outputSchema: PromptStartupOutputSchema,
   },
   async (input: PromptStartupInput): Promise<PromptStartupOutput> => {
-    const {output: rawOutput} = await prompt(input); // Renamed to rawOutput to avoid confusion
+    const {output: rawOutput} = await withRetry(() => prompt(input)); // Renamed to rawOutput to avoid confusion
     
     if (!rawOutput || !rawOutput.initialConditions || !rawOutput.suggestedChallenges) {
       console.error("AI promptStartup did not return the expected structure (missing initialConditions or suggestedChallenges). Raw output was:", rawOutput);
@@ -143,10 +136,8 @@ const promptStartupFlow = ai.defineFlow(
     let finalSuggestedChallengesString: string;
 
     // Process initialConditions
-    let sanitizedInitialConditionsStr = rawOutput.initialConditions;
     try {
-        sanitizedInitialConditionsStr = sanitizeJsonString(rawOutput.initialConditions);
-        const parsedObject = JSON.parse(sanitizedInitialConditionsStr);
+        const parsedObject = safeJsonParse(rawOutput.initialConditions);
         finalInitialConditionsString = JSON.stringify(parsedObject); // Re-stringify
 
         // Optional: Further validation of the parsedObject structure if needed
@@ -170,23 +161,24 @@ const promptStartupFlow = ai.defineFlow(
         const errorDetails = e instanceof Error ? e.message : String(e);
         console.error("CRITICAL (prompt-startup.ts): Error processing 'initialConditions'.", e);
         console.error("Original 'initialConditions' string from AI:", rawOutput.initialConditions);
-        console.error("Sanitized 'initialConditions' string attempted:", sanitizedInitialConditionsStr);
         throw new Error(
             `The AI failed to generate valid startup parameters (error processing initialConditions: ${errorDetails}). Original: ${rawOutput.initialConditions.substring(0, 200)}...`
         );
     }
 
     // Process suggestedChallenges
-    let sanitizedSuggestedChallengesStr = rawOutput.suggestedChallenges;
     try {
-        sanitizedSuggestedChallengesStr = sanitizeJsonString(rawOutput.suggestedChallenges);
-        const parsedArray = JSON.parse(sanitizedSuggestedChallengesStr); // Validate parsing
-        finalSuggestedChallengesString = JSON.stringify(parsedArray); // Re-stringify
+        const parsedChallenges = safeJsonParse(rawOutput.suggestedChallenges);
+        if (!Array.isArray(parsedChallenges)) {
+            console.warn("AI returned suggestedChallenges that is not an array:", parsedChallenges);
+            finalSuggestedChallengesString = JSON.stringify(["Establish initial market presence", "Define core MVP features", "Secure early funding or manage burn rate carefully"]);
+        } else {
+             finalSuggestedChallengesString = JSON.stringify(parsedChallenges);
+        }
     } catch (e) {
         const errorDetails = e instanceof Error ? e.message : String(e);
         console.error("CRITICAL (prompt-startup.ts): Error processing 'suggestedChallenges'.", e);
         console.error("Original 'suggestedChallenges' string from AI:", rawOutput.suggestedChallenges);
-        console.error("Sanitized 'suggestedChallenges' string attempted:", sanitizedSuggestedChallengesStr);
         throw new Error(
             `The AI failed to generate valid startup parameters (error processing suggestedChallenges: ${errorDetails}). Original: ${rawOutput.suggestedChallenges.substring(0,100)}...`
         );

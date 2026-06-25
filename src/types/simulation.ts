@@ -221,6 +221,7 @@ export interface DigitalTwinState {
     title: string;
     description: string;
   } | null;
+  isSimulating: boolean;
 }
 
 export interface AIInitialConditions {
@@ -679,7 +680,7 @@ export type SimulateFeatureLaunchOutput = z.infer<typeof SimulateFeatureLaunchOu
 // Text-to-Speech Flow Schemas
 export const TextToSpeechInputSchema = z.object({
   text: z.string().describe('The text to convert to speech.'),
-  voiceId: z.string().optional().describe('The agent voice ID. This will be mapped to a Gemini prebuilt voice. If not provided, a default voice will be used.'),
+  voiceId: z.string().optional().describe('The agent voice ID. This will be mapped to a prebuilt voice. If not provided, a default voice will be used.'),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
@@ -709,3 +710,42 @@ export const AnalyzeSillyIdeaOutputSchema = z.object({
   agentBanter: z.array(AgentBanterSchema).describe("A list of 2-3 humorous reactions from different AI agents."),
 });
 export type AnalyzeSillyIdeaOutput = z.infer<typeof AnalyzeSillyIdeaOutputSchema>;
+
+// Missing Reddit Tool Schemas
+export const RedditToolInputSchema = z.object({
+  subreddit: z.string().describe("The subreddit to post to"),
+  title: z.string().describe("Title of the post"),
+  body: z.string().describe("Body of the post"),
+});
+export type RedditToolInput = z.infer<typeof RedditToolInputSchema>;
+
+export const RedditToolOutputSchema = z.object({
+  success: z.boolean(),
+  postUrl: z.string().optional(),
+  message: z.string(),
+});
+export type RedditToolOutput = z.infer<typeof RedditToolOutputSchema>;
+
+// Missing Submit to Reddit Flow Schemas
+export const SubmitToRedditInputSchema = z.object({
+  sillyIdeaTitle: z.string(),
+  sillyIdeaDescription: z.string(),
+  whimsyScore: z.number(),
+  viralityPotential: z.string(),
+  joyToEffortRatio: z.string(),
+  agentBanter: z.array(z.object({
+    agentName: z.string(),
+    comment: z.string()
+  }))
+});
+export type SubmitToRedditInput = z.infer<typeof SubmitToRedditInputSchema>;
+
+export const SubmitToRedditOutputSchema = z.object({
+  success: z.boolean(),
+  postUrl: z.string().optional(),
+  message: z.string()
+});
+export type SubmitToRedditOutput = z.infer<typeof SubmitToRedditOutputSchema>;
+
+// Marketing Guru Tool alias
+export const MarketingGuruToolInputSchema = MayaTheMarketingGuruToolInputSchema;

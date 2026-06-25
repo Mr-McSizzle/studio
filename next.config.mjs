@@ -1,10 +1,8 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  typescript: {},
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -18,9 +16,7 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    allowedDevOrigins: ['https://6000-firebase-studio-1749659292414.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev'],
-  },
+  experimental: {},
   webpack: (config, { isServer }) => {
     // You can add custom webpack configurations here if needed in the future.
     return config;

@@ -10,6 +10,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { withRetry } from '@/ai/ai-utils';
+
 import {z} from 'zod'; // z is from genkit, not directly from 'zod'
 import { AnalyzeCustomScenarioInputSchema, AnalyzeCustomScenarioOutputSchema, type AnalyzeCustomScenarioInput, type AnalyzeCustomScenarioOutput } from '@/types/simulation';
 
@@ -54,7 +56,7 @@ const analyzeCustomScenarioGenkitFlow = ai.defineFlow(
     outputSchema: AnalyzeCustomScenarioOutputSchema,
   },
   async (input: AnalyzeCustomScenarioInput): Promise<AnalyzeCustomScenarioOutput> => {
-    const {output} = await prompt(input);
+    const {output} = await withRetry(() => prompt(input));
 
     if (!output || !output.analysisText) {
       console.error("AI analyzeCustomScenarioFlow did not return the expected 'analysisText' field.", output);

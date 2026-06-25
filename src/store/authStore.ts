@@ -50,7 +50,6 @@ export const useAuthStore = create<AuthState>()(
         }
         // In a real app, password would be hashed here.
         mockUsers[lcEmail] = { name: name, passwordSaltedHash: passwordAttempt };
-        console.log(`Mock sign up successful for: ${name}, ${email}. Password (insecurely stored): ${passwordAttempt}`);
         // For this mock, sign-up does not automatically log in. User proceeds to login.
         return true;
       },
@@ -66,7 +65,6 @@ export const ensureDefaultUser = () => {
   const email = "founder@inceptico.ai";
   if (!mockUsers[email.toLowerCase()]) {
     mockUsers[email.toLowerCase()] = { name: "Demo Founder", passwordSaltedHash: "password123" };
-    console.log("Default mock user created for testing.");
   }
 };
     

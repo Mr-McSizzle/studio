@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { withRetry } from '@/ai/ai-utils';
+
 import { GenerateDynamicMissionsInputSchema, GenerateDynamicMissionsOutputSchema, type GenerateDynamicMissionsInput, type GenerateDynamicMissionsOutput, MissionSchema } from '@/types/simulation';
 
 export async function generateDynamicMissions(input: GenerateDynamicMissionsInput): Promise<GenerateDynamicMissionsOutput> {
@@ -83,7 +85,7 @@ const generateDynamicMissionsGenkitFlow = ai.defineFlow(
     outputSchema: GenerateDynamicMissionsOutputSchema,
   },
   async (input: GenerateDynamicMissionsInput): Promise<GenerateDynamicMissionsOutput> => {
-    const {output} = await prompt(input);
+    const {output} = await withRetry(() => prompt(input));
 
     if (!output || !Array.isArray(output.generatedMissions)) {
       console.error("AI generateDynamicMissionsFlow did not return the expected 'generatedMissions' array.", output);

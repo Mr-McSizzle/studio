@@ -10,6 +10,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { withRetry } from '@/ai/ai-utils';
+
 import { DetailedFinancialAnalysisInputSchema, DetailedFinancialAnalysisOutputSchema, type DetailedFinancialAnalysisInput, type DetailedFinancialAnalysisOutput } from '@/types/simulation';
 
 export async function detailedFinancialAnalysis(input: DetailedFinancialAnalysisInput): Promise<DetailedFinancialAnalysisOutput> {
@@ -53,7 +55,7 @@ const detailedFinancialAnalysisGenkitFlow = ai.defineFlow(
     outputSchema: DetailedFinancialAnalysisOutputSchema,
   },
   async (input: DetailedFinancialAnalysisInput): Promise<DetailedFinancialAnalysisOutput> => {
-    const {output} = await prompt(input);
+    const {output} = await withRetry(() => prompt(input));
 
     if (!output || !output.analysisSummary || !Array.isArray(output.keyObservations)) {
       console.error("AI detailedFinancialAnalysisFlow did not return the expected structure.", output);

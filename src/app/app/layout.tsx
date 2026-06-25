@@ -46,8 +46,7 @@ function UserProfileFooter() {
               onClick={() => router.push('/app/profile')}
             >
               <Avatar className="h-8 w-8 border-2 border-sidebar-accent">
-                <AvatarImage src={`https://placehold.co/40x40.png?text=${userName ? userName.charAt(0).toUpperCase() : 'F'}`} alt={userName || "Founder"} data-ai-hint="letter avatar"/>
-                <AvatarFallback>{userName ? userName.charAt(0).toUpperCase() : "F"}</AvatarFallback>
+                <AvatarFallback className="bg-primary/20 text-primary">{userName ? userName.charAt(0).toUpperCase() : 'F'}</AvatarFallback>
               </Avatar>
               <div className="text-sm group-data-[sidebar-state=collapsed]:hidden">
                 <p className="font-semibold text-sidebar-foreground truncate max-w-[100px]">{userName || "Founder"}</p>

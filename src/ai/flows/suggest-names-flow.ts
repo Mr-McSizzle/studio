@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { withRetry } from '@/ai/ai-utils';
+
 import { SuggestNamesInputSchema, SuggestNamesOutputSchema, type SuggestNamesInput, type SuggestNamesOutput } from '@/types/simulation';
 
 export async function suggestNames(input: SuggestNamesInput): Promise<SuggestNamesOutput> {
@@ -54,7 +56,7 @@ const suggestNamesGenkitFlow = ai.defineFlow(
     outputSchema: SuggestNamesOutputSchema,
   },
   async (input: SuggestNamesInput): Promise<SuggestNamesOutput> => {
-    const {output} = await prompt(input);
+    const {output} = await withRetry(() => prompt(input));
 
     if (!output || !Array.isArray(output.suggestedCompanyNames) || !Array.isArray(output.suggestedProductNames)) {
       console.error("AI suggestNamesFlow did not return the expected arrays for names.", output);

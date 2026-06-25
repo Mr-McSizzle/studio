@@ -116,8 +116,9 @@ export const DynamicGuidanceSystem: React.FC = () => {
 
       const delay = matchedStep.trigger.delayMs || 0;
       timeoutIdRef.current = setTimeout(() => {
-        if (matchedStep.isDailyInsight && lastDailyInsightShownDate === today) {
-            console.log("[GuidanceSystem] Daily insight already shown today, not activating new one via this trigger.");
+        const hasShownInsightToday = matchedStep.isDailyInsight && lastDailyInsightShownDate === today;
+        if (hasShownInsightToday) {
+            return;
         } else {
             setActiveGuidance(matchedStep);
         }

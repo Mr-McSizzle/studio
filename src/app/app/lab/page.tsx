@@ -12,9 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Beaker, Info, AlertTriangle, Sparkles, Loader2, FileText, DollarSign, Users, BarChart3, ListChecks, Edit3, TestTube2, MinusCircle, PlusCircle, PackageOpen, Brain, Zap, SlidersHorizontal, Trash2, Briefcase, Lightbulb, XCircle, Save, ListRestart, HistoryIcon, CheckCircle, HelpCircle, Bot, Trophy } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { analyzeCustomScenario, type AnalyzeCustomScenarioInput } from "@/ai/flows/analyze-custom-scenario-flow";
-import { suggestScenarios, type SuggestScenariosInput, type SuggestedScenario } from "@/ai/flows/suggest-scenarios-flow";
-import { analyzeSillyIdea, type AnalyzeSillyIdeaInput, type AnalyzeSillyIdeaOutput } from "@/ai/flows/analyze-silly-idea-flow";
+import { analyzeCustomScenario } from "@/ai/flows/analyze-custom-scenario-flow";
+import { suggestScenarios } from "@/ai/flows/suggest-scenarios-flow";
+import { analyzeSillyIdea } from "@/ai/flows/analyze-silly-idea-flow";
+import type { AnalyzeCustomScenarioInput, SuggestScenariosInput, SuggestedScenario, AnalyzeSillyIdeaInput, AnalyzeSillyIdeaOutput } from "@/types/simulation";
+import { sanitizeAiError } from "@/ai/ai-utils";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -146,7 +148,7 @@ const StrategicAnalysisTab = () => {
             toast({ title: `Scenario ${type === 'qualitative' ? 'Analysis' : 'Forecast'} Complete`, description: "AI insights are ready below."});
         } catch (err) {
             console.error(`Error analyzing custom scenario (${type}):`, err);
-            const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+            const errorMessage = sanitizeAiError(err);
             setAnalysisError(`Failed to analyze scenario: ${errorMessage}`);
             toast({ title: `${type === 'qualitative' ? 'Analysis' : 'Forecast'} Error`, description: `Could not complete analysis. ${errorMessage}`, variant: "destructive"});
         } finally {
@@ -171,7 +173,7 @@ const StrategicAnalysisTab = () => {
             toast({ title: "AI Scenario Ideas Generated!", description: "Check the suggestions below."});
         } catch (err) {
             console.error("Error generating AI scenario suggestions:", err);
-            const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+            const errorMessage = sanitizeAiError(err);
             setAiSuggestionsError(`Failed to get AI suggestions: ${errorMessage}`);
             toast({ title: "Suggestion Error", description: `Could not get AI suggestions. ${errorMessage}`, variant: "destructive"});
         } finally {
@@ -316,7 +318,7 @@ const AbsurdityArenaTab = () => {
             setAnalysisResult(result);
             toast({ title: "Silly Idea Analyzed!", description: "The AI agents have weighed in on your glorious impracticality." });
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+            const errorMessage = sanitizeAiError(err);
             setError(`Failed to analyze idea: ${errorMessage}`);
             toast({ title: "Analysis Failed", description: errorMessage, variant: "destructive" });
         } finally {
@@ -377,7 +379,7 @@ const AbsurdityArenaTab = () => {
                         <div>
                             <h4 className="font-semibold mb-2 flex items-center gap-2"><Bot className="h-4 w-4"/>Agent Banter</h4>
                             <div className="space-y-2">
-                                {analysisResult.agentBanter.map((banter, index) => {
+                                {analysisResult.agentBanter.map((banter: any, index: number) => {
                                     const agentProfile = getAgentProfileById(banter.agentId);
                                     return (
                                         <div key={index} className="flex items-start gap-2 p-2 bg-muted rounded-md text-sm">

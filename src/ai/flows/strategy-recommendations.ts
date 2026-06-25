@@ -12,6 +12,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { withRetry } from '@/ai/ai-utils';
+
 import {z} from 'genkit';
 
 const StrategyRecommendationsInputSchema = z.object({
@@ -67,7 +69,7 @@ const strategyRecommendationsFlow = ai.defineFlow(
     outputSchema: StrategyRecommendationsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await withRetry(() => prompt(input));
     if (!output || !output.recommendations) {
       console.error("AI strategyRecommendations did not return the expected structure.", output);
       throw new Error("Failed to get complete strategic recommendations from AI. The response was malformed.");

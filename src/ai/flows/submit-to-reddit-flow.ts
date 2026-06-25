@@ -24,11 +24,12 @@ const submitToRedditFlow = ai.defineFlow(
     outputSchema: SubmitToRedditOutputSchema,
   },
   async (input) => {
-    // Format the title and body for the Reddit post
-    const postTitle = `[Absurdity Arena Idea] ${input.sillyIdeaTitle}`;
-    const agentBanterText = input.agentBanter.map(b => `> **${b.agentName}:** "${b.comment}"`).join('\n\n');
+    try {
+      // Format the title and body for the Reddit post
+      const postTitle = `[Absurdity Arena Idea] ${input.sillyIdeaTitle}`;
+      const agentBanterText = input.agentBanter.map(b => `> **${b.agentName}:** "${b.comment}"`).join('\n\n');
 
-    const postBody = `
+      const postBody = `
 **The Gloriously Impractical Idea:**
 ${input.sillyIdeaDescription}
 
@@ -44,15 +45,22 @@ ${agentBanterText}
 
 ---
 *This idea was generated and analyzed in the Inceptico Absurdity Arena, inspired by the Reddit x Bolt challenge.*
-    `;
-    
-    // Call the placeholder tool to "post" to a fictional subreddit
-    const result = await redditTool({
-      subreddit: 'sillyappideas', 
-      title: postTitle,
-      body: postBody,
-    });
+      `;
+      
+      // Call the placeholder tool to "post" to a fictional subreddit
+      const result = await redditTool({
+        subreddit: 'sillyappideas', 
+        title: postTitle,
+        body: postBody,
+      });
 
-    return result;
+      return result;
+    } catch (e: any) {
+      console.error("Error submitting to reddit:", e);
+      return {
+        success: false,
+        message: e.message || "Failed to submit to Reddit",
+      };
+    }
   }
 );
